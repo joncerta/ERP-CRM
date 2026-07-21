@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -6,6 +7,10 @@ import { useI18n } from 'vue-i18n'
 const auth = useAuthStore()
 const router = useRouter()
 const { t } = useI18n()
+
+// A platform operator manages tenants/modules — it has no CRM data of its
+// own to see, so it gets a completely different nav than a customer admin.
+const isPlatformAdmin = computed(() => auth.hasPermission('platform.tenants.manage'))
 
 function handleLogout() {
   auth.logout()
@@ -18,13 +23,15 @@ function handleLogout() {
     <aside class="sidebar">
       <div class="brand">ERP-CRM</div>
       <nav>
-        <RouterLink to="/pipeline">{{ t('nav.pipeline') }}</RouterLink>
-        <RouterLink to="/leads">{{ t('nav.leads') }}</RouterLink>
-        <RouterLink to="/companies">{{ t('nav.companies') }}</RouterLink>
-        <RouterLink to="/quotes">{{ t('nav.quotes') }}</RouterLink>
-        <RouterLink v-if="auth.hasPermission('platform.tenants.manage')" to="/platform/tenants">
-          {{ t('nav.platform') }}
-        </RouterLink>
+        <template v-if="isPlatformAdmin">
+          <RouterLink to="/platform/tenants">{{ t('nav.platform') }}</RouterLink>
+        </template>
+        <template v-else>
+          <RouterLink to="/pipeline">{{ t('nav.pipeline') }}</RouterLink>
+          <RouterLink to="/leads">{{ t('nav.leads') }}</RouterLink>
+          <RouterLink to="/companies">{{ t('nav.companies') }}</RouterLink>
+          <RouterLink to="/quotes">{{ t('nav.quotes') }}</RouterLink>
+        </template>
       </nav>
       <div class="sidebar-footer">
         <div class="muted">{{ auth.user?.email }}</div>

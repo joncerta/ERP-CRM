@@ -2,20 +2,28 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { listTenants, getTenantModules, setTenantModule } from '@/api/platform'
+import { getErrorMessage } from '@/api/error'
 import type { PlatformTenant, TenantModuleStatus } from '@/api/platform'
 
 const { t } = useI18n()
 
 const tenants = ref<PlatformTenant[]>([])
 const loading = ref(true)
+const error = ref('')
 const expandedId = ref<string | null>(null)
 const modulesByTenant = ref<Record<string, TenantModuleStatus[]>>({})
 const togglingCode = ref<string | null>(null)
 
 async function load() {
   loading.value = true
-  tenants.value = await listTenants()
-  loading.value = false
+  error.value = ''
+  try {
+    tenants.value = await listTenants()
+  } catch (err) {
+    error.value = getErrorMessage(err)
+  } finally {
+    loading.value = false
+  }
 }
 
 async function toggleExpand(tenant: PlatformTenant) {
@@ -51,6 +59,7 @@ onMounted(load)
     <p class="muted" style="margin-bottom: 1rem">{{ t('platform.subtitle') }}</p>
 
     <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
+    <p v-else-if="error" class="error-text">{{ error }}</p>
     <table v-else>
       <thead>
         <tr>

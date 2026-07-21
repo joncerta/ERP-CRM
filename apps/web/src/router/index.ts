@@ -32,21 +32,25 @@ const router = createRouter({
       path: '/pipeline',
       name: 'pipeline',
       component: () => import('@/views/PipelineView.vue'),
+      meta: { crmRoute: true },
     },
     {
       path: '/leads',
       name: 'leads',
       component: () => import('@/views/LeadsView.vue'),
+      meta: { crmRoute: true },
     },
     {
       path: '/companies',
       name: 'companies',
       component: () => import('@/views/CompaniesView.vue'),
+      meta: { crmRoute: true },
     },
     {
       path: '/quotes',
       name: 'quotes',
       component: () => import('@/views/QuotesView.vue'),
+      meta: { crmRoute: true },
     },
     {
       path: '/platform/tenants',
@@ -66,6 +70,11 @@ router.beforeEach((to) => {
   const requiredPermission = to.meta.requiresPermission as string | undefined;
   if (requiredPermission && !auth.hasPermission(requiredPermission)) {
     return { name: 'pipeline' };
+  }
+  // Platform operators have no CRM data of their own — keep them out of
+  // customer-facing screens entirely, not just off the nav.
+  if (to.meta.crmRoute && auth.hasPermission('platform.tenants.manage')) {
+    return { name: 'platform-tenants' };
   }
   return true;
 });

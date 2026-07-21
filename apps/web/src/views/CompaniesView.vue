@@ -2,11 +2,13 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { listCompanies, createCompany } from '@/api/companies'
+import { getErrorMessage } from '@/api/error'
 import type { Company } from '@/api/types'
 
 const { t } = useI18n()
 const companies = ref<Company[]>([])
 const loading = ref(true)
+const error = ref('')
 const showModal = ref(false)
 const saving = ref(false)
 
@@ -14,8 +16,14 @@ const form = ref({ name: '', email: '', phone: '', city: '', country: '' })
 
 async function load() {
   loading.value = true
-  companies.value = await listCompanies()
-  loading.value = false
+  error.value = ''
+  try {
+    companies.value = await listCompanies()
+  } catch (err) {
+    error.value = getErrorMessage(err)
+  } finally {
+    loading.value = false
+  }
 }
 
 function openModal() {
@@ -45,6 +53,7 @@ onMounted(load)
     </div>
 
     <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
+    <p v-else-if="error" class="error-text">{{ error }}</p>
     <table v-else>
       <thead>
         <tr>

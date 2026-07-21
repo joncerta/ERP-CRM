@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 import { listLeads, createLead } from '@/api/leads'
 import { createOpportunityFromLead } from '@/api/opportunities'
 import { listCompanies } from '@/api/companies'
+import { getErrorMessage } from '@/api/error'
 import type { Lead, Company } from '@/api/types'
 
 const { t } = useI18n()
@@ -13,6 +14,7 @@ const router = useRouter()
 const leads = ref<Lead[]>([])
 const companies = ref<Company[]>([])
 const loading = ref(true)
+const error = ref('')
 const showModal = ref(false)
 const saving = ref(false)
 const convertingId = ref<string | null>(null)
@@ -21,10 +23,16 @@ const form = ref({ name: '', companyId: '', source: '', estimatedBudget: undefin
 
 async function load() {
   loading.value = true
-  const [leadsData, companiesData] = await Promise.all([listLeads(), listCompanies()])
-  leads.value = leadsData
-  companies.value = companiesData
-  loading.value = false
+  error.value = ''
+  try {
+    const [leadsData, companiesData] = await Promise.all([listLeads(), listCompanies()])
+    leads.value = leadsData
+    companies.value = companiesData
+  } catch (err) {
+    error.value = getErrorMessage(err)
+  } finally {
+    loading.value = false
+  }
 }
 
 function companyName(id: string | null) {
@@ -82,6 +90,7 @@ onMounted(load)
     </div>
 
     <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
+    <p v-else-if="error" class="error-text">{{ error }}</p>
     <table v-else>
       <thead>
         <tr>

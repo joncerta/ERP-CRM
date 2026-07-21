@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { listQuotes, createQuote, sendQuote, createFollowUp } from '@/api/quotes'
 import { listCompanies } from '@/api/companies'
+import { getErrorMessage } from '@/api/error'
 import type { Quote, Company } from '@/api/types'
 import type { QuoteItemInput } from '@/api/quotes'
 
@@ -11,6 +12,7 @@ const { t } = useI18n()
 const quotes = ref<Quote[]>([])
 const companies = ref<Company[]>([])
 const loading = ref(true)
+const error = ref('')
 const showModal = ref(false)
 const saving = ref(false)
 const sendingId = ref<string | null>(null)
@@ -27,10 +29,16 @@ const form = ref({
 
 async function load() {
   loading.value = true
-  const [quotesData, companiesData] = await Promise.all([listQuotes(), listCompanies()])
-  quotes.value = quotesData
-  companies.value = companiesData
-  loading.value = false
+  error.value = ''
+  try {
+    const [quotesData, companiesData] = await Promise.all([listQuotes(), listCompanies()])
+    quotes.value = quotesData
+    companies.value = companiesData
+  } catch (err) {
+    error.value = getErrorMessage(err)
+  } finally {
+    loading.value = false
+  }
 }
 
 function companyName(id: string) {
@@ -121,6 +129,7 @@ onMounted(load)
     </div>
 
     <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
+    <p v-else-if="error" class="error-text">{{ error }}</p>
     <table v-else>
       <thead>
         <tr>

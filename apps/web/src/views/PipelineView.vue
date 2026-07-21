@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { listPipelineStages, listOpportunities, moveOpportunityStage } from '@/api/opportunities'
 import { listCompanies } from '@/api/companies'
+import { getErrorMessage } from '@/api/error'
 import type { PipelineStage, Opportunity, Company } from '@/api/types'
 
 const { t } = useI18n()
@@ -11,20 +12,27 @@ const stages = ref<PipelineStage[]>([])
 const opportunities = ref<Opportunity[]>([])
 const companies = ref<Company[]>([])
 const loading = ref(true)
+const error = ref('')
 const draggingId = ref<string | null>(null)
 const dragOverStageId = ref<string | null>(null)
 
 async function load() {
   loading.value = true
-  const [stagesData, opportunitiesData, companiesData] = await Promise.all([
-    listPipelineStages(),
-    listOpportunities(),
-    listCompanies(),
-  ])
-  stages.value = [...stagesData].sort((a, b) => a.order - b.order)
-  opportunities.value = opportunitiesData
-  companies.value = companiesData
-  loading.value = false
+  error.value = ''
+  try {
+    const [stagesData, opportunitiesData, companiesData] = await Promise.all([
+      listPipelineStages(),
+      listOpportunities(),
+      listCompanies(),
+    ])
+    stages.value = [...stagesData].sort((a, b) => a.order - b.order)
+    opportunities.value = opportunitiesData
+    companies.value = companiesData
+  } catch (err) {
+    error.value = getErrorMessage(err)
+  } finally {
+    loading.value = false
+  }
 }
 
 function opportunitiesByStage(stageId: string) {
@@ -83,6 +91,7 @@ onMounted(load)
     </div>
 
     <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
+    <p v-else-if="error" class="error-text">{{ error }}</p>
     <div v-else class="board">
       <div
         v-for="stage in stages"
