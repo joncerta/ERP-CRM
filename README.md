@@ -86,7 +86,8 @@ npm run seed            # monedas + catálogo de módulos
 npm run start:dev
 ```
 
-La API queda en `http://localhost:3000/api`.
+La API queda en `http://localhost:3000/api`. `npm run seed` deja además un
+tenant administrador listo para entrar (ver siguiente sección).
 
 ### 3. Frontend
 
@@ -97,10 +98,24 @@ npm install
 npm run dev
 ```
 
-## Alta de un tenant (onboarding manual)
+## Tenant administrador por defecto (seed)
 
-No hay registro self-service todavía. Un nuevo cliente se crea con su
-usuario administrador en un solo paso, usando la clave de
+`npm run seed` crea, además de monedas y catálogo de módulos, un tenant
+administrador listo para usar (con el módulo `crm` ya activo) si todavía no
+existe — es idempotente, correrlo de nuevo no lo duplica:
+
+- Empresa (slug): `admin`
+- Correo: `admin@admin.com`
+- Contraseña: `Admin123!`
+
+Para no usar estos valores por defecto (recomendado si vas a desplegar),
+define antes de sembrar: `SEED_TENANT_SLUG`, `SEED_TENANT_NAME`,
+`SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`, `SEED_ADMIN_NAME` (ver
+`apps/api/.env.example`).
+
+## Alta de un tenant adicional (onboarding manual)
+
+Para crear más clientes además del tenant admin del seed, usa la clave de
 `PLATFORM_ADMIN_KEY`:
 
 ```bash

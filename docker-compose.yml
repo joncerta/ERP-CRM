@@ -37,6 +37,11 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
       JWT_EXPIRES_IN: 8h
       PLATFORM_ADMIN_KEY: ${PLATFORM_ADMIN_KEY:-change-me-too}
+      SEED_TENANT_SLUG: ${SEED_TENANT_SLUG:-admin}
+      SEED_TENANT_NAME: ${SEED_TENANT_NAME:-Administración}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@admin.com}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-Admin123!}
+      SEED_ADMIN_NAME: ${SEED_ADMIN_NAME:-Administrador}
     ports:
       - '3000:3000'
     volumes:
