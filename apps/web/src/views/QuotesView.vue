@@ -3,37 +3,48 @@ import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { listQuotes, createQuote, sendQuote, createFollowUp } from '@/api/quotes'
 import { listCompanies } from '@/api/companies'
+import { listContacts } from '@/api/contacts'
 import { getErrorMessage } from '@/api/error'
-import type { Quote, Company } from '@/api/types'
+import { compact } from '@/utils/compact'
+import type { Quote, Company, Contact } from '@/api/types'
 import type { QuoteItemInput } from '@/api/quotes'
 
 const { t } = useI18n()
 
 const quotes = ref<Quote[]>([])
 const companies = ref<Company[]>([])
+const contacts = ref<Contact[]>([])
 const loading = ref(true)
 const error = ref('')
 const showModal = ref(false)
 const saving = ref(false)
+const formError = ref('')
 const sendingId = ref<string | null>(null)
 const followUpQuote = ref<Quote | null>(null)
 const followUpDate = ref('')
 const followUpNote = ref('')
+const followUpError = ref('')
 
 const form = ref({
   companyId: '',
+  contactId: '',
   currencyCode: 'USD',
   taxRate: 0,
   items: [{ description: '', quantity: 1, unitPrice: 0 }] as QuoteItemInput[],
 })
 
+const contactsForSelectedCompany = computed(() =>
+  form.value.companyId ? contacts.value.filter((c) => c.companyId === form.value.companyId) : contacts.value,
+)
+
 async function load() {
   loading.value = true
   error.value = ''
   try {
-    const [quotesData, companiesData] = await Promise.all([listQuotes(), listCompanies()])
+    const [quotesData, companiesData, contactsData] = await Promise.all([listQuotes(), listCompanies(), listContacts()])
     quotes.value = quotesData
     companies.value = companiesData
+    contacts.value = contactsData
   } catch (err) {
     error.value = getErrorMessage(err)
   } finally {
@@ -48,10 +59,12 @@ function companyName(id: string) {
 function openModal() {
   form.value = {
     companyId: '',
+    contactId: '',
     currencyCode: 'USD',
     taxRate: 0,
     items: [{ description: '', quantity: 1, unitPrice: 0 }],
   }
+  formError.value = ''
   showModal.value = true
 }
 
@@ -71,10 +84,13 @@ const formTotal = computed(() => {
 
 async function submit() {
   saving.value = true
+  formError.value = ''
   try {
-    await createQuote(form.value)
+    await createQuote(compact(form.value) as typeof form.value)
     showModal.value = false
     await load()
+  } catch (err) {
+    formError.value = getErrorMessage(err)
   } finally {
     saving.value = false
   }
@@ -94,15 +110,21 @@ function openFollowUp(quote: Quote) {
   followUpQuote.value = quote
   followUpDate.value = ''
   followUpNote.value = ''
+  followUpError.value = ''
 }
 
 async function submitFollowUp() {
   if (!followUpQuote.value || !followUpDate.value) return
-  await createFollowUp(followUpQuote.value.id, {
-    dueAt: new Date(followUpDate.value).toISOString(),
-    note: followUpNote.value || undefined,
-  })
-  followUpQuote.value = null
+  followUpError.value = ''
+  try {
+    await createFollowUp(followUpQuote.value.id, {
+      dueAt: new Date(followUpDate.value).toISOString(),
+      note: followUpNote.value || undefined,
+    })
+    followUpQuote.value = null
+  } catch (err) {
+    followUpError.value = getErrorMessage(err)
+  }
 }
 
 function publicUrl(quote: Quote) {
@@ -173,6 +195,15 @@ onMounted(load)
             <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
           </select>
         </div>
+        <div class="field">
+          <label>{{ t('contacts.title') }}</label>
+          <select v-model="form.contactId">
+            <option value="">—</option>
+            <option v-for="c in contactsForSelectedCompany" :key="c.id" :value="c.id">
+              {{ c.firstName }} {{ c.lastName || '' }}
+            </option>
+          </select>
+        </div>
 
         <table class="items-table">
           <thead>
@@ -207,6 +238,7 @@ onMounted(load)
 
         <p class="total-line">{{ t('quotes.total') }}: {{ form.currencyCode }} {{ formTotal.toLocaleString() }}</p>
 
+        <p v-if="formError" class="error-text">{{ formError }}</p>
         <div class="modal-actions">
           <button type="button" class="btn secondary" @click="showModal = false">{{ t('common.cancel') }}</button>
           <button type="submit" class="btn" :disabled="saving">{{ t('common.save') }}</button>
@@ -226,6 +258,7 @@ onMounted(load)
           <label>Nota</label>
           <textarea v-model="followUpNote" rows="2"></textarea>
         </div>
+        <p v-if="followUpError" class="error-text">{{ followUpError }}</p>
         <div class="modal-actions">
           <button type="button" class="btn secondary" @click="followUpQuote = null">{{ t('common.cancel') }}</button>
           <button type="submit" class="btn">{{ t('common.save') }}</button>

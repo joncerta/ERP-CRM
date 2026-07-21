@@ -1,4 +1,5 @@
 import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { EmptyToUndefined } from '../../../common/decorators/empty-to-undefined.decorator';
 
 export class CreateCompanyDto {
   @IsString()
@@ -17,6 +18,7 @@ export class CreateCompanyDto {
   phone?: string;
 
   @IsOptional()
+  @EmptyToUndefined()
   @IsEmail()
   email?: string;
 

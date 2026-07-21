@@ -107,6 +107,19 @@ export interface QuoteFollowUp {
   assignedToUserId: string;
 }
 
+export interface PendingFollowUp {
+  id: string;
+  quoteId: string;
+  dueAt: string;
+  note: string | null;
+  status: QuoteFollowUpStatus;
+  assignedToUserId: string;
+  quoteNumber: string;
+  quoteStatus: QuoteStatus | 'unknown';
+  companyId: string;
+  companyName: string;
+}
+
 export interface Currency {
   code: string;
   name: string;

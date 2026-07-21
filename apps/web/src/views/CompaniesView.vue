@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { listCompanies, createCompany } from '@/api/companies'
 import { getErrorMessage } from '@/api/error'
+import { compact } from '@/utils/compact'
 import type { Company } from '@/api/types'
 
 const { t } = useI18n()
@@ -11,6 +12,7 @@ const loading = ref(true)
 const error = ref('')
 const showModal = ref(false)
 const saving = ref(false)
+const formError = ref('')
 
 const form = ref({ name: '', email: '', phone: '', city: '', country: '' })
 
@@ -28,15 +30,19 @@ async function load() {
 
 function openModal() {
   form.value = { name: '', email: '', phone: '', city: '', country: '' }
+  formError.value = ''
   showModal.value = true
 }
 
 async function submit() {
   saving.value = true
+  formError.value = ''
   try {
-    await createCompany(form.value)
+    await createCompany(compact(form.value))
     showModal.value = false
     await load()
+  } catch (err) {
+    formError.value = getErrorMessage(err)
   } finally {
     saving.value = false
   }
@@ -101,6 +107,7 @@ onMounted(load)
           <label>{{ t('companies.country') }}</label>
           <input v-model="form.country" />
         </div>
+        <p v-if="formError" class="error-text">{{ formError }}</p>
         <div class="modal-actions">
           <button type="button" class="btn secondary" @click="showModal = false">
             {{ t('common.cancel') }}

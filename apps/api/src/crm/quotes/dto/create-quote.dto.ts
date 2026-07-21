@@ -1,9 +1,11 @@
 import { Type } from 'class-transformer';
 import { ArrayMinSize, IsArray, IsDateString, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
 import { QuoteItemDto } from './quote-item.dto';
+import { EmptyToUndefined } from '../../../common/decorators/empty-to-undefined.decorator';
 
 export class CreateQuoteDto {
   @IsOptional()
+  @EmptyToUndefined()
   @IsUUID()
   opportunityId?: string;
 
@@ -11,6 +13,7 @@ export class CreateQuoteDto {
   companyId: string;
 
   @IsOptional()
+  @EmptyToUndefined()
   @IsUUID()
   contactId?: string;
 
@@ -24,6 +27,7 @@ export class CreateQuoteDto {
   taxRate?: number; // percentage, e.g. 19 for 19%
 
   @IsOptional()
+  @EmptyToUndefined()
   @IsDateString()
   validUntil?: string;
 

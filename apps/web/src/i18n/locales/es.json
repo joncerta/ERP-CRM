@@ -1,7 +1,9 @@
 {
   "nav": {
     "pipeline": "Pipeline",
+    "reminders": "Recordatorios",
     "leads": "Leads",
+    "contacts": "Contactos",
     "companies": "Empresas",
     "quotes": "Cotizaciones",
     "platform": "Plataforma",
@@ -71,6 +73,19 @@
       "rejected": "Rechazada",
       "expired": "Expirada"
     }
+  },
+  "contacts": {
+    "title": "Contactos",
+    "newContact": "Nuevo contacto",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "position": "Cargo"
+  },
+  "reminders": {
+    "title": "Recordatorios",
+    "subtitle": "Seguimientos pendientes de tus cotizaciones — no pierdas ventas por olvidarlos.",
+    "empty": "No tienes recordatorios pendientes.",
+    "markDone": "Marcar hecho"
   },
   "platform": {
     "title": "Plataforma",

@@ -47,9 +47,21 @@ const router = createRouter({
       meta: { crmRoute: true },
     },
     {
+      path: '/contacts',
+      name: 'contacts',
+      component: () => import('@/views/ContactsView.vue'),
+      meta: { crmRoute: true },
+    },
+    {
       path: '/quotes',
       name: 'quotes',
       component: () => import('@/views/QuotesView.vue'),
+      meta: { crmRoute: true },
+    },
+    {
+      path: '/reminders',
+      name: 'reminders',
+      component: () => import('@/views/RemindersView.vue'),
       meta: { crmRoute: true },
     },
     {

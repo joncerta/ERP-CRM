@@ -160,6 +160,22 @@ tenant no lo tiene activo. Dos formas de activar/desactivar:
   `platform.tenants.manage`, ver sección anterior): pantalla `Plataforma`
   en el frontend, o `PATCH /api/platform/tenants/:tenantId/modules/:code`
 
+## Tests (backend)
+
+```bash
+cd apps/api
+npm run test        # unitarios — guards, servicios (sin DB, todo mockeado)
+npm run test:e2e    # contra Postgres real: bootstrap de tenant, aislamiento
+                     # multi-tenant, gating de módulos, flujo completo
+                     # lead → oportunidad → cotización → seguimiento
+```
+
+`test:e2e` necesita una base con las migraciones aplicadas (`npm run
+migration:run`). Crea sus propios tenants con slugs únicos por corrida
+(`e2e-<timestamp>-...`), así que no toca ni depende de los tenants
+`admin`/`cliente` del seed — es seguro correrlo repetidamente sin resetear
+la base.
+
 ## Estructura
 
 ```

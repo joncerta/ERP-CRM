@@ -28,7 +28,9 @@ function handleLogout() {
         </template>
         <template v-else>
           <RouterLink to="/pipeline">{{ t('nav.pipeline') }}</RouterLink>
+          <RouterLink to="/reminders">{{ t('nav.reminders') }}</RouterLink>
           <RouterLink to="/leads">{{ t('nav.leads') }}</RouterLink>
+          <RouterLink to="/contacts">{{ t('nav.contacts') }}</RouterLink>
           <RouterLink to="/companies">{{ t('nav.companies') }}</RouterLink>
           <RouterLink to="/quotes">{{ t('nav.quotes') }}</RouterLink>
         </template>

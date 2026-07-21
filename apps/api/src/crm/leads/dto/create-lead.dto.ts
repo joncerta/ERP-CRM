@@ -1,15 +1,18 @@
 import { IsEnum, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 import { LeadPriority, LeadStatus } from '../entities/lead.entity';
+import { EmptyToUndefined } from '../../../common/decorators/empty-to-undefined.decorator';
 
 export class CreateLeadDto {
   @IsString()
   name: string;
 
   @IsOptional()
+  @EmptyToUndefined()
   @IsUUID()
   companyId?: string;
 
   @IsOptional()
+  @EmptyToUndefined()
   @IsUUID()
   contactId?: string;
 
@@ -34,6 +37,7 @@ export class CreateLeadDto {
   priority?: LeadPriority;
 
   @IsOptional()
+  @EmptyToUndefined()
   @IsUUID()
   ownerUserId?: string;
 }

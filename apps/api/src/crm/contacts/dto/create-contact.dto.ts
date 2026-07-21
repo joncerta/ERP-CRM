@@ -1,7 +1,9 @@
 import { IsEmail, IsOptional, IsString, IsUUID } from 'class-validator';
+import { EmptyToUndefined } from '../../../common/decorators/empty-to-undefined.decorator';
 
 export class CreateContactDto {
   @IsOptional()
+  @EmptyToUndefined()
   @IsUUID()
   companyId?: string;
 
@@ -17,6 +19,7 @@ export class CreateContactDto {
   position?: string;
 
   @IsOptional()
+  @EmptyToUndefined()
   @IsEmail()
   email?: string;
 

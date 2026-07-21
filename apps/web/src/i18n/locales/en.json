@@ -1,7 +1,9 @@
 {
   "nav": {
     "pipeline": "Pipeline",
+    "reminders": "Reminders",
     "leads": "Leads",
+    "contacts": "Contacts",
     "companies": "Companies",
     "quotes": "Quotes",
     "platform": "Platform",
@@ -71,6 +73,19 @@
       "rejected": "Rejected",
       "expired": "Expired"
     }
+  },
+  "contacts": {
+    "title": "Contacts",
+    "newContact": "New contact",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "position": "Position"
+  },
+  "reminders": {
+    "title": "Reminders",
+    "subtitle": "Pending follow-ups on your quotes — don't lose sales by forgetting them.",
+    "empty": "No pending reminders.",
+    "markDone": "Mark done"
   },
   "platform": {
     "title": "Platform",

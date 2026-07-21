@@ -1,33 +1,47 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { listLeads, createLead } from '@/api/leads'
 import { createOpportunityFromLead } from '@/api/opportunities'
 import { listCompanies } from '@/api/companies'
+import { listContacts } from '@/api/contacts'
 import { getErrorMessage } from '@/api/error'
-import type { Lead, Company } from '@/api/types'
+import type { Lead, Company, Contact } from '@/api/types'
 
 const { t } = useI18n()
 const router = useRouter()
 
 const leads = ref<Lead[]>([])
 const companies = ref<Company[]>([])
+const contacts = ref<Contact[]>([])
 const loading = ref(true)
 const error = ref('')
 const showModal = ref(false)
 const saving = ref(false)
+const formError = ref('')
 const convertingId = ref<string | null>(null)
 
-const form = ref({ name: '', companyId: '', source: '', estimatedBudget: undefined as number | undefined })
+const form = ref({
+  name: '',
+  companyId: '',
+  contactId: '',
+  source: '',
+  estimatedBudget: undefined as number | undefined,
+})
+
+const contactsForSelectedCompany = computed(() =>
+  form.value.companyId ? contacts.value.filter((c) => c.companyId === form.value.companyId) : contacts.value,
+)
 
 async function load() {
   loading.value = true
   error.value = ''
   try {
-    const [leadsData, companiesData] = await Promise.all([listLeads(), listCompanies()])
+    const [leadsData, companiesData, contactsData] = await Promise.all([listLeads(), listCompanies(), listContacts()])
     leads.value = leadsData
     companies.value = companiesData
+    contacts.value = contactsData
   } catch (err) {
     error.value = getErrorMessage(err)
   } finally {
@@ -40,21 +54,26 @@ function companyName(id: string | null) {
 }
 
 function openModal() {
-  form.value = { name: '', companyId: '', source: '', estimatedBudget: undefined }
+  form.value = { name: '', companyId: '', contactId: '', source: '', estimatedBudget: undefined }
+  formError.value = ''
   showModal.value = true
 }
 
 async function submit() {
   saving.value = true
+  formError.value = ''
   try {
     await createLead({
       name: form.value.name,
       companyId: form.value.companyId || undefined,
+      contactId: form.value.contactId || undefined,
       source: form.value.source || undefined,
       estimatedBudget: form.value.estimatedBudget,
     })
     showModal.value = false
     await load()
+  } catch (err) {
+    formError.value = getErrorMessage(err)
   } finally {
     saving.value = false
   }
@@ -141,6 +160,15 @@ onMounted(load)
           </select>
         </div>
         <div class="field">
+          <label>{{ t('contacts.title') }}</label>
+          <select v-model="form.contactId">
+            <option value="">—</option>
+            <option v-for="c in contactsForSelectedCompany" :key="c.id" :value="c.id">
+              {{ c.firstName }} {{ c.lastName || '' }}
+            </option>
+          </select>
+        </div>
+        <div class="field">
           <label>{{ t('leads.source') }}</label>
           <input v-model="form.source" placeholder="referido, web, feria..." />
         </div>
@@ -148,6 +176,7 @@ onMounted(load)
           <label>{{ t('leads.budget') }}</label>
           <input v-model.number="form.estimatedBudget" type="number" min="0" />
         </div>
+        <p v-if="formError" class="error-text">{{ formError }}</p>
         <div class="modal-actions">
           <button type="button" class="btn secondary" @click="showModal = false">
             {{ t('common.cancel') }}

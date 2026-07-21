@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { Quote, QuoteFollowUp } from './types';
+import type { Quote, QuoteFollowUp, PendingFollowUp } from './types';
 
 export interface QuoteItemInput {
   description: string;
@@ -32,7 +32,7 @@ export async function sendQuote(id: string): Promise<Quote> {
   return data;
 }
 
-export async function listPendingFollowUps(): Promise<QuoteFollowUp[]> {
+export async function listPendingFollowUps(): Promise<PendingFollowUp[]> {
   const { data } = await apiClient.get('/crm/quotes/follow-ups/pending');
   return data;
 }
