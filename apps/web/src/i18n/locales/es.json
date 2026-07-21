@@ -1,0 +1,81 @@
+{
+  "nav": {
+    "pipeline": "Pipeline",
+    "leads": "Leads",
+    "companies": "Empresas",
+    "quotes": "Cotizaciones",
+    "logout": "Cerrar sesión"
+  },
+  "login": {
+    "title": "Iniciar sesión",
+    "tenantSlug": "Empresa (slug)",
+    "email": "Correo",
+    "password": "Contraseña",
+    "submit": "Entrar",
+    "error": "Credenciales inválidas"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "create": "Crear",
+    "new": "Nuevo",
+    "name": "Nombre",
+    "email": "Correo",
+    "phone": "Teléfono",
+    "actions": "Acciones"
+  },
+  "leads": {
+    "title": "Leads",
+    "newLead": "Nuevo lead",
+    "source": "Fuente",
+    "budget": "Presupuesto estimado",
+    "status": {
+      "new": "Nuevo",
+      "contacted": "Contactado",
+      "qualified": "Calificado",
+      "disqualified": "Descartado",
+      "converted": "Convertido"
+    },
+    "convert": "Convertir a oportunidad"
+  },
+  "companies": {
+    "title": "Empresas",
+    "newCompany": "Nueva empresa",
+    "city": "Ciudad",
+    "country": "País"
+  },
+  "pipeline": {
+    "title": "Pipeline de oportunidades",
+    "value": "Valor"
+  },
+  "quotes": {
+    "title": "Cotizaciones",
+    "newQuote": "Nueva cotización",
+    "send": "Enviar",
+    "addItem": "Agregar ítem",
+    "description": "Descripción",
+    "quantity": "Cantidad",
+    "unitPrice": "Precio unitario",
+    "subtotal": "Subtotal",
+    "tax": "Impuesto",
+    "total": "Total",
+    "views": "Vistas",
+    "scheduleFollowUp": "Programar recordatorio",
+    "status": {
+      "draft": "Borrador",
+      "sent": "Enviada",
+      "viewed": "Vista",
+      "accepted": "Aceptada",
+      "rejected": "Rechazada",
+      "expired": "Expirada"
+    }
+  },
+  "publicQuote": {
+    "title": "Cotización",
+    "accept": "Aceptar cotización",
+    "reject": "Rechazar",
+    "thanksAccepted": "¡Gracias! Cotización aceptada.",
+    "thanksRejected": "Cotización rechazada."
+  }
+}
