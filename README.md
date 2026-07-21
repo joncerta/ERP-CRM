@@ -13,7 +13,61 @@ leads, pipeline de oportunidades y cotizaciones con seguimiento.
   en cada consulta de servicio)
 - **Infra objetivo**: Railway (API + Postgres), Netlify (frontend)
 
-## Arranque local
+## Arranque local con Docker (recomendado)
+
+Levanta todo (Postgres + API + Frontend + visor de base de datos) con un
+solo comando, sin instalar Node ni Postgres en tu máquina:
+
+```bash
+docker compose up --build
+```
+
+- Frontend: `http://localhost:5173`
+- API: `http://localhost:3000/api`
+- Adminer (ver la base de datos): `http://localhost:8080`
+
+El contenedor de la API corre las migraciones y el seed automáticamente
+cada vez que arranca (ambos son idempotentes), así que no hay pasos
+manuales adicionales. El código de `apps/api` y `apps/web` está montado
+como volumen, así que los cambios que hagas en el host recargan solo
+(hot reload) dentro del contenedor.
+
+Para cambiar `JWT_SECRET` o `PLATFORM_ADMIN_KEY` de sus valores por
+defecto, crea un archivo `.env` en la raíz del repo (al lado de
+`docker-compose.yml`) con:
+
+```
+JWT_SECRET=algo-mas-seguro
+PLATFORM_ADMIN_KEY=otra-clave-solo-tuya
+```
+
+Para apagar todo: `docker compose down` (agrega `-v` si además quieres
+borrar los datos de Postgres).
+
+### Ver la base de datos que corre en Docker
+
+**Opción 1 — Adminer (navegador, sin instalar nada):**
+Abre `http://localhost:8080` y entra con:
+- Sistema: `PostgreSQL`
+- Servidor: `postgres`
+- Usuario: `erp_crm`
+- Contraseña: `erp_crm`
+- Base de datos: `erp_crm`
+
+**Opción 2 — psql dentro del contenedor:**
+
+```bash
+docker compose exec postgres psql -U erp_crm -d erp_crm
+```
+
+**Opción 3 — un cliente gráfico en tu máquina** (TablePlus, DBeaver,
+Postico, pgAdmin...): el puerto 5432 de Postgres está publicado al host,
+así que te conectas como si fuera una base local:
+- Host: `localhost`
+- Puerto: `5432`
+- Usuario / contraseña / base de datos: `erp_crm` / `erp_crm` / `erp_crm`
+
+## Arranque local sin Docker (alternativa)
 
 ### 1. Base de datos
 
@@ -87,5 +141,6 @@ apps/
   api/   NestJS — src/core (tenants, users, roles, auth, modules-catalog,
          currencies) y src/crm (companies, contacts, leads,
          pipeline-stages, opportunities, quotes)
-  web/   Vue 3 (scaffold inicial, pendiente de construir las vistas)
+  web/   Vue 3 — login, pipeline (kanban), leads, empresas, cotizaciones
+         y la vista pública de cotización (/q/:token)
 ```
