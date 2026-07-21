@@ -4,6 +4,7 @@
     "leads": "Leads",
     "companies": "Empresas",
     "quotes": "Cotizaciones",
+    "platform": "Plataforma",
     "logout": "Cerrar sesión"
   },
   "login": {
@@ -70,6 +71,16 @@
       "rejected": "Rechazada",
       "expired": "Expirada"
     }
+  },
+  "platform": {
+    "title": "Plataforma",
+    "subtitle": "Empresas registradas en el SaaS y sus módulos activos.",
+    "currency": "Moneda",
+    "manageModules": "Gestionar módulos",
+    "hideModules": "Ocultar",
+    "core": "Núcleo",
+    "enable": "Activar",
+    "disable": "Desactivar"
   },
   "publicQuote": {
     "title": "Cotización",

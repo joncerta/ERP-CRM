@@ -15,7 +15,15 @@ export class PermissionsGuard implements CanActivate {
     if (!required || required.length === 0) return true;
 
     const user: AuthenticatedUser = context.switchToHttp().getRequest().user;
-    const hasAll = required.every((p) => user?.permissions?.includes(p) || user?.permissions?.includes('*'));
+    // '*' (granted to every tenant's "Administrador" role) covers all
+    // tenant-scoped permissions, but never platform.* ones — those manage
+    // data across tenants and must be granted explicitly, or any customer
+    // admin could see/touch every other tenant on the platform.
+    const hasAll = required.every((p) => {
+      if (user?.permissions?.includes(p)) return true;
+      if (p.startsWith('platform.')) return false;
+      return user?.permissions?.includes('*') ?? false;
+    });
     if (!hasAll) {
       throw new ForbiddenException('No tienes permisos para realizar esta acción');
     }

@@ -19,6 +19,23 @@ export class ModulesCatalogService {
     return this.tenantModulesRepo.find({ where: { tenantId, isEnabled: true } });
   }
 
+  /** Full catalog with this tenant's on/off state — used by the platform admin panel. */
+  async findStatusForTenant(
+    tenantId: string,
+  ): Promise<Array<{ code: string; name: string; description: string | null; isCore: boolean; isEnabled: boolean }>> {
+    const [definitions, tenantModules] = await Promise.all([
+      this.definitionsRepo.find(),
+      this.tenantModulesRepo.find({ where: { tenantId } }),
+    ]);
+    return definitions.map((def) => ({
+      code: def.code,
+      name: def.name,
+      description: def.description,
+      isCore: def.isCore,
+      isEnabled: def.isCore || (tenantModules.find((tm) => tm.moduleCode === def.code)?.isEnabled ?? false),
+    }));
+  }
+
   async isEnabledForTenant(tenantId: string, moduleCode: string): Promise<boolean> {
     const definition = await this.definitionsRepo.findOne({ where: { code: moduleCode } });
     if (definition?.isCore) return true;

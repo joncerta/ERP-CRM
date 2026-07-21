@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import * as bcrypt from 'bcrypt';
+import { DataSource } from 'typeorm';
 import dataSource from '../../config/typeorm.config';
 import { Currency } from '../../core/currencies/entities/currency.entity';
 import { ModuleDefinition } from '../../core/modules-catalog/entities/module-definition.entity';
@@ -20,58 +21,68 @@ const MODULES = [
   { code: 'crm', name: 'CRM Comercial', description: 'Contactos, leads, oportunidades y cotizaciones', isCore: false },
 ];
 
-// Default admin tenant, overridable via env so it never has to be hardcoded
-// for a real deployment — just export different values before running the seed.
-const SEED_TENANT_SLUG = process.env.SEED_TENANT_SLUG ?? 'admin';
-const SEED_TENANT_NAME = process.env.SEED_TENANT_NAME ?? 'Administración';
-const SEED_ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? 'admin@admin.com';
-const SEED_ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? 'Admin123!';
-const SEED_ADMIN_NAME = process.env.SEED_ADMIN_NAME ?? 'Administrador';
 const SALT_ROUNDS = 12;
 
-async function seedAdminTenant(ds: Awaited<ReturnType<typeof dataSource.initialize>>) {
+interface SeedTenantOptions {
+  slug: string;
+  name: string;
+  adminEmail: string;
+  adminPassword: string;
+  adminFullName: string;
+  /** Extra permissions appended only to this tenant's Administrador role — never granted by '*'. */
+  extraAdminPermissions?: string[];
+  enableCrm?: boolean;
+}
+
+async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
   const tenantRepo = ds.getRepository(Tenant);
   const roleRepo = ds.getRepository(Role);
   const userRepo = ds.getRepository(User);
   const tenantModuleRepo = ds.getRepository(TenantModule);
 
-  const existing = await tenantRepo.findOne({ where: { slug: SEED_TENANT_SLUG } });
+  const existing = await tenantRepo.findOne({ where: { slug: opts.slug } });
   if (existing) {
-    console.log(`Tenant admin "${SEED_TENANT_SLUG}" ya existe, no se vuelve a crear.`);
+    console.log(`Tenant "${opts.slug}" ya existe, no se vuelve a crear.`);
     return;
   }
 
   const tenant = await tenantRepo.save(
-    tenantRepo.create({ slug: SEED_TENANT_SLUG, name: SEED_TENANT_NAME, defaultLocale: 'es', defaultCurrencyCode: 'USD' }),
+    tenantRepo.create({ slug: opts.slug, name: opts.name, defaultLocale: 'es', defaultCurrencyCode: 'USD' }),
   );
 
   const roles = await roleRepo.save(
-    DEFAULT_ROLE_TEMPLATES.map((template) =>
-      roleRepo.create({ tenantId: tenant.id, name: template.name, permissions: template.permissions, isSystem: true }),
-    ),
+    DEFAULT_ROLE_TEMPLATES.map((template) => {
+      const isAdminRole = template.name === 'Administrador';
+      const permissions =
+        isAdminRole && opts.extraAdminPermissions?.length
+          ? [...template.permissions, ...opts.extraAdminPermissions]
+          : template.permissions;
+      return roleRepo.create({ tenantId: tenant.id, name: template.name, permissions, isSystem: true });
+    }),
   );
   const adminRole = roles.find((r) => r.name === 'Administrador')!;
 
-  const passwordHash = await bcrypt.hash(SEED_ADMIN_PASSWORD, SALT_ROUNDS);
+  const passwordHash = await bcrypt.hash(opts.adminPassword, SALT_ROUNDS);
   await userRepo.save(
     userRepo.create({
       tenantId: tenant.id,
-      email: SEED_ADMIN_EMAIL,
+      email: opts.adminEmail,
       passwordHash,
-      fullName: SEED_ADMIN_NAME,
+      fullName: opts.adminFullName,
       roleId: adminRole.id,
       preferredLocale: 'es',
     }),
   );
 
-  await tenantModuleRepo.save(
-    tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'crm', isEnabled: true, enabledAt: new Date() }),
-  );
+  if (opts.enableCrm) {
+    await tenantModuleRepo.save(
+      tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'crm', isEnabled: true, enabledAt: new Date() }),
+    );
+  }
 
-  console.log('Tenant admin creado:');
-  console.log(`  slug:     ${SEED_TENANT_SLUG}`);
-  console.log(`  email:    ${SEED_ADMIN_EMAIL}`);
-  console.log(`  password: ${SEED_ADMIN_PASSWORD}`);
+  console.log(`Tenant "${opts.slug}" creado:`);
+  console.log(`  email:    ${opts.adminEmail}`);
+  console.log(`  password: ${opts.adminPassword}`);
 }
 
 async function run() {
@@ -87,7 +98,31 @@ async function run() {
     await moduleRepo.upsert(module, ['code']);
   }
 
-  await seedAdminTenant(ds);
+  // Platform operator — can see and manage every tenant on the platform
+  // (POST /platform/tenants/*) via the extra platform.tenants.manage
+  // permission. Doesn't get its own CRM data by default; it's an operator
+  // account, not a customer.
+  await seedTenant(ds, {
+    slug: process.env.SEED_TENANT_SLUG ?? 'admin',
+    name: process.env.SEED_TENANT_NAME ?? 'Administración',
+    adminEmail: process.env.SEED_ADMIN_EMAIL ?? 'admin@admin.com',
+    adminPassword: process.env.SEED_ADMIN_PASSWORD ?? 'Admin123!',
+    adminFullName: process.env.SEED_ADMIN_NAME ?? 'Administrador',
+    extraAdminPermissions: ['platform.tenants.manage'],
+    enableCrm: false,
+  });
+
+  // A demo customer tenant — an ordinary tenant like any other, with the
+  // CRM module active, so there's something to log into and manage from
+  // the platform admin's tenant list.
+  await seedTenant(ds, {
+    slug: process.env.SEED_CLIENT_TENANT_SLUG ?? 'cliente',
+    name: process.env.SEED_CLIENT_TENANT_NAME ?? 'Cliente Demo',
+    adminEmail: process.env.SEED_CLIENT_ADMIN_EMAIL ?? 'admin@cliente.com',
+    adminPassword: process.env.SEED_CLIENT_ADMIN_PASSWORD ?? 'Cliente123!',
+    adminFullName: process.env.SEED_CLIENT_ADMIN_NAME ?? 'Admin Cliente',
+    enableCrm: true,
+  });
 
   console.log(`Seed completo: ${CURRENCIES.length} monedas, ${MODULES.length} módulos.`);
   await ds.destroy();

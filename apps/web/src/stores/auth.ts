@@ -22,8 +22,14 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<JwtPayload | null>(token.value ? decodeJwt(token.value) : null);
 
   const isAuthenticated = computed(() => !!token.value);
-  const hasPermission = (permission: string) =>
-    user.value?.permissions.includes('*') || user.value?.permissions.includes(permission) || false;
+  // Mirrors the backend PermissionsGuard: '*' covers every tenant-scoped
+  // permission but never platform.* ones — those must be granted explicitly.
+  const hasPermission = (permission: string) => {
+    const permissions = user.value?.permissions ?? [];
+    if (permissions.includes(permission)) return true;
+    if (permission.startsWith('platform.')) return false;
+    return permissions.includes('*');
+  };
 
   async function login(payload: LoginPayload) {
     const { accessToken } = await loginRequest(payload);

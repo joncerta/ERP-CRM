@@ -22,6 +22,9 @@ function handleLogout() {
         <RouterLink to="/leads">{{ t('nav.leads') }}</RouterLink>
         <RouterLink to="/companies">{{ t('nav.companies') }}</RouterLink>
         <RouterLink to="/quotes">{{ t('nav.quotes') }}</RouterLink>
+        <RouterLink v-if="auth.hasPermission('platform.tenants.manage')" to="/platform/tenants">
+          {{ t('nav.platform') }}
+        </RouterLink>
       </nav>
       <div class="sidebar-footer">
         <div class="muted">{{ auth.user?.email }}</div>

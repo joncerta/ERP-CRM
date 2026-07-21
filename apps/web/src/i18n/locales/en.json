@@ -4,6 +4,7 @@
     "leads": "Leads",
     "companies": "Companies",
     "quotes": "Quotes",
+    "platform": "Platform",
     "logout": "Log out"
   },
   "login": {
@@ -70,6 +71,16 @@
       "rejected": "Rejected",
       "expired": "Expired"
     }
+  },
+  "platform": {
+    "title": "Platform",
+    "subtitle": "Companies registered on the SaaS and their active modules.",
+    "currency": "Currency",
+    "manageModules": "Manage modules",
+    "hideModules": "Hide",
+    "core": "Core",
+    "enable": "Enable",
+    "disable": "Disable"
   },
   "publicQuote": {
     "title": "Quote",

@@ -18,7 +18,15 @@ const router = createRouter({
     },
     {
       path: '/',
-      redirect: { name: 'pipeline' },
+      redirect: () => {
+        const auth = useAuthStore();
+        // Platform operators don't have the CRM module themselves — send
+        // them straight to the tenant list instead of a CRM screen that
+        // would just 403.
+        return auth.hasPermission('platform.tenants.manage')
+          ? { name: 'platform-tenants' }
+          : { name: 'pipeline' };
+      },
     },
     {
       path: '/pipeline',
@@ -40,6 +48,12 @@ const router = createRouter({
       name: 'quotes',
       component: () => import('@/views/QuotesView.vue'),
     },
+    {
+      path: '/platform/tenants',
+      name: 'platform-tenants',
+      component: () => import('@/views/PlatformTenantsView.vue'),
+      meta: { requiresPermission: 'platform.tenants.manage' },
+    },
   ],
 });
 
@@ -48,6 +62,10 @@ router.beforeEach((to) => {
   const auth = useAuthStore();
   if (!auth.isAuthenticated) {
     return { name: 'login', query: { redirect: to.fullPath } };
+  }
+  const requiredPermission = to.meta.requiresPermission as string | undefined;
+  if (requiredPermission && !auth.hasPermission(requiredPermission)) {
+    return { name: 'pipeline' };
   }
   return true;
 });

@@ -20,7 +20,11 @@ async function handleSubmit() {
   loading.value = true
   try {
     await auth.login({ tenantSlug: tenantSlug.value, email: email.value, password: password.value })
-    const redirect = (route.query.redirect as string) || '/'
+    const requestedRedirect = route.query.redirect as string | undefined
+    // "/pipeline" is just the pre-login guard's generic guess (it can't know
+    // yet who's logging in) — ignore it and let "/" pick the right landing
+    // page now that we know the user. Honor anything more specific though.
+    const redirect = requestedRedirect && requestedRedirect !== '/pipeline' ? requestedRedirect : '/'
     router.push(redirect)
   } catch {
     error.value = t('login.error')
