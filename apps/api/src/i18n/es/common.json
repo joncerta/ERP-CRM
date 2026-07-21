@@ -1,0 +1,9 @@
+{
+  "welcome": "Bienvenido",
+  "quote": {
+    "sent": "Cotización enviada",
+    "viewed": "Cotización vista por el cliente",
+    "accepted": "Cotización aceptada",
+    "rejected": "Cotización rechazada"
+  }
+}

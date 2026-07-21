@@ -1,0 +1,9 @@
+{
+  "welcome": "Welcome",
+  "quote": {
+    "sent": "Quote sent",
+    "viewed": "Quote viewed by customer",
+    "accepted": "Quote accepted",
+    "rejected": "Quote rejected"
+  }
+}
