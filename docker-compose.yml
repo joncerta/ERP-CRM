@@ -11,6 +11,68 @@ services:
       - '5432:5432'
     volumes:
       - erp_crm_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U erp_crm']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./apps/api
+    container_name: erp_crm_api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      WEB_ORIGIN: http://localhost:5173
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: erp_crm
+      DB_PASSWORD: erp_crm
+      DB_NAME: erp_crm
+      DB_LOGGING: 'false'
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      JWT_EXPIRES_IN: 8h
+      PLATFORM_ADMIN_KEY: ${PLATFORM_ADMIN_KEY:-change-me-too}
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./apps/api:/app
+      - api_node_modules:/app/node_modules
+    # Applies pending migrations + seeds the module/currency catalog on every
+    # start (both are idempotent) before starting the dev server with reload.
+    command: sh -c "npm run migration:run && npm run seed && npm run start:dev"
+
+  web:
+    build:
+      context: ./apps/web
+    container_name: erp_crm_web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      VITE_API_URL: http://localhost:3000/api
+    ports:
+      - '5173:5173'
+    volumes:
+      - ./apps/web:/app
+      - web_node_modules:/app/node_modules
+
+  # Web UI to browse the Postgres database at http://localhost:8080
+  # (System: PostgreSQL, Server: postgres, User/Password/DB: erp_crm)
+  adminer:
+    image: adminer:latest
+    container_name: erp_crm_adminer
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - '8080:8080'
 
 volumes:
   erp_crm_postgres_data:
+  api_node_modules:
+  web_node_modules:
