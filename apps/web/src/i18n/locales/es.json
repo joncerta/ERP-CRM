@@ -104,6 +104,8 @@
     "sessionSubtitle": "Iniciar sesión en un dispositivo nuevo cierra automáticamente los demás.",
     "enableIdleTimeout": "Cerrar sesión automáticamente por inactividad",
     "idleTimeoutMinutes": "Minutos de inactividad",
+    "languageTitle": "Idioma",
+    "languageSubtitle": "Idioma de la interfaz para este usuario.",
     "saved": "Guardado."
   },
   "publicQuote": {

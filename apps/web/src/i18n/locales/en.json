@@ -104,6 +104,8 @@
     "sessionSubtitle": "Logging in on a new device automatically signs out the others.",
     "enableIdleTimeout": "Automatically sign out after inactivity",
     "idleTimeoutMinutes": "Idle minutes",
+    "languageTitle": "Language",
+    "languageSubtitle": "Interface language for this user.",
     "saved": "Saved."
   },
   "publicQuote": {

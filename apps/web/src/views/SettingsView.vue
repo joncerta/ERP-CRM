@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { getTenantSettings, updateTenantSettings } from '@/api/tenant-settings'
 import { getErrorMessage } from '@/api/error'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const loading = ref(true)
 const saving = ref(false)
@@ -12,6 +12,11 @@ const error = ref('')
 const successMessage = ref('')
 const idleTimeoutEnabled = ref(false)
 const idleTimeoutMinutes = ref(30)
+
+function setLocale(value: string) {
+  locale.value = value
+  localStorage.setItem('erp_crm_locale', value)
+}
 
 async function load() {
   loading.value = true
@@ -51,7 +56,18 @@ onMounted(load)
     </div>
 
     <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
-    <div v-else class="card" style="max-width: 480px">
+    <div v-else class="card" style="max-width: 480px; margin-bottom: 1rem">
+      <h2 style="font-size: 1rem; margin-bottom: 0.25rem">{{ t('settings.languageTitle') }}</h2>
+      <p class="muted" style="margin-bottom: 1rem">{{ t('settings.languageSubtitle') }}</p>
+      <div class="field">
+        <select :value="locale" @change="setLocale(($event.target as HTMLSelectElement).value)">
+          <option value="es">Español</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+    </div>
+
+    <div v-if="!loading" class="card" style="max-width: 480px">
       <h2 style="font-size: 1rem; margin-bottom: 0.25rem">{{ t('settings.sessionTitle') }}</h2>
       <p class="muted" style="margin-bottom: 1rem">{{ t('settings.sessionSubtitle') }}</p>
 
