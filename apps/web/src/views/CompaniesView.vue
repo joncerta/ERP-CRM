@@ -4,9 +4,11 @@ import { useI18n } from 'vue-i18n'
 import { listCompanies, createCompany, updateCompany, deleteCompany } from '@/api/companies'
 import { getErrorMessage } from '@/api/error'
 import { compact } from '@/utils/compact'
+import { useToastStore } from '@/stores/toast'
 import type { Company } from '@/api/types'
 
 const { t } = useI18n()
+const toast = useToastStore()
 const companies = ref<Company[]>([])
 const loading = ref(true)
 const error = ref('')
@@ -69,6 +71,7 @@ async function submit() {
       await createCompany(compact(form.value))
     }
     showModal.value = false
+    toast.success(t('common.savedOk'))
     await load()
   } catch (err) {
     formError.value = getErrorMessage(err)
@@ -82,9 +85,10 @@ async function remove(company: Company) {
   deletingId.value = company.id
   try {
     await deleteCompany(company.id)
+    toast.success(t('common.deletedOk'))
     await load()
   } catch (err) {
-    error.value = getErrorMessage(err)
+    toast.error(getErrorMessage(err))
   } finally {
     deletingId.value = null
   }

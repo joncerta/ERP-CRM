@@ -3,9 +3,11 @@ import { ref, reactive, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { listTenants, getTenantModules, setTenantModule, updateTenantBranding } from '@/api/platform'
 import { getErrorMessage } from '@/api/error'
+import { useToastStore } from '@/stores/toast'
 import type { PlatformTenant, TenantModuleStatus } from '@/api/platform'
 
 const { t } = useI18n()
+const toast = useToastStore()
 
 const DEFAULT_PRIMARY = '#c1673f'
 const DEFAULT_SECONDARY = '#4a2f22'
@@ -27,14 +29,16 @@ interface BrandingDraft {
 const brandingDrafts = reactive<Record<string, BrandingDraft>>({})
 
 function draftFor(tenant: PlatformTenant): BrandingDraft {
-  if (!brandingDrafts[tenant.id]) {
-    brandingDrafts[tenant.id] = {
+  let draft = brandingDrafts[tenant.id]
+  if (!draft) {
+    draft = {
       useCustom: !!tenant.brandingPrimaryColor,
       primaryColor: tenant.brandingPrimaryColor ?? DEFAULT_PRIMARY,
       secondaryColor: tenant.brandingSecondaryColor ?? DEFAULT_SECONDARY,
     }
+    brandingDrafts[tenant.id] = draft
   }
-  return brandingDrafts[tenant.id]
+  return draft
 }
 
 async function saveBranding(tenant: PlatformTenant) {
@@ -48,7 +52,10 @@ async function saveBranding(tenant: PlatformTenant) {
     )
     const index = tenants.value.findIndex((t2) => t2.id === tenant.id)
     if (index !== -1) tenants.value[index] = updated
-    brandingDrafts[tenant.id].useCustom = !!updated.brandingPrimaryColor
+    draft.useCustom = !!updated.brandingPrimaryColor
+    toast.success(t('common.savedOk'))
+  } catch (err) {
+    toast.error(getErrorMessage(err))
   } finally {
     savingBranding.value = null
   }
@@ -84,6 +91,9 @@ async function toggleModule(tenant: PlatformTenant, mod: TenantModuleStatus) {
   try {
     await setTenantModule(tenant.id, mod.code, !mod.isEnabled)
     modulesByTenant.value[tenant.id] = await getTenantModules(tenant.id)
+    toast.success(t('common.savedOk'))
+  } catch (err) {
+    toast.error(getErrorMessage(err))
   } finally {
     togglingCode.value = null
   }
@@ -146,17 +156,17 @@ onMounted(load)
               <div class="branding-section">
                 <h3 class="branding-title">{{ t('platform.branding') }}</h3>
                 <label class="checkbox-field">
-                  <input v-model="brandingDrafts[tenant.id].useCustom" type="checkbox" />
+                  <input v-model="draftFor(tenant).useCustom" type="checkbox" />
                   {{ t('platform.brandingUseCustom') }}
                 </label>
-                <div v-if="brandingDrafts[tenant.id].useCustom" class="branding-colors">
+                <div v-if="draftFor(tenant).useCustom" class="branding-colors">
                   <label class="color-field">
                     {{ t('platform.brandingPrimary') }}
-                    <input v-model="brandingDrafts[tenant.id].primaryColor" type="color" />
+                    <input v-model="draftFor(tenant).primaryColor" type="color" />
                   </label>
                   <label class="color-field">
                     {{ t('platform.brandingSecondary') }}
-                    <input v-model="brandingDrafts[tenant.id].secondaryColor" type="color" />
+                    <input v-model="draftFor(tenant).secondaryColor" type="color" />
                   </label>
                 </div>
                 <button

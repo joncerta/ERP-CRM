@@ -3,9 +3,11 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { listPendingFollowUps, markFollowUpDone } from '@/api/quotes'
 import { getErrorMessage } from '@/api/error'
+import { useToastStore } from '@/stores/toast'
 import type { PendingFollowUp } from '@/api/types'
 
 const { t } = useI18n()
+const toast = useToastStore()
 
 const followUps = ref<PendingFollowUp[]>([])
 const loading = ref(true)
@@ -29,6 +31,8 @@ async function complete(followUp: PendingFollowUp) {
   try {
     await markFollowUpDone(followUp.id)
     followUps.value = followUps.value.filter((f) => f.id !== followUp.id)
+  } catch (err) {
+    toast.error(getErrorMessage(err))
   } finally {
     completingId.value = null
   }

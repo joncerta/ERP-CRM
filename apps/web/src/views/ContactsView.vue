@@ -5,9 +5,11 @@ import { listContacts, createContact, updateContact, deleteContact } from '@/api
 import { listCompanies } from '@/api/companies'
 import { getErrorMessage } from '@/api/error'
 import { compact } from '@/utils/compact'
+import { useToastStore } from '@/stores/toast'
 import type { Contact, Company } from '@/api/types'
 
 const { t } = useI18n()
+const toast = useToastStore()
 
 const contacts = ref<Contact[]>([])
 const companies = ref<Company[]>([])
@@ -80,6 +82,7 @@ async function submit() {
       await createContact(compact(form.value))
     }
     showModal.value = false
+    toast.success(t('common.savedOk'))
     await load()
   } catch (err) {
     formError.value = getErrorMessage(err)
@@ -93,9 +96,10 @@ async function remove(contact: Contact) {
   deletingId.value = contact.id
   try {
     await deleteContact(contact.id)
+    toast.success(t('common.deletedOk'))
     await load()
   } catch (err) {
-    error.value = getErrorMessage(err)
+    toast.error(getErrorMessage(err))
   } finally {
     deletingId.value = null
   }

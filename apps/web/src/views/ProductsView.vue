@@ -4,9 +4,11 @@ import { useI18n } from 'vue-i18n'
 import { listProducts, createProduct, updateProduct, deleteProduct } from '@/api/products'
 import { getErrorMessage } from '@/api/error'
 import { compact } from '@/utils/compact'
+import { useToastStore } from '@/stores/toast'
 import type { Product } from '@/api/types'
 
 const { t } = useI18n()
+const toast = useToastStore()
 
 const products = ref<Product[]>([])
 const loading = ref(true)
@@ -78,6 +80,7 @@ async function submit() {
       await createProduct(compact(form.value))
     }
     showModal.value = false
+    toast.success(t('common.savedOk'))
     await load()
   } catch (err) {
     formError.value = getErrorMessage(err)
@@ -91,9 +94,10 @@ async function remove(product: Product) {
   deletingId.value = product.id
   try {
     await deleteProduct(product.id)
+    toast.success(t('common.deletedOk'))
     await load()
   } catch (err) {
-    error.value = getErrorMessage(err)
+    toast.error(getErrorMessage(err))
   } finally {
     deletingId.value = null
   }

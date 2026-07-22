@@ -5,9 +5,11 @@ import { listStockBalances, listStockMovements, recordMovement, transferStock } 
 import { listProducts } from '@/api/products'
 import { listWarehouses } from '@/api/warehouses'
 import { getErrorMessage } from '@/api/error'
+import { useToastStore } from '@/stores/toast'
 import type { StockBalance, StockMovement, Product, Warehouse } from '@/api/types'
 
 const { t } = useI18n()
+const toast = useToastStore()
 
 const balances = ref<StockBalance[]>([])
 const movements = ref<StockMovement[]>([])
@@ -82,6 +84,7 @@ async function submitMovement() {
       note: movementForm.value.note || undefined,
     })
     showMovementModal.value = false
+    toast.success(t('common.savedOk'))
     await load()
   } catch (err) {
     movementError.value = getErrorMessage(err)
@@ -108,6 +111,7 @@ async function submitTransfer() {
       note: transferForm.value.note || undefined,
     })
     showTransferModal.value = false
+    toast.success(t('common.savedOk'))
     await load()
   } catch (err) {
     transferError.value = getErrorMessage(err)

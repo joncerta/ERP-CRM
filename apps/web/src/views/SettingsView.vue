@@ -6,15 +6,15 @@ import { getTenantSettings, updateTenantSettings } from '@/api/tenant-settings'
 import { changeOwnPassword } from '@/api/users'
 import { useAuthStore } from '@/stores/auth'
 import { getErrorMessage } from '@/api/error'
+import { useToastStore } from '@/stores/toast'
 
 const { t, locale } = useI18n()
 const router = useRouter()
 const auth = useAuthStore()
+const toast = useToastStore()
 
 const loading = ref(true)
 const saving = ref(false)
-const error = ref('')
-const successMessage = ref('')
 const idleTimeoutEnabled = ref(false)
 const idleTimeoutMinutes = ref(30)
 
@@ -28,6 +28,7 @@ async function submitPasswordChange() {
   passwordError.value = ''
   try {
     await changeOwnPassword(currentPassword.value, newPassword.value)
+    toast.success(t('settings.passwordChangedOk'))
     // The server already revoked every session (including this one) —
     // clear local state and send the user back to log in.
     auth.logout()
@@ -46,13 +47,12 @@ function setLocale(value: string) {
 
 async function load() {
   loading.value = true
-  error.value = ''
   try {
     const settings = await getTenantSettings()
     idleTimeoutEnabled.value = settings.sessionIdleTimeoutMinutes != null
     idleTimeoutMinutes.value = settings.sessionIdleTimeoutMinutes ?? 30
   } catch (err) {
-    error.value = getErrorMessage(err)
+    toast.error(getErrorMessage(err))
   } finally {
     loading.value = false
   }
@@ -60,13 +60,11 @@ async function load() {
 
 async function save() {
   saving.value = true
-  error.value = ''
-  successMessage.value = ''
   try {
     await updateTenantSettings(idleTimeoutEnabled.value ? idleTimeoutMinutes.value : null)
-    successMessage.value = t('settings.saved')
+    toast.success(t('settings.saved'))
   } catch (err) {
-    error.value = getErrorMessage(err)
+    toast.error(getErrorMessage(err))
   } finally {
     saving.value = false
   }
@@ -125,11 +123,6 @@ onMounted(load)
         <label>{{ t('settings.idleTimeoutMinutes') }}</label>
         <input v-model.number="idleTimeoutMinutes" type="number" min="5" max="10080" />
       </div>
-
-      <p v-if="error" class="error-text" style="margin-top: 0.75rem">{{ error }}</p>
-      <p v-if="successMessage" class="muted" style="margin-top: 0.75rem; color: var(--color-success)">
-        {{ successMessage }}
-      </p>
 
       <button class="btn" style="margin-top: 1rem" :disabled="saving" @click="save">
         {{ t('common.save') }}

@@ -3,10 +3,13 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getPublicQuote, respondPublicQuote, downloadPublicQuotePdf } from '@/api/quotes'
+import { getErrorMessage } from '@/api/error'
+import { useToastStore } from '@/stores/toast'
 import type { Quote } from '@/api/types'
 
 const route = useRoute()
 const { t } = useI18n()
+const toast = useToastStore()
 
 const quote = ref<Quote | null>(null)
 const loading = ref(true)
@@ -28,13 +31,19 @@ async function load() {
 
 async function downloadPdf() {
   if (!quote.value) return
-  await downloadPublicQuotePdf(token, quote.value.quoteNumber)
+  try {
+    await downloadPublicQuotePdf(token, quote.value.quoteNumber)
+  } catch (err) {
+    toast.error(getErrorMessage(err))
+  }
 }
 
 async function respond(accepted: boolean) {
   responding.value = true
   try {
     quote.value = await respondPublicQuote(token, accepted)
+  } catch (err) {
+    toast.error(getErrorMessage(err))
   } finally {
     responding.value = false
   }

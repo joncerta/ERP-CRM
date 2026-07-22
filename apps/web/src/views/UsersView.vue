@@ -6,11 +6,13 @@ import { listRoles } from '@/api/roles'
 import { useAuthStore } from '@/stores/auth'
 import { getErrorMessage } from '@/api/error'
 import { compact } from '@/utils/compact'
+import { useToastStore } from '@/stores/toast'
 import type { TenantUser } from '@/api/users'
 import type { Role } from '@/api/roles'
 
 const { t } = useI18n()
 const auth = useAuthStore()
+const toast = useToastStore()
 
 const users = ref<TenantUser[]>([])
 const roles = ref<Role[]>([])
@@ -49,6 +51,7 @@ async function submit() {
   try {
     await createUser(compact(form.value) as typeof form.value)
     showModal.value = false
+    toast.success(t('common.savedOk'))
     await load()
   } catch (err) {
     formError.value = getErrorMessage(err)
@@ -61,9 +64,10 @@ async function toggleActive(user: TenantUser) {
   togglingId.value = user.id
   try {
     await setUserActive(user.id, !user.isActive)
+    toast.success(t('common.savedOk'))
     await load()
   } catch (err) {
-    error.value = getErrorMessage(err)
+    toast.error(getErrorMessage(err))
   } finally {
     togglingId.value = null
   }

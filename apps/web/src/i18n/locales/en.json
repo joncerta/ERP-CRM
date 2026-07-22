@@ -61,7 +61,9 @@
     "deactivate": "Deactivate",
     "owner": "Owner",
     "onlyMine": "Only mine",
-    "search": "Search..."
+    "search": "Search...",
+    "savedOk": "Saved successfully.",
+    "deletedOk": "Deleted successfully."
   },
   "leads": {
     "title": "Leads",
@@ -150,6 +152,7 @@
     "views": "Views",
     "scheduleFollowUp": "Schedule reminder",
     "downloadPdf": "Download PDF",
+    "sentOk": "Quote sent successfully.",
     "status": {
       "draft": "Draft",
       "sent": "Sent",
@@ -201,7 +204,32 @@
     "permissions": "Permissions",
     "permissionCount": "Permissions",
     "allPermissions": "All",
-    "system": "System"
+    "system": "System",
+    "groupCrm": "CRM",
+    "groupInventory": "Inventory",
+    "groupCore": "Core",
+    "permDesc": {
+      "crm_contacts_read": "View contacts and companies",
+      "crm_contacts_write": "Create and edit contacts and companies",
+      "crm_leads_read": "View leads",
+      "crm_leads_write": "Create, edit, and convert leads",
+      "crm_opportunities_read": "View the opportunity pipeline",
+      "crm_opportunities_write": "Create, edit, and move opportunities in the pipeline",
+      "crm_quotes_read": "View quotes",
+      "crm_quotes_write": "Create, edit, and send quotes",
+      "inventory_products_read": "View products",
+      "inventory_products_write": "Create and edit products",
+      "inventory_warehouses_read": "View warehouses",
+      "inventory_warehouses_write": "Create and edit warehouses",
+      "inventory_stock_read": "View stock balances and movement history",
+      "inventory_stock_write": "Record stock movements and transfers",
+      "core_users_read": "View the team's user list",
+      "core_users_write": "Invite users and activate/deactivate their access",
+      "core_roles_read": "View available roles",
+      "core_roles_write": "Create, edit, and delete custom roles",
+      "core_modules_write": "Enable or disable modules (CRM, Inventory) for the company",
+      "core_tenant_settings_write": "Change the company's session settings"
+    }
   },
   "settings": {
     "title": "Settings",
@@ -215,7 +243,8 @@
     "passwordSubtitle": "Changing your password signs you out everywhere.",
     "currentPassword": "Current password",
     "changePassword": "Change password",
-    "saved": "Saved."
+    "saved": "Saved.",
+    "passwordChangedOk": "Password updated. Please sign in again."
   },
   "publicQuote": {
     "title": "Quote",

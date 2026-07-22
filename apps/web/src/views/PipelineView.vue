@@ -13,11 +13,13 @@ import { listUsers } from '@/api/users'
 import { useAuthStore } from '@/stores/auth'
 import { getErrorMessage } from '@/api/error'
 import { compact } from '@/utils/compact'
+import { useToastStore } from '@/stores/toast'
 import type { PipelineStage, Opportunity, Company } from '@/api/types'
 import type { TenantUser } from '@/api/users'
 
 const { t } = useI18n()
 const auth = useAuthStore()
+const toast = useToastStore()
 
 const stages = ref<PipelineStage[]>([])
 const opportunities = ref<Opportunity[]>([])
@@ -96,8 +98,9 @@ async function onDrop(stageId: string) {
   draggingId.value = null
   try {
     await moveOpportunityStage(opp.id, stageId)
-  } catch {
+  } catch (err) {
     opp.stageId = previousStageId
+    toast.error(getErrorMessage(err))
   }
 }
 
@@ -121,6 +124,7 @@ async function submitEdit() {
     const index = opportunities.value.findIndex((o) => o.id === updated.id)
     if (index !== -1) opportunities.value[index] = updated
     editingOpp.value = null
+    toast.success(t('common.savedOk'))
   } catch (err) {
     editError.value = getErrorMessage(err)
   } finally {
@@ -137,6 +141,7 @@ async function markLost() {
     const index = opportunities.value.findIndex((o) => o.id === updated.id)
     if (index !== -1) opportunities.value[index] = updated
     editingOpp.value = null
+    toast.success(t('common.savedOk'))
   } catch (err) {
     editError.value = getErrorMessage(err)
   } finally {

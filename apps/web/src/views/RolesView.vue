@@ -3,16 +3,18 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { listRoles, createRole, updateRole, deleteRole } from '@/api/roles'
 import { getErrorMessage } from '@/api/error'
+import { useToastStore } from '@/stores/toast'
 import type { Role } from '@/api/roles'
 
 const { t } = useI18n()
+const toast = useToastStore()
 
 // Every permission a tenant's own role editor is allowed to grant.
 // platform.tenants.manage is deliberately excluded — the backend rejects
 // it too, this is just so it never even shows up as an option.
-const PERMISSION_GROUPS: Array<{ label: string; codes: string[] }> = [
+const PERMISSION_GROUPS: Array<{ labelKey: string; codes: string[] }> = [
   {
-    label: 'CRM',
+    labelKey: 'roles.groupCrm',
     codes: [
       'crm.contacts.read',
       'crm.contacts.write',
@@ -25,10 +27,28 @@ const PERMISSION_GROUPS: Array<{ label: string; codes: string[] }> = [
     ],
   },
   {
-    label: 'Core',
+    labelKey: 'roles.groupInventory',
+    codes: [
+      'inventory.products.read',
+      'inventory.products.write',
+      'inventory.warehouses.read',
+      'inventory.warehouses.write',
+      'inventory.stock.read',
+      'inventory.stock.write',
+    ],
+  },
+  {
+    labelKey: 'roles.groupCore',
     codes: ['core.users.read', 'core.users.write', 'core.roles.read', 'core.roles.write', 'core.modules.write', 'core.tenant.settings.write'],
   },
 ]
+
+// vue-i18n treats "." as a key-path separator, so a permission code like
+// "crm.contacts.read" can't be used as a translation key directly —
+// swap dots for underscores to look it up as a flat leaf key instead.
+function permissionDescriptionKey(code: string): string {
+  return `roles.permDesc.${code.replace(/\./g, '_')}`
+}
 
 const roles = ref<Role[]>([])
 const loading = ref(true)
@@ -77,6 +97,7 @@ async function submit() {
       await createRole(form.value.name, form.value.permissions)
     }
     showModal.value = false
+    toast.success(t('common.savedOk'))
     await load()
   } catch (err) {
     formError.value = getErrorMessage(err)
@@ -90,9 +111,10 @@ async function remove(role: Role) {
   deletingId.value = role.id
   try {
     await deleteRole(role.id)
+    toast.success(t('common.deletedOk'))
     await load()
   } catch (err) {
-    error.value = getErrorMessage(err)
+    toast.error(getErrorMessage(err))
   } finally {
     deletingId.value = null
   }
@@ -150,11 +172,14 @@ onMounted(load)
         </div>
         <div class="field">
           <label>{{ t('roles.permissions') }}</label>
-          <div v-for="group in PERMISSION_GROUPS" :key="group.label" class="permission-group">
-            <div class="permission-group-label">{{ group.label }}</div>
+          <div v-for="group in PERMISSION_GROUPS" :key="group.labelKey" class="permission-group">
+            <div class="permission-group-label">{{ t(group.labelKey) }}</div>
             <label v-for="code in group.codes" :key="code" class="checkbox-field permission-item">
               <input v-model="form.permissions" type="checkbox" :value="code" />
-              <code>{{ code }}</code>
+              <span>
+                {{ t(permissionDescriptionKey(code)) }}
+                <code class="permission-code">{{ code }}</code>
+              </span>
             </label>
           </div>
         </div>
@@ -186,9 +211,16 @@ onMounted(load)
   margin-bottom: 0.35rem;
 }
 .permission-item {
-  padding: 0.2rem 0;
+  padding: 0.25rem 0;
+  align-items: flex-start;
 }
-.permission-item code {
-  font-size: 0.82rem;
+.permission-item span {
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+.permission-code {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
 }
 </style>

@@ -9,12 +9,14 @@ import { listContacts } from '@/api/contacts'
 import { listUsers } from '@/api/users'
 import { useAuthStore } from '@/stores/auth'
 import { getErrorMessage } from '@/api/error'
+import { useToastStore } from '@/stores/toast'
 import type { Lead, Company, Contact } from '@/api/types'
 import type { TenantUser } from '@/api/users'
 
 const { t } = useI18n()
 const router = useRouter()
 const auth = useAuthStore()
+const toast = useToastStore()
 
 const leads = ref<Lead[]>([])
 const companies = ref<Company[]>([])
@@ -117,6 +119,7 @@ async function submit() {
       await createLead(payload)
     }
     showModal.value = false
+    toast.success(t('common.savedOk'))
     await load()
   } catch (err) {
     formError.value = getErrorMessage(err)
@@ -130,9 +133,10 @@ async function remove(lead: Lead) {
   deletingId.value = lead.id
   try {
     await deleteLead(lead.id)
+    toast.success(t('common.deletedOk'))
     await load()
   } catch (err) {
-    error.value = getErrorMessage(err)
+    toast.error(getErrorMessage(err))
   } finally {
     deletingId.value = null
   }
@@ -144,6 +148,8 @@ async function convert(lead: Lead) {
     await createOpportunityFromLead(lead.id)
     await load()
     router.push({ name: 'pipeline' })
+  } catch (err) {
+    toast.error(getErrorMessage(err))
   } finally {
     convertingId.value = null
   }

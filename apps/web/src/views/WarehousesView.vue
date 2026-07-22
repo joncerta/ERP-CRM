@@ -4,9 +4,11 @@ import { useI18n } from 'vue-i18n'
 import { listWarehouses, createWarehouse, updateWarehouse, deleteWarehouse } from '@/api/warehouses'
 import { getErrorMessage } from '@/api/error'
 import { compact } from '@/utils/compact'
+import { useToastStore } from '@/stores/toast'
 import type { Warehouse } from '@/api/types'
 
 const { t } = useI18n()
+const toast = useToastStore()
 
 const warehouses = ref<Warehouse[]>([])
 const loading = ref(true)
@@ -55,6 +57,7 @@ async function submit() {
       await createWarehouse(compact(form.value))
     }
     showModal.value = false
+    toast.success(t('common.savedOk'))
     await load()
   } catch (err) {
     formError.value = getErrorMessage(err)
@@ -68,9 +71,10 @@ async function remove(warehouse: Warehouse) {
   deletingId.value = warehouse.id
   try {
     await deleteWarehouse(warehouse.id)
+    toast.success(t('common.deletedOk'))
     await load()
   } catch (err) {
-    error.value = getErrorMessage(err)
+    toast.error(getErrorMessage(err))
   } finally {
     deletingId.value = null
   }

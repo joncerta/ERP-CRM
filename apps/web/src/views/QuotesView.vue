@@ -7,11 +7,13 @@ import { listContacts } from '@/api/contacts'
 import { useAuthStore } from '@/stores/auth'
 import { getErrorMessage } from '@/api/error'
 import { compact } from '@/utils/compact'
+import { useToastStore } from '@/stores/toast'
 import type { Quote, Company, Contact } from '@/api/types'
 import type { QuoteItemInput } from '@/api/quotes'
 
 const { t } = useI18n()
 const auth = useAuthStore()
+const toast = useToastStore()
 
 const quotes = ref<Quote[]>([])
 const companies = ref<Company[]>([])
@@ -127,6 +129,7 @@ async function submit() {
       await createQuote(compact(form.value) as typeof form.value)
     }
     showModal.value = false
+    toast.success(t('common.savedOk'))
     await load()
   } catch (err) {
     formError.value = getErrorMessage(err)
@@ -139,7 +142,10 @@ async function handleSend(quote: Quote) {
   sendingId.value = quote.id
   try {
     await sendQuote(quote.id)
+    toast.success(t('quotes.sentOk'))
     await load()
+  } catch (err) {
+    toast.error(getErrorMessage(err))
   } finally {
     sendingId.value = null
   }
@@ -161,6 +167,7 @@ async function submitFollowUp() {
       note: followUpNote.value || undefined,
     })
     followUpQuote.value = null
+    toast.success(t('common.savedOk'))
   } catch (err) {
     followUpError.value = getErrorMessage(err)
   }
@@ -171,7 +178,11 @@ function publicUrl(quote: Quote) {
 }
 
 async function handleDownloadPdf(quote: Quote) {
-  await downloadQuotePdf(quote.id, quote.quoteNumber)
+  try {
+    await downloadQuotePdf(quote.id, quote.quoteNumber)
+  } catch (err) {
+    toast.error(getErrorMessage(err))
+  }
 }
 
 const statusBadge: Record<string, string> = {
