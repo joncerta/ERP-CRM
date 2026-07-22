@@ -21,7 +21,10 @@ async function handleLogout() {
 <template>
   <div class="shell">
     <aside class="sidebar">
-      <div class="brand">ERP-CRM</div>
+      <div class="brand">
+        <div class="brand-mark">E</div>
+        <span>ERP-CRM</span>
+      </div>
       <nav>
         <template v-if="isPlatformAdmin">
           <RouterLink to="/platform/tenants">{{ t('nav.platform') }}</RouterLink>
@@ -59,11 +62,17 @@ async function handleLogout() {
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  padding: 1.25rem 1rem;
+  padding: 18px 14px;
 }
 .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+  color: var(--color-heading);
   margin-bottom: 1.5rem;
   padding: 0 0.4rem;
 }
@@ -81,11 +90,12 @@ nav a {
   font-weight: 500;
 }
 nav a:hover {
-  background: var(--color-bg);
+  background: var(--color-bg-subtle);
 }
 nav a.router-link-active {
-  background: #eef2ff;
-  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-hover);
+  font-weight: 600;
 }
 .sidebar-footer {
   display: flex;
@@ -106,5 +116,6 @@ nav a.router-link-active {
   flex: 1;
   padding: 2rem;
   max-width: 1200px;
+  overflow-y: auto;
 }
 </style>

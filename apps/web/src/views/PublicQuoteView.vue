@@ -134,12 +134,12 @@ onMounted(load)
   margin-top: 1.5rem;
   padding: 0.75rem;
   border-radius: var(--radius);
-  background: #fee2e2;
-  color: #991b1b;
+  background: oklch(0.93 0.04 25);
+  color: oklch(0.45 0.14 25);
   font-weight: 600;
 }
 .response-msg.success {
-  background: #dcfce7;
-  color: #166534;
+  background: oklch(0.93 0.06 145);
+  color: oklch(0.42 0.1 150);
 }
 </style>

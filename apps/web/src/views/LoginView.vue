@@ -37,6 +37,7 @@ async function handleSubmit() {
 <template>
   <div class="login-page">
     <form class="card login-card" @submit.prevent="handleSubmit">
+      <div class="brand-mark" style="margin-bottom: 1rem">E</div>
       <h1>{{ t('login.title') }}</h1>
       <div class="field">
         <label>{{ t('login.tenantSlug') }}</label>

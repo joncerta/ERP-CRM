@@ -4,18 +4,29 @@
   height: 100%;
 }
 
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-heading);
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   border: 1px solid transparent;
   border-radius: var(--radius);
-  padding: 0.5rem 0.9rem;
-  font-size: 0.9rem;
-  font-weight: 500;
+  padding: 0.55rem 0.95rem;
+  font-size: 0.87rem;
+  font-weight: 600;
   cursor: pointer;
   background: var(--color-primary);
   color: white;
+  box-shadow: 0 1px 2px oklch(0.62 0.13 42 / 0.3);
+  transition: background-color 0.15s ease;
 }
 .btn:hover {
   background: var(--color-primary-hover);
@@ -24,9 +35,10 @@
   background: var(--color-surface);
   color: var(--color-text);
   border-color: var(--color-border);
+  box-shadow: none;
 }
 .btn.secondary:hover {
-  background: var(--color-bg);
+  background: var(--color-bg-subtle);
 }
 .btn:disabled {
   opacity: 0.6;
@@ -42,14 +54,14 @@
 .field label {
   font-size: 0.82rem;
   color: var(--color-text-muted);
-  font-weight: 500;
+  font-weight: 600;
 }
 .field input,
 .field select,
 .field textarea {
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  padding: 0.5rem 0.65rem;
+  padding: 0.55rem 0.7rem;
   font-size: 0.9rem;
   font-family: inherit;
   background: var(--color-surface);
@@ -58,15 +70,17 @@
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 1px;
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
 }
 
 .card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 1.1rem;
+  border-radius: var(--radius-lg);
+  padding: 1.1rem 1.25rem;
+  box-shadow: var(--shadow-card);
 }
 
 .page-header {
@@ -76,8 +90,7 @@
   margin-bottom: 1.25rem;
 }
 .page-header h1 {
-  font-size: 1.35rem;
-  font-weight: 600;
+  font-size: 1.4rem;
 }
 
 table {
@@ -85,23 +98,28 @@ table {
   border-collapse: collapse;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
 }
 th,
 td {
   text-align: left;
-  padding: 0.6rem 0.9rem;
-  border-bottom: 1px solid var(--color-border);
-  font-size: 0.88rem;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: 0.87rem;
 }
 th {
-  background: var(--color-bg);
+  background: transparent;
   color: var(--color-text-muted);
-  font-weight: 600;
-  font-size: 0.78rem;
+  font-weight: 700;
+  font-size: 0.74rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--color-border);
+}
+tbody tr:hover td {
+  background: var(--color-bg-subtle);
 }
 tbody tr:last-child td {
   border-bottom: none;
@@ -109,34 +127,36 @@ tbody tr:last-child td {
 
 .badge {
   display: inline-block;
-  padding: 0.15rem 0.55rem;
+  padding: 0.18rem 0.6rem;
   border-radius: 999px;
-  font-size: 0.74rem;
-  font-weight: 600;
-  background: var(--color-bg);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.badge:not(.blue):not(.green):not(.red):not(.amber) {
+  background: var(--color-bg-subtle);
   color: var(--color-text-muted);
 }
 .badge.blue {
-  background: #e0e7ff;
-  color: #3730a3;
+  background: oklch(0.93 0.03 250);
+  color: oklch(0.4 0.13 265);
 }
 .badge.green {
-  background: #dcfce7;
-  color: #166534;
+  background: oklch(0.93 0.06 145);
+  color: oklch(0.42 0.1 150);
 }
 .badge.red {
-  background: #fee2e2;
-  color: #991b1b;
+  background: oklch(0.93 0.04 25);
+  color: oklch(0.45 0.14 25);
 }
 .badge.amber {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-primary-soft);
+  color: oklch(0.45 0.12 45);
 }
 
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: oklch(0.2 0.02 60 / 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -144,19 +164,20 @@ tbody tr:last-child td {
 }
 .modal {
   background: var(--color-surface);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
   width: 100%;
   max-width: 480px;
   max-height: 85vh;
   overflow-y: auto;
+  box-shadow: 0 20px 50px oklch(0.2 0.02 60 / 0.2);
 }
 .modal.wide {
   max-width: 720px;
 }
 .modal h2 {
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
+  font-size: 1.15rem;
+  margin-bottom: 0.3rem;
 }
 .modal-actions {
   display: flex;
@@ -173,4 +194,19 @@ tbody tr:last-child td {
 .error-text {
   color: var(--color-danger);
   font-size: 0.85rem;
+}
+
+.brand-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--color-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 17px;
+  flex-shrink: 0;
 }

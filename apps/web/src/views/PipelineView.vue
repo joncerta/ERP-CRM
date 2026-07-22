@@ -134,12 +134,12 @@ onMounted(load)
   padding-bottom: 1rem;
 }
 .column {
-  background: var(--color-bg);
+  background: var(--color-bg-subtle);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  min-width: 240px;
-  max-width: 240px;
-  padding: 0.75rem;
+  border-radius: var(--radius-lg);
+  min-width: 250px;
+  max-width: 250px;
+  padding: 0.85rem;
   flex-shrink: 0;
 }
 .column.over {
@@ -147,9 +147,12 @@ onMounted(load)
 }
 .column-header {
   display: flex;
-  justify-content: space-between;
-  font-weight: 600;
-  font-size: 0.9rem;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--color-heading);
   margin-bottom: 0.15rem;
 }
 .column-total {
@@ -163,18 +166,20 @@ onMounted(load)
   min-height: 40px;
 }
 .opp-card {
-  padding: 0.7rem;
+  padding: 0.75rem;
   cursor: grab;
+  border-radius: 11px;
 }
 .opp-name {
-  font-weight: 600;
-  font-size: 0.88rem;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.9rem;
   margin-bottom: 0.15rem;
 }
 .opp-value {
   font-size: 0.82rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-primary);
-  margin-top: 0.3rem;
+  margin-top: 0.4rem;
 }
 </style>
