@@ -69,6 +69,9 @@ onUnmounted(() => {
         </template>
       </nav>
       <div class="sidebar-footer">
+        <RouterLink v-if="auth.hasPermission('core.users.read')" to="/users" class="settings-link">
+          {{ t('nav.users') }}
+        </RouterLink>
         <RouterLink to="/settings" class="settings-link">{{ t('nav.settings') }}</RouterLink>
         <div class="muted">{{ auth.user?.email }}</div>
         <button class="btn secondary" @click="handleLogout">{{ t('nav.logout') }}</button>

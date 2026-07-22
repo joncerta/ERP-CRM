@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { listContacts, createContact } from '@/api/contacts'
+import { listContacts, createContact, updateContact, deleteContact } from '@/api/contacts'
 import { listCompanies } from '@/api/companies'
 import { getErrorMessage } from '@/api/error'
 import { compact } from '@/utils/compact'
@@ -16,6 +16,8 @@ const error = ref('')
 const showModal = ref(false)
 const saving = ref(false)
 const formError = ref('')
+const editingId = ref<string | null>(null)
+const deletingId = ref<string | null>(null)
 
 const form = ref({ firstName: '', lastName: '', companyId: '', email: '', phone: '', whatsapp: '', position: '' })
 
@@ -37,8 +39,24 @@ function companyName(id: string | null) {
   return companies.value.find((c) => c.id === id)?.name ?? '—'
 }
 
-function openModal() {
+function openCreateModal() {
+  editingId.value = null
   form.value = { firstName: '', lastName: '', companyId: '', email: '', phone: '', whatsapp: '', position: '' }
+  formError.value = ''
+  showModal.value = true
+}
+
+function openEditModal(contact: Contact) {
+  editingId.value = contact.id
+  form.value = {
+    firstName: contact.firstName,
+    lastName: contact.lastName ?? '',
+    companyId: contact.companyId ?? '',
+    email: contact.email ?? '',
+    phone: contact.phone ?? '',
+    whatsapp: contact.whatsapp ?? '',
+    position: contact.position ?? '',
+  }
   formError.value = ''
   showModal.value = true
 }
@@ -47,13 +65,30 @@ async function submit() {
   saving.value = true
   formError.value = ''
   try {
-    await createContact(compact(form.value))
+    if (editingId.value) {
+      await updateContact(editingId.value, compact(form.value))
+    } else {
+      await createContact(compact(form.value))
+    }
     showModal.value = false
     await load()
   } catch (err) {
     formError.value = getErrorMessage(err)
   } finally {
     saving.value = false
+  }
+}
+
+async function remove(contact: Contact) {
+  if (!confirm(t('common.confirmDelete'))) return
+  deletingId.value = contact.id
+  try {
+    await deleteContact(contact.id)
+    await load()
+  } catch (err) {
+    error.value = getErrorMessage(err)
+  } finally {
+    deletingId.value = null
   }
 }
 
@@ -64,7 +99,7 @@ onMounted(load)
   <div>
     <div class="page-header">
       <h1>{{ t('contacts.title') }}</h1>
-      <button class="btn" @click="openModal">+ {{ t('contacts.newContact') }}</button>
+      <button class="btn" @click="openCreateModal">+ {{ t('contacts.newContact') }}</button>
     </div>
 
     <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
@@ -78,6 +113,7 @@ onMounted(load)
           <th>{{ t('common.email') }}</th>
           <th>{{ t('common.phone') }}</th>
           <th>WhatsApp</th>
+          <th>{{ t('common.actions') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -88,16 +124,22 @@ onMounted(load)
           <td>{{ contact.email || '—' }}</td>
           <td>{{ contact.phone || '—' }}</td>
           <td>{{ contact.whatsapp || '—' }}</td>
+          <td class="actions-cell">
+            <button class="btn secondary" @click="openEditModal(contact)">{{ t('common.edit') }}</button>
+            <button class="btn secondary" :disabled="deletingId === contact.id" @click="remove(contact)">
+              {{ t('common.delete') }}
+            </button>
+          </td>
         </tr>
         <tr v-if="!contacts.length">
-          <td colspan="6" class="muted">—</td>
+          <td colspan="7" class="muted">—</td>
         </tr>
       </tbody>
     </table>
 
     <div v-if="showModal" class="modal-backdrop" @click.self="showModal = false">
       <form class="modal" @submit.prevent="submit">
-        <h2>{{ t('contacts.newContact') }}</h2>
+        <h2>{{ editingId ? t('common.edit') : t('contacts.newContact') }}</h2>
         <div class="field">
           <label>{{ t('contacts.firstName') }}</label>
           <input v-model="form.firstName" required />
@@ -140,3 +182,11 @@ onMounted(load)
     </div>
   </div>
 </template>
+
+<style scoped>
+.actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+</style>

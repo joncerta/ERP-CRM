@@ -8,6 +8,7 @@
     "quotes": "Quotes",
     "platform": "Platform",
     "settings": "Settings",
+    "users": "Users",
     "logout": "Log out"
   },
   "notifications": {
@@ -32,7 +33,14 @@
     "name": "Name",
     "email": "Email",
     "phone": "Phone",
-    "actions": "Actions"
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete this record? This cannot be undone.",
+    "active": "Active",
+    "inactive": "Inactive",
+    "activate": "Activate",
+    "deactivate": "Deactivate"
   },
   "leads": {
     "title": "Leads",
@@ -56,7 +64,11 @@
   },
   "pipeline": {
     "title": "Opportunity pipeline",
-    "value": "Value"
+    "value": "Value",
+    "editOpportunity": "Edit opportunity",
+    "expectedCloseDate": "Expected close date",
+    "markLost": "Mark as lost",
+    "lostReasonPrompt": "Reason (optional)"
   },
   "quotes": {
     "title": "Quotes",
@@ -106,6 +118,14 @@
     "brandingUseCustom": "Use the company's own colors",
     "brandingPrimary": "Primary color",
     "brandingSecondary": "Secondary color"
+  },
+  "users": {
+    "title": "Users",
+    "invite": "Invite user",
+    "fullName": "Full name",
+    "password": "Password",
+    "role": "Role",
+    "status": "Status"
   },
   "settings": {
     "title": "Settings",

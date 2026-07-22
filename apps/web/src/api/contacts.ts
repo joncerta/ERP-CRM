@@ -10,3 +10,12 @@ export async function createContact(payload: Partial<Contact>): Promise<Contact>
   const { data } = await apiClient.post('/crm/contacts', payload);
   return data;
 }
+
+export async function updateContact(id: string, payload: Partial<Contact>): Promise<Contact> {
+  const { data } = await apiClient.patch(`/crm/contacts/${id}`, payload);
+  return data;
+}
+
+export async function deleteContact(id: string): Promise<void> {
+  await apiClient.delete(`/crm/contacts/${id}`);
+}

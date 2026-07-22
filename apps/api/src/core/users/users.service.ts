@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -35,6 +35,13 @@ export class UsersService {
 
   findAllForTenant(tenantId: string): Promise<User[]> {
     return this.repo.find({ where: { tenantId } });
+  }
+
+  async setActive(tenantId: string, userId: string, isActive: boolean): Promise<User> {
+    const user = await this.repo.findOne({ where: { id: userId, tenantId } });
+    if (!user) throw new NotFoundException(`Usuario ${userId} no encontrado`);
+    user.isActive = isActive;
+    return this.repo.save(user);
   }
 
   static async verifyPassword(plain: string, hash: string): Promise<boolean> {

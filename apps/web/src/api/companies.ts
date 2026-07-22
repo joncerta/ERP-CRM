@@ -10,3 +10,12 @@ export async function createCompany(payload: Partial<Company>): Promise<Company>
   const { data } = await apiClient.post('/crm/companies', payload);
   return data;
 }
+
+export async function updateCompany(id: string, payload: Partial<Company>): Promise<Company> {
+  const { data } = await apiClient.patch(`/crm/companies/${id}`, payload);
+  return data;
+}
+
+export async function deleteCompany(id: string): Promise<void> {
+  await apiClient.delete(`/crm/companies/${id}`);
+}

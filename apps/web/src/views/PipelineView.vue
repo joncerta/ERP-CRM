@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { listPipelineStages, listOpportunities, moveOpportunityStage } from '@/api/opportunities'
+import {
+  listPipelineStages,
+  listOpportunities,
+  moveOpportunityStage,
+  updateOpportunity,
+  closeOpportunityLost,
+} from '@/api/opportunities'
 import { listCompanies } from '@/api/companies'
 import { getErrorMessage } from '@/api/error'
+import { compact } from '@/utils/compact'
 import type { PipelineStage, Opportunity, Company } from '@/api/types'
 
 const { t } = useI18n()
@@ -15,6 +22,12 @@ const loading = ref(true)
 const error = ref('')
 const draggingId = ref<string | null>(null)
 const dragOverStageId = ref<string | null>(null)
+
+const editingOpp = ref<Opportunity | null>(null)
+const editForm = ref({ name: '', value: 0, expectedCloseDate: '' })
+const savingEdit = ref(false)
+const editError = ref('')
+const closingLostId = ref<string | null>(null)
 
 async function load() {
   loading.value = true
@@ -73,6 +86,48 @@ async function onDrop(stageId: string) {
   }
 }
 
+function openEditModal(opp: Opportunity) {
+  editingOpp.value = opp
+  editForm.value = {
+    name: opp.name,
+    value: Number(opp.value),
+    expectedCloseDate: opp.expectedCloseDate ?? '',
+  }
+  editError.value = ''
+}
+
+async function submitEdit() {
+  if (!editingOpp.value) return
+  savingEdit.value = true
+  editError.value = ''
+  try {
+    const updated = await updateOpportunity(editingOpp.value.id, compact(editForm.value))
+    const index = opportunities.value.findIndex((o) => o.id === updated.id)
+    if (index !== -1) opportunities.value[index] = updated
+    editingOpp.value = null
+  } catch (err) {
+    editError.value = getErrorMessage(err)
+  } finally {
+    savingEdit.value = false
+  }
+}
+
+async function markLost() {
+  if (!editingOpp.value) return
+  const reason = window.prompt(t('pipeline.lostReasonPrompt')) ?? undefined
+  closingLostId.value = editingOpp.value.id
+  try {
+    const updated = await closeOpportunityLost(editingOpp.value.id, reason || undefined)
+    const index = opportunities.value.findIndex((o) => o.id === updated.id)
+    if (index !== -1) opportunities.value[index] = updated
+    editingOpp.value = null
+  } catch (err) {
+    editError.value = getErrorMessage(err)
+  } finally {
+    closingLostId.value = null
+  }
+}
+
 const totalsByStage = computed(() => {
   const totals: Record<string, number> = {}
   for (const stage of stages.value) {
@@ -115,6 +170,7 @@ onMounted(load)
             class="card opp-card"
             draggable="true"
             @dragstart="onDragStart(opp.id)"
+            @click="openEditModal(opp)"
           >
             <div class="opp-name">{{ opp.name }}</div>
             <div class="muted">{{ companyName(opp.companyId) }}</div>
@@ -122,6 +178,40 @@ onMounted(load)
           </div>
         </div>
       </div>
+    </div>
+
+    <div v-if="editingOpp" class="modal-backdrop" @click.self="editingOpp = null">
+      <form class="modal" @submit.prevent="submitEdit">
+        <h2>{{ t('pipeline.editOpportunity') }}</h2>
+        <div class="field">
+          <label>{{ t('common.name') }}</label>
+          <input v-model="editForm.name" required />
+        </div>
+        <div class="field">
+          <label>{{ t('pipeline.value') }}</label>
+          <input v-model.number="editForm.value" type="number" min="0" />
+        </div>
+        <div class="field">
+          <label>{{ t('pipeline.expectedCloseDate') }}</label>
+          <input v-model="editForm.expectedCloseDate" type="date" />
+        </div>
+        <p v-if="editError" class="error-text">{{ editError }}</p>
+        <div class="modal-actions">
+          <button
+            v-if="editingOpp.status === 'open'"
+            type="button"
+            class="btn secondary"
+            :disabled="closingLostId === editingOpp.id"
+            @click="markLost"
+          >
+            {{ t('pipeline.markLost') }}
+          </button>
+          <button type="button" class="btn secondary" @click="editingOpp = null">
+            {{ t('common.cancel') }}
+          </button>
+          <button type="submit" class="btn" :disabled="savingEdit">{{ t('common.save') }}</button>
+        </div>
+      </form>
     </div>
   </div>
 </template>

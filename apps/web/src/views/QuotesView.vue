@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { listQuotes, createQuote, sendQuote, createFollowUp } from '@/api/quotes'
+import { listQuotes, createQuote, updateQuote, sendQuote, createFollowUp } from '@/api/quotes'
 import { listCompanies } from '@/api/companies'
 import { listContacts } from '@/api/contacts'
 import { getErrorMessage } from '@/api/error'
@@ -20,6 +20,7 @@ const showModal = ref(false)
 const saving = ref(false)
 const formError = ref('')
 const sendingId = ref<string | null>(null)
+const editingId = ref<string | null>(null)
 const followUpQuote = ref<Quote | null>(null)
 const followUpDate = ref('')
 const followUpNote = ref('')
@@ -57,12 +58,30 @@ function companyName(id: string) {
 }
 
 function openModal() {
+  editingId.value = null
   form.value = {
     companyId: '',
     contactId: '',
     currencyCode: 'USD',
     taxRate: 0,
     items: [{ description: '', quantity: 1, unitPrice: 0 }],
+  }
+  formError.value = ''
+  showModal.value = true
+}
+
+function openEditModal(quote: Quote) {
+  editingId.value = quote.id
+  form.value = {
+    companyId: quote.companyId,
+    contactId: quote.contactId ?? '',
+    currencyCode: quote.currencyCode,
+    taxRate: quote.subtotal ? Math.round((Number(quote.tax) / Number(quote.subtotal)) * 1000) / 10 : 0,
+    items: quote.items.map((item) => ({
+      description: item.description,
+      quantity: Number(item.quantity),
+      unitPrice: Number(item.unitPrice),
+    })),
   }
   formError.value = ''
   showModal.value = true
@@ -86,7 +105,11 @@ async function submit() {
   saving.value = true
   formError.value = ''
   try {
-    await createQuote(compact(form.value) as typeof form.value)
+    if (editingId.value) {
+      await updateQuote(editingId.value, compact(form.value) as typeof form.value)
+    } else {
+      await createQuote(compact(form.value) as typeof form.value)
+    }
     showModal.value = false
     await load()
   } catch (err) {
@@ -171,6 +194,9 @@ onMounted(load)
           <td><span class="badge" :class="statusBadge[q.status]">{{ t(`quotes.status.${q.status}`) }}</span></td>
           <td>{{ q.viewCount }}</td>
           <td class="actions-cell">
+            <button v-if="q.status === 'draft'" class="btn secondary" @click="openEditModal(q)">
+              {{ t('common.edit') }}
+            </button>
             <button v-if="q.status === 'draft'" class="btn secondary" :disabled="sendingId === q.id" @click="handleSend(q)">
               {{ t('quotes.send') }}
             </button>
@@ -187,7 +213,7 @@ onMounted(load)
     <!-- Create quote modal -->
     <div v-if="showModal" class="modal-backdrop" @click.self="showModal = false">
       <form class="modal wide" @submit.prevent="submit">
-        <h2>{{ t('quotes.newQuote') }}</h2>
+        <h2>{{ editingId ? t('common.edit') : t('quotes.newQuote') }}</h2>
         <div class="field">
           <label>{{ t('companies.title') }}</label>
           <select v-model="form.companyId" required>

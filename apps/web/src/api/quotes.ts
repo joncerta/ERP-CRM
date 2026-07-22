@@ -27,6 +27,11 @@ export async function createQuote(payload: CreateQuotePayload): Promise<Quote> {
   return data;
 }
 
+export async function updateQuote(id: string, payload: Partial<CreateQuotePayload>): Promise<Quote> {
+  const { data } = await apiClient.patch(`/crm/quotes/${id}`, payload);
+  return data;
+}
+
 export async function sendQuote(id: string): Promise<Quote> {
   const { data } = await apiClient.patch(`/crm/quotes/${id}/send`);
   return data;

@@ -70,6 +70,12 @@ const router = createRouter({
       component: () => import('@/views/SettingsView.vue'),
     },
     {
+      path: '/users',
+      name: 'users',
+      component: () => import('@/views/UsersView.vue'),
+      meta: { requiresPermission: 'core.users.read' },
+    },
+    {
       path: '/platform/tenants',
       name: 'platform-tenants',
       component: () => import('@/views/PlatformTenantsView.vue'),

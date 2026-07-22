@@ -8,6 +8,7 @@
     "quotes": "Cotizaciones",
     "platform": "Plataforma",
     "settings": "Configuración",
+    "users": "Usuarios",
     "logout": "Cerrar sesión"
   },
   "notifications": {
@@ -32,7 +33,14 @@
     "name": "Nombre",
     "email": "Correo",
     "phone": "Teléfono",
-    "actions": "Acciones"
+    "actions": "Acciones",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "confirmDelete": "¿Seguro que quieres eliminar este registro? Esta acción no se puede deshacer.",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "activate": "Activar",
+    "deactivate": "Desactivar"
   },
   "leads": {
     "title": "Leads",
@@ -56,7 +64,11 @@
   },
   "pipeline": {
     "title": "Pipeline de oportunidades",
-    "value": "Valor"
+    "value": "Valor",
+    "editOpportunity": "Editar oportunidad",
+    "expectedCloseDate": "Fecha estimada de cierre",
+    "markLost": "Marcar como perdida",
+    "lostReasonPrompt": "Motivo (opcional)"
   },
   "quotes": {
     "title": "Cotizaciones",
@@ -106,6 +118,14 @@
     "brandingUseCustom": "Usar colores propios de la empresa",
     "brandingPrimary": "Color primario",
     "brandingSecondary": "Color secundario"
+  },
+  "users": {
+    "title": "Usuarios",
+    "invite": "Invitar usuario",
+    "fullName": "Nombre completo",
+    "password": "Contraseña",
+    "role": "Rol",
+    "status": "Estado"
   },
   "settings": {
     "title": "Configuración",

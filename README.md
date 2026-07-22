@@ -160,6 +160,19 @@ tenant no lo tiene activo. Dos formas de activar/desactivar:
   `platform.tenants.manage`, ver sección anterior): pantalla `Plataforma`
   en el frontend, o `PATCH /api/platform/tenants/:tenantId/modules/:code`
 
+## Gestión de equipo (Usuarios)
+
+Cualquier Administrador de un tenant puede invitar compañeros de equipo
+desde la pantalla `Usuarios` (visible con el permiso `core.users.read`):
+
+- `POST /api/users` (permiso `core.users.write`) — crea el usuario con
+  email/contraseña/rol.
+- `PATCH /api/users/:id/active` (mismo permiso) — activa/desactiva. Un
+  usuario desactivado no puede iniciar sesión (mismo mensaje genérico que
+  credenciales inválidas, para no filtrar el estado de la cuenta). Nadie
+  puede desactivarse a sí mismo, para no dejar un tenant sin admin activo.
+- `GET /api/roles` alimenta el selector de rol al invitar.
+
 ## Branding por tenant
 
 Cada tenant puede tener sus propios colores de marca (primario y
@@ -218,6 +231,28 @@ Disparadores actuales:
 
 El frontend se conecta desde `AppLayout.vue` (una vez autenticado) y
 muestra una campana con contador de no leídas en la barra superior.
+
+## Envío de cotizaciones por correo
+
+Al presionar "Enviar" en una cotización, además de cambiar su estado a
+`sent`, el backend intenta emailear el link público al contacto asociado
+(si la cotización tiene un `contactId` y ese contacto tiene `email`). Se
+envía por SMTP vía `nodemailer`, configurable con `SMTP_HOST`/`SMTP_PORT`/
+`SMTP_USER`/`SMTP_PASS`/`SMTP_FROM` (ver `.env.example`). Si `SMTP_HOST`
+no está configurado, o el envío falla, no rompe la petición — la
+cotización queda igual marcada como enviada y el link público sigue
+disponible para compartir manualmente. Es decir: correo real es un
+"mejor esfuerzo", no un requisito para que el flujo comercial funcione.
+
+## Editar y eliminar registros
+
+Empresas, Contactos y Leads se pueden editar y eliminar desde su propia
+pantalla (botones "Editar"/"Eliminar" por fila). Oportunidades se editan
+haciendo clic en su tarjeta del Pipeline (nombre, valor, fecha estimada
+de cierre) y desde ahí también se pueden marcar como perdidas — no tienen
+eliminación directa porque "perdida" ya es la forma de cerrarlas. Las
+Cotizaciones solo se pueden editar mientras están en estado `draft`
+(antes de enviarlas); una vez enviadas, el backend rechaza la edición.
 
 ## Tests (backend)
 

@@ -15,3 +15,7 @@ export async function updateLead(id: string, payload: Partial<Lead>): Promise<Le
   const { data } = await apiClient.patch(`/crm/leads/${id}`, payload);
   return data;
 }
+
+export async function deleteLead(id: string): Promise<void> {
+  await apiClient.delete(`/crm/leads/${id}`);
+}

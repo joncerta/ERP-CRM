@@ -514,4 +514,171 @@ describe('CRM (e2e)', () => {
       expect(asB.body).toEqual([]);
     });
   });
+
+  describe('editing and deleting CRM records', () => {
+    it('edits and deletes a company', async () => {
+      const tenant = await bootstrapTenant('editcompany');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+
+      const company = await request(app.getHttpServer()).post('/api/crm/companies').set(bearer).send({ name: 'Original' }).expect(201);
+
+      const updated = await request(app.getHttpServer())
+        .patch(`/api/crm/companies/${company.body.id}`)
+        .set(bearer)
+        .send({ name: 'Renombrada' })
+        .expect(200);
+      expect(updated.body.name).toBe('Renombrada');
+
+      await request(app.getHttpServer()).delete(`/api/crm/companies/${company.body.id}`).set(bearer).expect(200);
+      await request(app.getHttpServer()).get(`/api/crm/companies/${company.body.id}`).set(bearer).expect(404);
+    });
+
+    it('edits and deletes a contact', async () => {
+      const tenant = await bootstrapTenant('editcontact');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+
+      const contact = await request(app.getHttpServer())
+        .post('/api/crm/contacts')
+        .set(bearer)
+        .send({ firstName: 'Ana' })
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .patch(`/api/crm/contacts/${contact.body.id}`)
+        .set(bearer)
+        .send({ firstName: 'Ana María' })
+        .expect(200)
+        .expect((res) => expect(res.body.firstName).toBe('Ana María'));
+
+      await request(app.getHttpServer()).delete(`/api/crm/contacts/${contact.body.id}`).set(bearer).expect(200);
+      await request(app.getHttpServer()).get(`/api/crm/contacts/${contact.body.id}`).set(bearer).expect(404);
+    });
+
+    it('edits and deletes a lead', async () => {
+      const tenant = await bootstrapTenant('editlead');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+
+      const lead = await request(app.getHttpServer()).post('/api/crm/leads').set(bearer).send({ name: 'Interés inicial' }).expect(201);
+
+      await request(app.getHttpServer())
+        .patch(`/api/crm/leads/${lead.body.id}`)
+        .set(bearer)
+        .send({ name: 'Interés confirmado' })
+        .expect(200)
+        .expect((res) => expect(res.body.name).toBe('Interés confirmado'));
+
+      await request(app.getHttpServer()).delete(`/api/crm/leads/${lead.body.id}`).set(bearer).expect(200);
+      await request(app.getHttpServer()).get(`/api/crm/leads/${lead.body.id}`).set(bearer).expect(404);
+    });
+
+    it('edits an opportunity and can mark it lost', async () => {
+      const tenant = await bootstrapTenant('editopp');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+
+      const lead = await request(app.getHttpServer()).post('/api/crm/leads').set(bearer).send({ name: 'Para oportunidad' }).expect(201);
+      const opportunity = await request(app.getHttpServer())
+        .post(`/api/crm/opportunities/from-lead/${lead.body.id}`)
+        .set(bearer)
+        .send({})
+        .expect(201);
+
+      const updated = await request(app.getHttpServer())
+        .patch(`/api/crm/opportunities/${opportunity.body.id}`)
+        .set(bearer)
+        .send({ value: 999 })
+        .expect(200);
+      expect(Number(updated.body.value)).toBe(999);
+
+      const lost = await request(app.getHttpServer())
+        .patch(`/api/crm/opportunities/${opportunity.body.id}/close-lost`)
+        .set(bearer)
+        .send({ reason: 'Se fue con la competencia' })
+        .expect(200);
+      expect(lost.body.status).toBe('lost');
+      expect(lost.body.lostReason).toBe('Se fue con la competencia');
+    });
+
+    it('edits a quote while in draft, but rejects editing once sent', async () => {
+      const tenant = await bootstrapTenant('editquote');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+      const company = await request(app.getHttpServer()).post('/api/crm/companies').set(bearer).send({ name: 'Cliente Edit' }).expect(201);
+      const quote = await request(app.getHttpServer())
+        .post('/api/crm/quotes')
+        .set(bearer)
+        .send({ companyId: company.body.id, items: [{ description: 'Item', quantity: 1, unitPrice: 100 }] })
+        .expect(201);
+
+      const edited = await request(app.getHttpServer())
+        .patch(`/api/crm/quotes/${quote.body.id}`)
+        .set(bearer)
+        .send({ items: [{ description: 'Item editado', quantity: 2, unitPrice: 100 }] })
+        .expect(200);
+      expect(Number(edited.body.total)).toBe(200);
+
+      await request(app.getHttpServer()).patch(`/api/crm/quotes/${quote.body.id}/send`).set(bearer).expect(200);
+
+      await request(app.getHttpServer())
+        .patch(`/api/crm/quotes/${quote.body.id}`)
+        .set(bearer)
+        .send({ items: [{ description: 'No debería aplicar', quantity: 1, unitPrice: 1 }] })
+        .expect(400);
+    });
+  });
+
+  describe('team users', () => {
+    it('invites a teammate, lists them, and the new user can log in', async () => {
+      const tenant = await bootstrapTenant('inviteteam');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+
+      const roles = await request(app.getHttpServer()).get('/api/roles').set(bearer).expect(200);
+      const adminRole = roles.body.find((r: { name: string }) => r.name === 'Administrador');
+      expect(adminRole).toBeTruthy();
+
+      const created = await request(app.getHttpServer())
+        .post('/api/users')
+        .set(bearer)
+        .send({ email: `teammate@${tenant.slug}.test`, password: 'TeamMate123!', fullName: 'Compañera', roleId: adminRole.id })
+        .expect(201);
+      expect(created.body.isActive).toBe(true);
+
+      const list = await request(app.getHttpServer()).get('/api/users').set(bearer).expect(200);
+      expect(list.body.map((u: { email: string }) => u.email)).toEqual(
+        expect.arrayContaining([`teammate@${tenant.slug}.test`]),
+      );
+
+      await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ tenantSlug: tenant.slug, email: `teammate@${tenant.slug}.test`, password: 'TeamMate123!' })
+        .expect(201);
+    });
+
+    it('blocks a user from deactivating itself, but can deactivate someone else and it blocks their login', async () => {
+      const tenant = await bootstrapTenant('deactivateteam');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+
+      const users = await request(app.getHttpServer()).get('/api/users').set(bearer).expect(200);
+      const selfId = users.body.find((u: { email: string }) => u.email === `admin@${tenant.slug}.test`).id;
+
+      await request(app.getHttpServer()).patch(`/api/users/${selfId}/active`).set(bearer).send({ isActive: false }).expect(400);
+
+      const roles = await request(app.getHttpServer()).get('/api/roles').set(bearer).expect(200);
+      const adminRole = roles.body.find((r: { name: string }) => r.name === 'Administrador');
+      const teammate = await request(app.getHttpServer())
+        .post('/api/users')
+        .set(bearer)
+        .send({ email: `other@${tenant.slug}.test`, password: 'OtherPass123!', fullName: 'Otro', roleId: adminRole.id })
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .patch(`/api/users/${teammate.body.id}/active`)
+        .set(bearer)
+        .send({ isActive: false })
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ tenantSlug: tenant.slug, email: `other@${tenant.slug}.test`, password: 'OtherPass123!' })
+        .expect(401);
+    });
+  });
 });

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomBytes } from 'crypto';
@@ -8,6 +8,9 @@ import { CreateQuoteDto } from './dto/create-quote.dto';
 import { UpdateQuoteDto } from './dto/update-quote.dto';
 import { TenantScopedService } from '../../common/services/tenant-scoped.service';
 import { NotificationsService } from '../../notifications/notifications.service';
+import { ContactsService } from '../contacts/contacts.service';
+import { EmailService } from '../../common/email/email.service';
+import { ConfigService } from '@nestjs/config';
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
@@ -15,9 +18,14 @@ function round2(n: number): number {
 
 @Injectable()
 export class QuotesService extends TenantScopedService<Quote> {
+  private readonly logger = new Logger(QuotesService.name);
+
   constructor(
     @InjectRepository(Quote) repo: Repository<Quote>,
     private readonly notificationsService: NotificationsService,
+    private readonly contactsService: ContactsService,
+    private readonly emailService: EmailService,
+    private readonly config: ConfigService,
   ) {
     super(repo);
   }
@@ -92,7 +100,35 @@ export class QuotesService extends TenantScopedService<Quote> {
     }
     quote.status = QuoteStatus.SENT;
     quote.sentAt = new Date();
-    return this.repository.save(quote);
+    const saved = await this.repository.save(quote);
+
+    await this.emailQuoteToCustomer(saved);
+
+    return saved;
+  }
+
+  /** Best-effort — a customer without an email on file, or SMTP not being
+   * configured, shouldn't block sending the quote (the sender still has the
+   * public link to share manually as a fallback). */
+  private async emailQuoteToCustomer(quote: Quote): Promise<void> {
+    if (!quote.contactId) return;
+    const contact = await this.contactsService.findOneForTenant(quote.tenantId, quote.contactId).catch(() => null);
+    if (!contact?.email) return;
+
+    const webOrigin = (this.config.get<string>('WEB_ORIGIN') ?? 'http://localhost:5173').split(',')[0].trim();
+    const quoteUrl = `${webOrigin}/q/${quote.accessToken}`;
+
+    try {
+      await this.emailService.send({
+        to: contact.email,
+        subject: `Cotización ${quote.quoteNumber}`,
+        html: `<p>Hola ${contact.firstName},</p><p>Te compartimos la cotización <strong>${quote.quoteNumber}</strong> por un total de ${quote.currencyCode} ${Number(quote.total).toLocaleString()}.</p><p><a href="${quoteUrl}">Ver cotización</a></p>`,
+      });
+    } catch (err) {
+      // The quote is already marked "sent" — a broken mail server shouldn't
+      // fail the request; the sender still has the public link to share.
+      this.logger.warn(`No se pudo enviar el correo de la cotización ${quote.quoteNumber}: ${(err as Error).message}`);
+    }
   }
 
   async findByAccessToken(accessToken: string): Promise<Quote> {

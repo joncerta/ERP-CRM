@@ -16,6 +16,11 @@ export async function createOpportunity(payload: Partial<Opportunity>): Promise<
   return data;
 }
 
+export async function updateOpportunity(id: string, payload: Partial<Opportunity>): Promise<Opportunity> {
+  const { data } = await apiClient.patch(`/crm/opportunities/${id}`, payload);
+  return data;
+}
+
 export async function createOpportunityFromLead(
   leadId: string,
   payload: Partial<Opportunity> = {},

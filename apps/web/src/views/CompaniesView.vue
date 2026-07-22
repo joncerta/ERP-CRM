@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { listCompanies, createCompany } from '@/api/companies'
+import { listCompanies, createCompany, updateCompany, deleteCompany } from '@/api/companies'
 import { getErrorMessage } from '@/api/error'
 import { compact } from '@/utils/compact'
 import type { Company } from '@/api/types'
@@ -13,6 +13,8 @@ const error = ref('')
 const showModal = ref(false)
 const saving = ref(false)
 const formError = ref('')
+const editingId = ref<string | null>(null)
+const deletingId = ref<string | null>(null)
 
 const form = ref({ name: '', email: '', phone: '', city: '', country: '' })
 
@@ -28,8 +30,22 @@ async function load() {
   }
 }
 
-function openModal() {
+function openCreateModal() {
+  editingId.value = null
   form.value = { name: '', email: '', phone: '', city: '', country: '' }
+  formError.value = ''
+  showModal.value = true
+}
+
+function openEditModal(company: Company) {
+  editingId.value = company.id
+  form.value = {
+    name: company.name,
+    email: company.email ?? '',
+    phone: company.phone ?? '',
+    city: company.city ?? '',
+    country: company.country ?? '',
+  }
   formError.value = ''
   showModal.value = true
 }
@@ -38,13 +54,30 @@ async function submit() {
   saving.value = true
   formError.value = ''
   try {
-    await createCompany(compact(form.value))
+    if (editingId.value) {
+      await updateCompany(editingId.value, compact(form.value))
+    } else {
+      await createCompany(compact(form.value))
+    }
     showModal.value = false
     await load()
   } catch (err) {
     formError.value = getErrorMessage(err)
   } finally {
     saving.value = false
+  }
+}
+
+async function remove(company: Company) {
+  if (!confirm(t('common.confirmDelete'))) return
+  deletingId.value = company.id
+  try {
+    await deleteCompany(company.id)
+    await load()
+  } catch (err) {
+    error.value = getErrorMessage(err)
+  } finally {
+    deletingId.value = null
   }
 }
 
@@ -55,7 +88,7 @@ onMounted(load)
   <div>
     <div class="page-header">
       <h1>{{ t('companies.title') }}</h1>
-      <button class="btn" @click="openModal">+ {{ t('companies.newCompany') }}</button>
+      <button class="btn" @click="openCreateModal">+ {{ t('companies.newCompany') }}</button>
     </div>
 
     <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
@@ -68,6 +101,7 @@ onMounted(load)
           <th>{{ t('common.phone') }}</th>
           <th>{{ t('companies.city') }}</th>
           <th>{{ t('companies.country') }}</th>
+          <th>{{ t('common.actions') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -77,16 +111,22 @@ onMounted(load)
           <td>{{ c.phone || '—' }}</td>
           <td>{{ c.city || '—' }}</td>
           <td>{{ c.country || '—' }}</td>
+          <td class="actions-cell">
+            <button class="btn secondary" @click="openEditModal(c)">{{ t('common.edit') }}</button>
+            <button class="btn secondary" :disabled="deletingId === c.id" @click="remove(c)">
+              {{ t('common.delete') }}
+            </button>
+          </td>
         </tr>
         <tr v-if="!companies.length">
-          <td colspan="5" class="muted">—</td>
+          <td colspan="6" class="muted">—</td>
         </tr>
       </tbody>
     </table>
 
     <div v-if="showModal" class="modal-backdrop" @click.self="showModal = false">
       <form class="modal" @submit.prevent="submit">
-        <h2>{{ t('companies.newCompany') }}</h2>
+        <h2>{{ editingId ? t('common.edit') : t('companies.newCompany') }}</h2>
         <div class="field">
           <label>{{ t('common.name') }}</label>
           <input v-model="form.name" required />
@@ -118,3 +158,11 @@ onMounted(load)
     </div>
   </div>
 </template>
+
+<style scoped>
+.actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+</style>
