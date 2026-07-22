@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useI18n } from 'vue-i18n'
+import { getPublicBrandingBySlug } from '@/api/branding'
+import { applyBranding } from '@/utils/branding'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -14,6 +16,24 @@ const email = ref('')
 const password = ref('')
 const error = ref('')
 const loading = ref(false)
+
+let brandingDebounce: ReturnType<typeof setTimeout> | undefined
+watch(tenantSlug, (slug) => {
+  clearTimeout(brandingDebounce)
+  if (slug.length < 2) {
+    applyBranding({ primaryColor: null, secondaryColor: null })
+    return
+  }
+  brandingDebounce = setTimeout(async () => {
+    try {
+      applyBranding(await getPublicBrandingBySlug(slug))
+    } catch {
+      applyBranding({ primaryColor: null, secondaryColor: null })
+    }
+  }, 400)
+})
+
+onUnmounted(() => clearTimeout(brandingDebounce))
 
 async function handleSubmit() {
   error.value = ''

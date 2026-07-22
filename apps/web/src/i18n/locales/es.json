@@ -10,6 +10,11 @@
     "settings": "Configuración",
     "logout": "Cerrar sesión"
   },
+  "notifications": {
+    "title": "Notificaciones",
+    "markAllRead": "Marcar todas como leídas",
+    "empty": "No tienes notificaciones."
+  },
   "login": {
     "title": "Iniciar sesión",
     "tenantSlug": "Empresa (slug)",
@@ -96,7 +101,11 @@
     "hideModules": "Ocultar",
     "core": "Núcleo",
     "enable": "Activar",
-    "disable": "Desactivar"
+    "disable": "Desactivar",
+    "branding": "Colores de marca",
+    "brandingUseCustom": "Usar colores propios de la empresa",
+    "brandingPrimary": "Color primario",
+    "brandingSecondary": "Color secundario"
   },
   "settings": {
     "title": "Configuración",

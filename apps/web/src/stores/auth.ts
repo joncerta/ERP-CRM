@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { login as loginRequest, logout as logoutRequest, type LoginPayload } from '@/api/auth';
+import { applyBranding } from '@/utils/branding';
 
 interface JwtPayload {
   sub: string;
@@ -46,6 +47,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = null;
     user.value = null;
     localStorage.removeItem('erp_crm_token');
+    applyBranding({ primaryColor: null, secondaryColor: null });
   }
 
   /** For an explicit "cerrar sesión" click: revokes the session server-side

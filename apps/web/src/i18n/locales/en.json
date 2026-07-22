@@ -10,6 +10,11 @@
     "settings": "Settings",
     "logout": "Log out"
   },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "empty": "You have no notifications."
+  },
   "login": {
     "title": "Sign in",
     "tenantSlug": "Company (slug)",
@@ -96,7 +101,11 @@
     "hideModules": "Hide",
     "core": "Core",
     "enable": "Enable",
-    "disable": "Disable"
+    "disable": "Disable",
+    "branding": "Brand colors",
+    "brandingUseCustom": "Use the company's own colors",
+    "brandingPrimary": "Primary color",
+    "brandingSecondary": "Secondary color"
   },
   "settings": {
     "title": "Settings",

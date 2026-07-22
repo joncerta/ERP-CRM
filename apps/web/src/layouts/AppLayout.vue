@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useNotificationsStore } from '@/stores/notifications'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { getTenantSettings } from '@/api/tenant-settings'
+import { applyBranding } from '@/utils/branding'
 
 const auth = useAuthStore()
+const notificationsStore = useNotificationsStore()
 const router = useRouter()
 const { t } = useI18n()
 
@@ -12,10 +16,36 @@ const { t } = useI18n()
 // own to see, so it gets a completely different nav than a customer admin.
 const isPlatformAdmin = computed(() => auth.hasPermission('platform.tenants.manage'))
 
+const notificationsOpen = ref(false)
+
 async function handleLogout() {
+  notificationsStore.disconnect()
   await auth.logoutEverywhere()
   router.push({ name: 'login' })
 }
+
+function toggleNotifications() {
+  notificationsOpen.value = !notificationsOpen.value
+}
+
+async function handleMarkAllRead() {
+  await notificationsStore.markAllRead()
+}
+
+onMounted(async () => {
+  try {
+    const settings = await getTenantSettings()
+    applyBranding({ primaryColor: settings.brandingPrimaryColor, secondaryColor: settings.brandingSecondaryColor })
+  } catch {
+    // Not critical — the default palette is a perfectly fine fallback.
+  }
+  notificationsStore.connect()
+  notificationsStore.load().catch(() => {})
+})
+
+onUnmounted(() => {
+  notificationsStore.disconnect()
+})
 </script>
 
 <template>
@@ -45,6 +75,38 @@ async function handleLogout() {
       </div>
     </aside>
     <main class="content">
+      <div class="topbar">
+        <div class="notif-wrap">
+          <button class="notif-bell" :aria-label="t('notifications.title')" @click="toggleNotifications">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            <span v-if="notificationsStore.unreadCount > 0" class="notif-badge">{{ notificationsStore.unreadCount }}</span>
+          </button>
+          <div v-if="notificationsOpen" class="notif-dropdown">
+            <div class="notif-dropdown-header">
+              <span>{{ t('notifications.title') }}</span>
+              <button class="link-btn" @click="handleMarkAllRead">{{ t('notifications.markAllRead') }}</button>
+            </div>
+            <p v-if="notificationsStore.notifications.length === 0" class="muted notif-empty">
+              {{ t('notifications.empty') }}
+            </p>
+            <div v-else class="notif-list">
+              <div
+                v-for="n in notificationsStore.notifications"
+                :key="n.id"
+                class="notif-item"
+                :class="{ unread: !n.isRead }"
+                @click="notificationsStore.markRead(n.id)"
+              >
+                <div class="notif-item-title">{{ n.title }}</div>
+                <div class="notif-item-message muted">{{ n.message }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <slot />
     </main>
   </div>
@@ -117,5 +179,102 @@ nav a.router-link-active {
   padding: 2rem;
   max-width: 1200px;
   overflow-y: auto;
+}
+.topbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+.notif-wrap {
+  position: relative;
+}
+.notif-bell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+.notif-bell:hover {
+  background: var(--color-bg-subtle);
+}
+.notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: 8px;
+  background: var(--color-danger);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.notif-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  z-index: 20;
+}
+.notif-dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.notif-empty {
+  padding: 1.25rem 1rem;
+  font-size: 0.85rem;
+}
+.notif-list {
+  overflow-y: auto;
+}
+.notif-item {
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+  cursor: pointer;
+}
+.notif-item:hover {
+  background: var(--color-bg-subtle);
+}
+.notif-item.unread {
+  background: var(--color-primary-soft);
+}
+.notif-item-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+.notif-item-message {
+  font-size: 0.8rem;
 }
 </style>

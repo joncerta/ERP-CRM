@@ -13,4 +13,9 @@ app.use(createPinia())
 app.use(router)
 app.use(i18n)
 
-app.mount('#app')
+// Wait for the router to resolve the actual navigation before mounting —
+// otherwise on a direct deep link (e.g. a public /q/:token quote link)
+// App.vue briefly renders against the unresolved initial route, mounts
+// AppLayout, and its data fetches 401 and bounce the page to /login before
+// the real route ever gets a chance to render.
+router.isReady().then(() => app.mount('#app'))

@@ -2,21 +2,34 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { Session } from './entities/session.entity';
+import { NotificationsGateway } from '../../notifications/notifications.gateway';
 
 @Injectable()
 export class SessionsService {
-  constructor(@InjectRepository(Session) private readonly repo: Repository<Session>) {}
+  constructor(
+    @InjectRepository(Session) private readonly repo: Repository<Session>,
+    private readonly notificationsGateway: NotificationsGateway,
+  ) {}
 
   /**
    * Revokes every other active session for this user, then opens a new
    * one — enforcing "logging in on a new device immediately kicks out
-   * every other device" without a separate cleanup job.
+   * every other device" without a separate cleanup job. Sockets from the
+   * revoked sessions are force-disconnected right away instead of waiting
+   * for their next HTTP request to hit the 401.
    */
   async startSession(tenantId: string, userId: string, userAgent?: string): Promise<Session> {
-    await this.repo.update(
-      { tenantId, userId, revokedAt: IsNull() },
-      { revokedAt: new Date(), revokedReason: 'superseded_by_new_login' },
-    );
+    const priorActive = await this.repo.find({ where: { tenantId, userId, revokedAt: IsNull() } });
+    if (priorActive.length > 0) {
+      await this.repo.update(
+        { tenantId, userId, revokedAt: IsNull() },
+        { revokedAt: new Date(), revokedReason: 'superseded_by_new_login' },
+      );
+      this.notificationsGateway.disconnectSessions(
+        priorActive.map((s) => s.id),
+        'superseded_by_new_login',
+      );
+    }
 
     const session = this.repo.create({
       tenantId,

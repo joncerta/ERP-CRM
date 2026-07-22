@@ -373,4 +373,145 @@ describe('CRM (e2e)', () => {
         .expect(400);
     });
   });
+
+  async function elevateToPlatformAdmin(tenant: { tenantId: string; slug: string }) {
+    await dataSource
+      .getRepository(Role)
+      .createQueryBuilder()
+      .update()
+      .set({ permissions: () => `permissions || '["platform.tenants.manage"]'::jsonb` })
+      .where('tenant_id = :tenantId AND name = :name', { tenantId: tenant.tenantId, name: 'Administrador' })
+      .execute();
+
+    const loginRes = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ tenantSlug: tenant.slug, email: `admin@${tenant.slug}.test`, password: 'Sup3rSecret!' })
+      .expect(201);
+    return loginRes.body.accessToken as string;
+  }
+
+  describe('tenant branding', () => {
+    it('the public branding lookup returns nulls for a tenant with no branding configured', async () => {
+      const tenant = await bootstrapTenant('brandingdefault');
+      const res = await request(app.getHttpServer()).get(`/api/platform/tenants/by-slug/${tenant.slug}/branding`).expect(200);
+      expect(res.body).toEqual({ primaryColor: null, secondaryColor: null });
+    });
+
+    it('returns nulls instead of 404 for a slug that does not exist, so login-screen typing never errors', async () => {
+      const res = await request(app.getHttpServer())
+        .get(`/api/platform/tenants/by-slug/e2e-${runId}-doesnotexist/branding`)
+        .expect(200);
+      expect(res.body).toEqual({ primaryColor: null, secondaryColor: null });
+    });
+
+    it('lets a platform admin set a tenant\'s brand colors, visible right away on the public lookup', async () => {
+      const platformTenant = await bootstrapTenant('brandingop');
+      const customerTenant = await bootstrapTenant('brandingcustomer');
+      const elevatedToken = await elevateToPlatformAdmin(platformTenant);
+
+      await request(app.getHttpServer())
+        .patch(`/api/platform/tenants/${customerTenant.tenantId}/branding`)
+        .set('Authorization', `Bearer ${elevatedToken}`)
+        .send({ primaryColor: '#123abc', secondaryColor: '#654321' })
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.brandingPrimaryColor).toBe('#123abc');
+          expect(res.body.brandingSecondaryColor).toBe('#654321');
+        });
+
+      const res = await request(app.getHttpServer())
+        .get(`/api/platform/tenants/by-slug/${customerTenant.slug}/branding`)
+        .expect(200);
+      expect(res.body).toEqual({ primaryColor: '#123abc', secondaryColor: '#654321' });
+    });
+
+    it('rejects a color that is not a hex code', async () => {
+      const platformTenant = await bootstrapTenant('brandinginvalid');
+      const elevatedToken = await elevateToPlatformAdmin(platformTenant);
+
+      await request(app.getHttpServer())
+        .patch(`/api/platform/tenants/${platformTenant.tenantId}/branding`)
+        .set('Authorization', `Bearer ${elevatedToken}`)
+        .send({ primaryColor: 'not-a-color' })
+        .expect(400);
+    });
+
+    it('blocks an ordinary tenant admin from setting branding for any tenant, including its own', async () => {
+      const tenant = await bootstrapTenant('brandingdenied');
+      await request(app.getHttpServer())
+        .patch(`/api/platform/tenants/${tenant.tenantId}/branding`)
+        .set('Authorization', `Bearer ${tenant.token}`)
+        .send({ primaryColor: '#123abc', secondaryColor: null })
+        .expect(403);
+    });
+  });
+
+  describe('notifications', () => {
+    async function quoteThroughToSent(tenant: { token: string }) {
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+      const company = await request(app.getHttpServer())
+        .post('/api/crm/companies')
+        .set(bearer)
+        .send({ name: 'Cliente Notificaciones' })
+        .expect(201);
+      const quote = await request(app.getHttpServer())
+        .post('/api/crm/quotes')
+        .set(bearer)
+        .send({ companyId: company.body.id, items: [{ description: 'Servicio', quantity: 1, unitPrice: 100 }] })
+        .expect(201);
+      await request(app.getHttpServer()).patch(`/api/crm/quotes/${quote.body.id}/send`).set(bearer).expect(200);
+      return quote.body as { id: string; accessToken: string; quoteNumber: string };
+    }
+
+    it('notifies the quote owner (persisted, fetchable via REST) when the customer accepts', async () => {
+      const tenant = await bootstrapTenant('notifyaccept');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+      const quote = await quoteThroughToSent(tenant);
+
+      await request(app.getHttpServer())
+        .post(`/api/public/quotes/${quote.accessToken}/respond`)
+        .send({ accepted: true })
+        .expect(201);
+
+      const notifications = await request(app.getHttpServer()).get('/api/notifications').set(bearer).expect(200);
+      expect(notifications.body).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ type: 'quote.accepted', isRead: false, title: expect.any(String) }),
+        ]),
+      );
+    });
+
+    it('notifies on rejection too, and marking it read persists', async () => {
+      const tenant = await bootstrapTenant('notifyreject');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+      const quote = await quoteThroughToSent(tenant);
+
+      await request(app.getHttpServer())
+        .post(`/api/public/quotes/${quote.accessToken}/respond`)
+        .send({ accepted: false })
+        .expect(201);
+
+      const notifications = await request(app.getHttpServer()).get('/api/notifications').set(bearer).expect(200);
+      const notification = notifications.body.find((n: { type: string }) => n.type === 'quote.rejected');
+      expect(notification).toBeTruthy();
+
+      await request(app.getHttpServer()).patch(`/api/notifications/${notification.id}/read`).set(bearer).expect(200);
+
+      const after = await request(app.getHttpServer()).get('/api/notifications').set(bearer).expect(200);
+      expect(after.body.find((n: { id: string }) => n.id === notification.id).isRead).toBe(true);
+    });
+
+    it('never lets one tenant read another tenant\'s notifications', async () => {
+      const tenantA = await bootstrapTenant('notifyisoa');
+      const tenantB = await bootstrapTenant('notifyisob');
+      const quoteA = await quoteThroughToSent(tenantA);
+      await request(app.getHttpServer()).post(`/api/public/quotes/${quoteA.accessToken}/respond`).send({ accepted: true }).expect(201);
+
+      const asB = await request(app.getHttpServer())
+        .get('/api/notifications')
+        .set('Authorization', `Bearer ${tenantB.token}`)
+        .expect(200);
+      expect(asB.body).toEqual([]);
+    });
+  });
 });

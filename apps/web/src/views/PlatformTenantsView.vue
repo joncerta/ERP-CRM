@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { listTenants, getTenantModules, setTenantModule } from '@/api/platform'
+import { listTenants, getTenantModules, setTenantModule, updateTenantBranding } from '@/api/platform'
 import { getErrorMessage } from '@/api/error'
 import type { PlatformTenant, TenantModuleStatus } from '@/api/platform'
 
 const { t } = useI18n()
+
+const DEFAULT_PRIMARY = '#c1673f'
+const DEFAULT_SECONDARY = '#4a2f22'
 
 const tenants = ref<PlatformTenant[]>([])
 const loading = ref(true)
@@ -13,6 +16,43 @@ const error = ref('')
 const expandedId = ref<string | null>(null)
 const modulesByTenant = ref<Record<string, TenantModuleStatus[]>>({})
 const togglingCode = ref<string | null>(null)
+const savingBranding = ref<string | null>(null)
+
+interface BrandingDraft {
+  useCustom: boolean
+  primaryColor: string
+  secondaryColor: string
+}
+
+const brandingDrafts = reactive<Record<string, BrandingDraft>>({})
+
+function draftFor(tenant: PlatformTenant): BrandingDraft {
+  if (!brandingDrafts[tenant.id]) {
+    brandingDrafts[tenant.id] = {
+      useCustom: !!tenant.brandingPrimaryColor,
+      primaryColor: tenant.brandingPrimaryColor ?? DEFAULT_PRIMARY,
+      secondaryColor: tenant.brandingSecondaryColor ?? DEFAULT_SECONDARY,
+    }
+  }
+  return brandingDrafts[tenant.id]
+}
+
+async function saveBranding(tenant: PlatformTenant) {
+  const draft = draftFor(tenant)
+  savingBranding.value = tenant.id
+  try {
+    const updated = await updateTenantBranding(
+      tenant.id,
+      draft.useCustom ? draft.primaryColor : null,
+      draft.useCustom ? draft.secondaryColor : null,
+    )
+    const index = tenants.value.findIndex((t2) => t2.id === tenant.id)
+    if (index !== -1) tenants.value[index] = updated
+    brandingDrafts[tenant.id].useCustom = !!updated.brandingPrimaryColor
+  } finally {
+    savingBranding.value = null
+  }
+}
 
 async function load() {
   loading.value = true
@@ -32,6 +72,7 @@ async function toggleExpand(tenant: PlatformTenant) {
     return
   }
   expandedId.value = tenant.id
+  draftFor(tenant)
   if (!modulesByTenant.value[tenant.id]) {
     modulesByTenant.value[tenant.id] = await getTenantModules(tenant.id)
   }
@@ -101,6 +142,32 @@ onMounted(load)
                   </button>
                 </div>
               </div>
+
+              <div class="branding-section">
+                <h3 class="branding-title">{{ t('platform.branding') }}</h3>
+                <label class="checkbox-field">
+                  <input v-model="brandingDrafts[tenant.id].useCustom" type="checkbox" />
+                  {{ t('platform.brandingUseCustom') }}
+                </label>
+                <div v-if="brandingDrafts[tenant.id].useCustom" class="branding-colors">
+                  <label class="color-field">
+                    {{ t('platform.brandingPrimary') }}
+                    <input v-model="brandingDrafts[tenant.id].primaryColor" type="color" />
+                  </label>
+                  <label class="color-field">
+                    {{ t('platform.brandingSecondary') }}
+                    <input v-model="brandingDrafts[tenant.id].secondaryColor" type="color" />
+                  </label>
+                </div>
+                <button
+                  class="btn"
+                  style="margin-top: 0.6rem"
+                  :disabled="savingBranding === tenant.id"
+                  @click="saveBranding(tenant)"
+                >
+                  {{ t('common.save') }}
+                </button>
+              </div>
             </td>
           </tr>
         </template>
@@ -124,5 +191,40 @@ onMounted(load)
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+}
+.branding-section {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--color-border-subtle);
+}
+.branding-title {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.branding-colors {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.6rem;
+}
+.color-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+.color-field input[type='color'] {
+  width: 40px;
+  height: 30px;
+  padding: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
 }
 </style>

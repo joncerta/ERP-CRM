@@ -7,6 +7,7 @@ import { QuoteItem } from './entities/quote-item.entity';
 import { CreateQuoteDto } from './dto/create-quote.dto';
 import { UpdateQuoteDto } from './dto/update-quote.dto';
 import { TenantScopedService } from '../../common/services/tenant-scoped.service';
+import { NotificationsService } from '../../notifications/notifications.service';
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
@@ -14,7 +15,10 @@ function round2(n: number): number {
 
 @Injectable()
 export class QuotesService extends TenantScopedService<Quote> {
-  constructor(@InjectRepository(Quote) repo: Repository<Quote>) {
+  constructor(
+    @InjectRepository(Quote) repo: Repository<Quote>,
+    private readonly notificationsService: NotificationsService,
+  ) {
     super(repo);
   }
 
@@ -112,7 +116,20 @@ export class QuotesService extends TenantScopedService<Quote> {
     }
     quote.status = accepted ? QuoteStatus.ACCEPTED : QuoteStatus.REJECTED;
     quote.respondedAt = new Date();
-    return this.repository.save(quote);
+    const saved = await this.repository.save(quote);
+
+    await this.notificationsService.notify(
+      saved.tenantId,
+      saved.ownerUserId,
+      accepted ? 'quote.accepted' : 'quote.rejected',
+      accepted ? 'Cotización aceptada' : 'Cotización rechazada',
+      accepted
+        ? `El cliente aceptó la cotización ${saved.quoteNumber}.`
+        : `El cliente rechazó la cotización ${saved.quoteNumber}.`,
+      `/quotes`,
+    );
+
+    return saved;
   }
 
   findByOpportunity(tenantId: string, opportunityId: string): Promise<Quote[]> {

@@ -160,6 +160,23 @@ tenant no lo tiene activo. Dos formas de activar/desactivar:
   `platform.tenants.manage`, ver sección anterior): pantalla `Plataforma`
   en el frontend, o `PATCH /api/platform/tenants/:tenantId/modules/:code`
 
+## Branding por tenant
+
+Cada tenant puede tener sus propios colores de marca (primario y
+secundario), configurados únicamente por el admin de plataforma —
+`PATCH /api/platform/tenants/:tenantId/branding { primaryColor, secondaryColor }`
+(hex `#RRGGBB`, o `null` para volver a la paleta por defecto). Se aplican
+en el frontend sobreescribiendo variables CSS (`--color-primary`,
+`--color-heading`, etc.):
+
+- En el **login**, apenas se escribe el slug de la empresa (con debounce),
+  vía el endpoint público `GET /api/platform/tenants/by-slug/:slug/branding`
+  — no requiere sesión, ya que hace falta conocer el slug para loguearse
+  de todas formas.
+- Tras autenticarse, en **toda la app**, leyendo el mismo dato desde
+  `GET /api/tenant-settings` (que ya devuelve la config de sesión del
+  tenant propio).
+
 ## Sesiones
 
 El JWT por sí solo no se puede revocar antes de que expire, así que cada
@@ -167,8 +184,11 @@ login crea una fila en `sessions` y el JWT lleva su id (`sid`). Cada
 request autenticado valida contra esa sesión, lo que permite:
 
 - **Single-session**: iniciar sesión en un dispositivo/navegador nuevo
-  revoca automáticamente cualquier otra sesión activa del mismo usuario —
-  el dispositivo anterior queda desconectado en su siguiente petición.
+  revoca automáticamente cualquier otra sesión activa del mismo usuario.
+  El dispositivo anterior se desconecta **de inmediato**, no en su
+  siguiente petición HTTP: el login empuja un evento `session:revoked`
+  por WebSocket a la sesión revocada, que fuerza el logout en el acto
+  (ver "Notificaciones en tiempo real" abajo).
 - **Logout real**: `POST /api/auth/logout` revoca la sesión en el
   servidor, no solo borra el token del lado del cliente.
 - **Expiración por inactividad, configurable por tenant**: cada tenant
@@ -176,6 +196,28 @@ request autenticado valida contra esa sesión, lo que permite:
   `Configuración` en el frontend, o `GET`/`PATCH /api/tenant-settings`
   (permiso `core.tenant.settings.write`). Sin configurar, solo aplica la
   expiración fija del JWT (`JWT_EXPIRES_IN`, 8h por defecto).
+
+## Notificaciones en tiempo real
+
+Backend expone un WebSocket (Socket.IO, mismo puerto que la API — no bajo
+el prefijo `/api`) autenticado con el mismo JWT del login
+(`socket.handshake.auth.token`). Cada notificación también se persiste en
+`notifications` y es consultable por REST:
+
+- `GET /api/notifications` — últimas 50 del usuario autenticado.
+- `PATCH /api/notifications/:id/read` / `PATCH /api/notifications/read-all`
+
+Disparadores actuales:
+
+- **Cotización aceptada/rechazada**: notifica al dueño de la cotización
+  (`ownerUserId`) apenas el cliente responde desde el link público.
+- **Sesión revocada por single-session**: ver sección "Sesiones" — no se
+  guarda como notificación de bandeja, es un evento de control
+  (`session:revoked`) que fuerza el logout inmediato en el dispositivo
+  desconectado.
+
+El frontend se conecta desde `AppLayout.vue` (una vez autenticado) y
+muestra una campana con contador de no leídas en la barra superior.
 
 ## Tests (backend)
 

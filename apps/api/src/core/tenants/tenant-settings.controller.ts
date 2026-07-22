@@ -14,7 +14,11 @@ export class TenantSettingsController {
   @Get()
   async get(@CurrentUser() user: AuthenticatedUser) {
     const tenant = await this.tenantsService.findOne(user.tenantId);
-    return { sessionIdleTimeoutMinutes: tenant.sessionIdleTimeoutMinutes };
+    return {
+      sessionIdleTimeoutMinutes: tenant.sessionIdleTimeoutMinutes,
+      brandingPrimaryColor: tenant.brandingPrimaryColor,
+      brandingSecondaryColor: tenant.brandingSecondaryColor,
+    };
   }
 
   @Patch()

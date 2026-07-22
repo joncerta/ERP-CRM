@@ -24,6 +24,13 @@ export class Tenant extends BaseEntity {
   @Column({ name: 'session_idle_timeout_minutes', type: 'int', nullable: true })
   sessionIdleTimeoutMinutes: number | null;
 
+  /** Brand colors set by the platform admin. Null = use the app's default palette. */
+  @Column({ name: 'branding_primary_color', type: 'varchar', nullable: true })
+  brandingPrimaryColor: string | null;
+
+  @Column({ name: 'branding_secondary_color', type: 'varchar', nullable: true })
+  brandingSecondaryColor: string | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

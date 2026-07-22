@@ -8,6 +8,8 @@ export interface PlatformTenant {
   defaultCurrencyCode: string;
   isActive: boolean;
   createdAt: string;
+  brandingPrimaryColor: string | null;
+  brandingSecondaryColor: string | null;
 }
 
 export interface TenantModuleStatus {
@@ -30,5 +32,14 @@ export async function getTenantModules(tenantId: string): Promise<TenantModuleSt
 
 export async function setTenantModule(tenantId: string, code: string, isEnabled: boolean): Promise<TenantModuleStatus> {
   const { data } = await apiClient.patch(`/platform/tenants/${tenantId}/modules/${code}`, { isEnabled });
+  return data;
+}
+
+export async function updateTenantBranding(
+  tenantId: string,
+  primaryColor: string | null,
+  secondaryColor: string | null,
+): Promise<PlatformTenant> {
+  const { data } = await apiClient.patch(`/platform/tenants/${tenantId}/branding`, { primaryColor, secondaryColor });
   return data;
 }

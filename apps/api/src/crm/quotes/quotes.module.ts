@@ -8,9 +8,10 @@ import { QuotesService } from './quotes.service';
 import { QuoteFollowUpsService } from './quote-follow-ups.service';
 import { QuotesController } from './quotes.controller';
 import { QuotesPublicController } from './quotes-public.controller';
+import { NotificationsModule } from '../../notifications/notifications.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Quote, QuoteItem, QuoteFollowUp, Company])],
+  imports: [TypeOrmModule.forFeature([Quote, QuoteItem, QuoteFollowUp, Company]), NotificationsModule],
   providers: [QuotesService, QuoteFollowUpsService],
   controllers: [QuotesController, QuotesPublicController],
   exports: [QuotesService, QuoteFollowUpsService],

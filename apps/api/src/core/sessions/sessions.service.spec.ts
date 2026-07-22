@@ -2,6 +2,7 @@ import { UnauthorizedException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { SessionsService } from './sessions.service';
 import { Session } from './entities/session.entity';
+import { NotificationsGateway } from '../../notifications/notifications.gateway';
 
 function buildRepoMock() {
   return {
@@ -9,20 +10,29 @@ function buildRepoMock() {
     create: jest.fn((data) => data),
     save: jest.fn(async (data) => ({ id: 'session-new', ...data })),
     findOne: jest.fn(),
+    find: jest.fn().mockResolvedValue([]),
   } as unknown as jest.Mocked<Repository<Session>>;
+}
+
+function buildGatewayMock() {
+  return { pushToUser: jest.fn(), disconnectSessions: jest.fn() } as unknown as jest.Mocked<NotificationsGateway>;
 }
 
 describe('SessionsService', () => {
   let repo: jest.Mocked<Repository<Session>>;
+  let gateway: jest.Mocked<NotificationsGateway>;
   let service: SessionsService;
 
   beforeEach(() => {
     repo = buildRepoMock();
-    service = new SessionsService(repo);
+    gateway = buildGatewayMock();
+    service = new SessionsService(repo, gateway);
   });
 
   describe('startSession', () => {
     it('revokes every other active session for the user before creating a new one', async () => {
+      repo.find.mockResolvedValue([{ id: 'session-old' } as Session]);
+
       await service.startSession('tenant-a', 'user-1', 'Chrome/1.0');
 
       expect(repo.update).toHaveBeenCalledWith(
@@ -32,6 +42,26 @@ describe('SessionsService', () => {
       expect(repo.save).toHaveBeenCalledWith(
         expect.objectContaining({ tenantId: 'tenant-a', userId: 'user-1', userAgent: 'Chrome/1.0', revokedAt: null }),
       );
+    });
+
+    it('force-disconnects sockets from every session it revokes, in real time', async () => {
+      repo.find.mockResolvedValue([{ id: 'session-old-1' } as Session, { id: 'session-old-2' } as Session]);
+
+      await service.startSession('tenant-a', 'user-1');
+
+      expect(gateway.disconnectSessions).toHaveBeenCalledWith(
+        ['session-old-1', 'session-old-2'],
+        'superseded_by_new_login',
+      );
+    });
+
+    it('does not touch the gateway when there is no prior session to kick out', async () => {
+      repo.find.mockResolvedValue([]);
+
+      await service.startSession('tenant-a', 'user-1');
+
+      expect(repo.update).not.toHaveBeenCalled();
+      expect(gateway.disconnectSessions).not.toHaveBeenCalled();
     });
   });
 

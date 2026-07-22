@@ -63,4 +63,11 @@ export class TenantsService {
     tenant.sessionIdleTimeoutMinutes = minutes;
     return this.repo.save(tenant);
   }
+
+  async updateBranding(tenantId: string, primaryColor: string | null, secondaryColor: string | null): Promise<Tenant> {
+    const tenant = await this.findOne(tenantId);
+    tenant.brandingPrimaryColor = primaryColor;
+    tenant.brandingSecondaryColor = secondaryColor;
+    return this.repo.save(tenant);
+  }
 }
