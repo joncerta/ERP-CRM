@@ -141,6 +141,7 @@
   "quotes": {
     "title": "Cotizaciones",
     "newQuote": "Nueva cotización",
+    "currency": "Moneda",
     "send": "Enviar",
     "addItem": "Agregar ítem",
     "description": "Descripción",
@@ -187,7 +188,13 @@
     "branding": "Colores de marca",
     "brandingUseCustom": "Usar colores propios de la empresa",
     "brandingPrimary": "Color primario",
-    "brandingSecondary": "Color secundario"
+    "brandingSecondary": "Color secundario",
+    "logo": "Logo",
+    "logoNone": "Sin logo",
+    "logoUpload": "Subir logo",
+    "logoRemove": "Quitar logo",
+    "logoInvalidType": "El logo debe ser PNG, JPEG, SVG o WebP.",
+    "logoTooLarge": "El logo es demasiado grande (máximo 350KB)."
   },
   "users": {
     "title": "Usuarios",

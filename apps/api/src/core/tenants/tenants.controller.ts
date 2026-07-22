@@ -35,6 +35,7 @@ export class TenantsController {
     return {
       primaryColor: tenant?.brandingPrimaryColor ?? null,
       secondaryColor: tenant?.brandingSecondaryColor ?? null,
+      logoData: tenant?.brandingLogoData ?? null,
     };
   }
 
@@ -67,6 +68,6 @@ export class TenantsController {
   @RequirePermissions('platform.tenants.manage')
   @Patch(':id/branding')
   updateBranding(@Param('id') id: string, @Body() dto: UpdateTenantBrandingDto) {
-    return this.tenantsService.updateBranding(id, dto.primaryColor ?? null, dto.secondaryColor ?? null);
+    return this.tenantsService.updateBranding(id, dto.primaryColor ?? null, dto.secondaryColor ?? null, dto.logoData);
   }
 }

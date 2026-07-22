@@ -10,6 +10,7 @@ export interface PlatformTenant {
   createdAt: string;
   brandingPrimaryColor: string | null;
   brandingSecondaryColor: string | null;
+  brandingLogoData: string | null;
 }
 
 export interface TenantModuleStatus {
@@ -39,7 +40,12 @@ export async function updateTenantBranding(
   tenantId: string,
   primaryColor: string | null,
   secondaryColor: string | null,
+  logoData?: string | null,
 ): Promise<PlatformTenant> {
-  const { data } = await apiClient.patch(`/platform/tenants/${tenantId}/branding`, { primaryColor, secondaryColor });
+  const { data } = await apiClient.patch(`/platform/tenants/${tenantId}/branding`, {
+    primaryColor,
+    secondaryColor,
+    logoData,
+  });
   return data;
 }

@@ -11,6 +11,10 @@ const toast = useToastStore()
 
 const DEFAULT_PRIMARY = '#c1673f'
 const DEFAULT_SECONDARY = '#4a2f22'
+const ALLOWED_LOGO_TYPES = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/webp']
+// Raw file size cap — base64 inflates by ~33%, so this stays comfortably
+// under the backend's ~500,000-char data URI limit.
+const MAX_LOGO_FILE_BYTES = 350 * 1024
 
 const tenants = ref<PlatformTenant[]>([])
 const loading = ref(true)
@@ -24,6 +28,7 @@ interface BrandingDraft {
   useCustom: boolean
   primaryColor: string
   secondaryColor: string
+  logoData: string | null
 }
 
 const brandingDrafts = reactive<Record<string, BrandingDraft>>({})
@@ -35,10 +40,38 @@ function draftFor(tenant: PlatformTenant): BrandingDraft {
       useCustom: !!tenant.brandingPrimaryColor,
       primaryColor: tenant.brandingPrimaryColor ?? DEFAULT_PRIMARY,
       secondaryColor: tenant.brandingSecondaryColor ?? DEFAULT_SECONDARY,
+      logoData: tenant.brandingLogoData ?? null,
     }
     brandingDrafts[tenant.id] = draft
   }
   return draft
+}
+
+function handleLogoUpload(tenant: PlatformTenant, event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+
+  if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
+    toast.error(t('platform.logoInvalidType'))
+    return
+  }
+  if (file.size > MAX_LOGO_FILE_BYTES) {
+    toast.error(t('platform.logoTooLarge'))
+    return
+  }
+
+  const reader = new FileReader()
+  reader.onload = () => {
+    draftFor(tenant).logoData = reader.result as string
+  }
+  reader.onerror = () => toast.error(t('platform.logoInvalidType'))
+  reader.readAsDataURL(file)
+}
+
+function clearLogo(tenant: PlatformTenant) {
+  draftFor(tenant).logoData = null
 }
 
 async function saveBranding(tenant: PlatformTenant) {
@@ -49,10 +82,12 @@ async function saveBranding(tenant: PlatformTenant) {
       tenant.id,
       draft.useCustom ? draft.primaryColor : null,
       draft.useCustom ? draft.secondaryColor : null,
+      draft.logoData,
     )
     const index = tenants.value.findIndex((t2) => t2.id === tenant.id)
     if (index !== -1) tenants.value[index] = updated
     draft.useCustom = !!updated.brandingPrimaryColor
+    draft.logoData = updated.brandingLogoData ?? null
     toast.success(t('common.savedOk'))
   } catch (err) {
     toast.error(getErrorMessage(err))
@@ -169,6 +204,34 @@ onMounted(load)
                     <input v-model="draftFor(tenant).secondaryColor" type="color" />
                   </label>
                 </div>
+
+                <div class="logo-field">
+                  <span class="logo-label">{{ t('platform.logo') }}</span>
+                  <div class="logo-row">
+                    <img v-if="draftFor(tenant).logoData" :src="draftFor(tenant).logoData!" alt="" class="logo-preview" />
+                    <div v-else class="logo-preview logo-preview-empty">{{ t('platform.logoNone') }}</div>
+                    <div class="logo-actions">
+                      <label class="btn secondary logo-upload-btn">
+                        {{ t('platform.logoUpload') }}
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                          class="logo-file-input"
+                          @change="handleLogoUpload(tenant, $event)"
+                        />
+                      </label>
+                      <button
+                        v-if="draftFor(tenant).logoData"
+                        type="button"
+                        class="btn secondary"
+                        @click="clearLogo(tenant)"
+                      >
+                        {{ t('platform.logoRemove') }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
                 <button
                   class="btn"
                   style="margin-top: 0.6rem"
@@ -236,5 +299,54 @@ onMounted(load)
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   cursor: pointer;
+}
+.logo-field {
+  margin-top: 0.75rem;
+}
+.logo-label {
+  display: block;
+  font-size: 0.85rem;
+  margin-bottom: 0.4rem;
+}
+.logo-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.logo-preview {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  padding: 4px;
+}
+.logo-preview-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 4px;
+}
+.logo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.logo-upload-btn {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  text-align: center;
+}
+.logo-file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
 }
 </style>

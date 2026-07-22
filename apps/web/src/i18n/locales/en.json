@@ -141,6 +141,7 @@
   "quotes": {
     "title": "Quotes",
     "newQuote": "New quote",
+    "currency": "Currency",
     "send": "Send",
     "addItem": "Add item",
     "description": "Description",
@@ -187,7 +188,13 @@
     "branding": "Brand colors",
     "brandingUseCustom": "Use the company's own colors",
     "brandingPrimary": "Primary color",
-    "brandingSecondary": "Secondary color"
+    "brandingSecondary": "Secondary color",
+    "logo": "Logo",
+    "logoNone": "No logo",
+    "logoUpload": "Upload logo",
+    "logoRemove": "Remove logo",
+    "logoInvalidType": "The logo must be PNG, JPEG, SVG, or WebP.",
+    "logoTooLarge": "The logo is too large (max 350KB)."
   },
   "users": {
     "title": "Users",

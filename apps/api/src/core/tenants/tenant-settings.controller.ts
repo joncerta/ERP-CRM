@@ -18,6 +18,7 @@ export class TenantSettingsController {
       sessionIdleTimeoutMinutes: tenant.sessionIdleTimeoutMinutes,
       brandingPrimaryColor: tenant.brandingPrimaryColor,
       brandingSecondaryColor: tenant.brandingSecondaryColor,
+      brandingLogoData: tenant.brandingLogoData,
     };
   }
 

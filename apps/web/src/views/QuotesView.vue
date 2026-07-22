@@ -4,12 +4,14 @@ import { useI18n } from 'vue-i18n'
 import { listQuotes, createQuote, updateQuote, sendQuote, createFollowUp, downloadQuotePdf } from '@/api/quotes'
 import { listCompanies } from '@/api/companies'
 import { listContacts } from '@/api/contacts'
+import { listCurrencies } from '@/api/currencies'
 import { useAuthStore } from '@/stores/auth'
 import { getErrorMessage } from '@/api/error'
 import { compact } from '@/utils/compact'
 import { useToastStore } from '@/stores/toast'
 import type { Quote, Company, Contact } from '@/api/types'
 import type { QuoteItemInput } from '@/api/quotes'
+import type { Currency } from '@/api/currencies'
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -18,6 +20,7 @@ const toast = useToastStore()
 const quotes = ref<Quote[]>([])
 const companies = ref<Company[]>([])
 const contacts = ref<Contact[]>([])
+const currencies = ref<Currency[]>([])
 const loading = ref(true)
 const error = ref('')
 const showModal = ref(false)
@@ -60,10 +63,16 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    const [quotesData, companiesData, contactsData] = await Promise.all([listQuotes(), listCompanies(), listContacts()])
+    const [quotesData, companiesData, contactsData, currenciesData] = await Promise.all([
+      listQuotes(),
+      listCompanies(),
+      listContacts(),
+      listCurrencies(),
+    ])
     quotes.value = quotesData
     companies.value = companiesData
     contacts.value = contactsData
+    currencies.value = currenciesData
   } catch (err) {
     error.value = getErrorMessage(err)
   } finally {
@@ -80,7 +89,7 @@ function openModal() {
   form.value = {
     companyId: '',
     contactId: '',
-    currencyCode: 'USD',
+    currencyCode: currencies.value[0]?.code ?? 'USD',
     taxRate: 0,
     items: [{ description: '', quantity: 1, unitPrice: 0 }],
   }
@@ -268,6 +277,12 @@ onMounted(load)
             <option v-for="c in contactsForSelectedCompany" :key="c.id" :value="c.id">
               {{ c.firstName }} {{ c.lastName || '' }}
             </option>
+          </select>
+        </div>
+        <div class="field">
+          <label>{{ t('quotes.currency') }}</label>
+          <select v-model="form.currencyCode" required>
+            <option v-for="c in currencies" :key="c.code" :value="c.code">{{ c.code }} — {{ c.name }}</option>
           </select>
         </div>
 

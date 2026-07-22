@@ -4,6 +4,7 @@ export interface TenantSettings {
   sessionIdleTimeoutMinutes: number | null;
   brandingPrimaryColor: string | null;
   brandingSecondaryColor: string | null;
+  brandingLogoData: string | null;
 }
 
 export async function getTenantSettings(): Promise<TenantSettings> {

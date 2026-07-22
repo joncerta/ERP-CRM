@@ -31,6 +31,13 @@ export class Tenant extends BaseEntity {
   @Column({ name: 'branding_secondary_color', type: 'varchar', nullable: true })
   brandingSecondaryColor: string | null;
 
+  /** Logo as a base64 data URI (e.g. "data:image/png;base64,..."). Stored
+   * directly in the row rather than on disk since the app containers are
+   * ephemeral in production. Null = no custom logo, fall back to the
+   * default letter mark. */
+  @Column({ name: 'branding_logo_data', type: 'text', nullable: true })
+  brandingLogoData: string | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

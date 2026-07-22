@@ -395,14 +395,14 @@ describe('CRM (e2e)', () => {
     it('the public branding lookup returns nulls for a tenant with no branding configured', async () => {
       const tenant = await bootstrapTenant('brandingdefault');
       const res = await request(app.getHttpServer()).get(`/api/platform/tenants/by-slug/${tenant.slug}/branding`).expect(200);
-      expect(res.body).toEqual({ primaryColor: null, secondaryColor: null });
+      expect(res.body).toEqual({ primaryColor: null, secondaryColor: null, logoData: null });
     });
 
     it('returns nulls instead of 404 for a slug that does not exist, so login-screen typing never errors', async () => {
       const res = await request(app.getHttpServer())
         .get(`/api/platform/tenants/by-slug/e2e-${runId}-doesnotexist/branding`)
         .expect(200);
-      expect(res.body).toEqual({ primaryColor: null, secondaryColor: null });
+      expect(res.body).toEqual({ primaryColor: null, secondaryColor: null, logoData: null });
     });
 
     it('lets a platform admin set a tenant\'s brand colors, visible right away on the public lookup', async () => {
@@ -423,7 +423,7 @@ describe('CRM (e2e)', () => {
       const res = await request(app.getHttpServer())
         .get(`/api/platform/tenants/by-slug/${customerTenant.slug}/branding`)
         .expect(200);
-      expect(res.body).toEqual({ primaryColor: '#123abc', secondaryColor: '#654321' });
+      expect(res.body).toEqual({ primaryColor: '#123abc', secondaryColor: '#654321', logoData: null });
     });
 
     it('rejects a color that is not a hex code', async () => {
@@ -434,6 +434,47 @@ describe('CRM (e2e)', () => {
         .patch(`/api/platform/tenants/${platformTenant.tenantId}/branding`)
         .set('Authorization', `Bearer ${elevatedToken}`)
         .send({ primaryColor: 'not-a-color' })
+        .expect(400);
+    });
+
+    it('lets a platform admin set and clear a tenant logo', async () => {
+      const platformTenant = await bootstrapTenant('brandinglogo');
+      const customerTenant = await bootstrapTenant('brandinglogocustomer');
+      const elevatedToken = await elevateToPlatformAdmin(platformTenant);
+      const logoData = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+
+      await request(app.getHttpServer())
+        .patch(`/api/platform/tenants/${customerTenant.tenantId}/branding`)
+        .set('Authorization', `Bearer ${elevatedToken}`)
+        .send({ primaryColor: null, secondaryColor: null, logoData })
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.brandingLogoData).toBe(logoData);
+        });
+
+      const withLogo = await request(app.getHttpServer())
+        .get(`/api/platform/tenants/by-slug/${customerTenant.slug}/branding`)
+        .expect(200);
+      expect(withLogo.body.logoData).toBe(logoData);
+
+      await request(app.getHttpServer())
+        .patch(`/api/platform/tenants/${customerTenant.tenantId}/branding`)
+        .set('Authorization', `Bearer ${elevatedToken}`)
+        .send({ primaryColor: null, secondaryColor: null, logoData: null })
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.brandingLogoData).toBeNull();
+        });
+    });
+
+    it('rejects a logo that is not a valid image data URI', async () => {
+      const platformTenant = await bootstrapTenant('brandinglogoinvalid');
+      const elevatedToken = await elevateToPlatformAdmin(platformTenant);
+
+      await request(app.getHttpServer())
+        .patch(`/api/platform/tenants/${platformTenant.tenantId}/branding`)
+        .set('Authorization', `Bearer ${elevatedToken}`)
+        .send({ logoData: 'not-a-data-uri' })
         .expect(400);
     });
 

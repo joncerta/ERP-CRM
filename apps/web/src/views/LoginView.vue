@@ -5,11 +5,13 @@ import { useAuthStore } from '@/stores/auth'
 import { useI18n } from 'vue-i18n'
 import { getPublicBrandingBySlug } from '@/api/branding'
 import { applyBranding } from '@/utils/branding'
+import { useBrandingStore } from '@/stores/branding'
 
 const auth = useAuthStore()
 const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
+const brandingStore = useBrandingStore()
 
 const tenantSlug = ref('')
 const email = ref('')
@@ -22,13 +24,17 @@ watch(tenantSlug, (slug) => {
   clearTimeout(brandingDebounce)
   if (slug.length < 2) {
     applyBranding({ primaryColor: null, secondaryColor: null })
+    brandingStore.setLogo(null)
     return
   }
   brandingDebounce = setTimeout(async () => {
     try {
-      applyBranding(await getPublicBrandingBySlug(slug))
+      const branding = await getPublicBrandingBySlug(slug)
+      applyBranding(branding)
+      brandingStore.setLogo(branding.logoData)
     } catch {
       applyBranding({ primaryColor: null, secondaryColor: null })
+      brandingStore.setLogo(null)
     }
   }, 400)
 })
@@ -57,7 +63,14 @@ async function handleSubmit() {
 <template>
   <div class="login-page">
     <form class="card login-card" @submit.prevent="handleSubmit">
-      <div class="brand-mark" style="margin-bottom: 1rem">E</div>
+      <img
+        v-if="brandingStore.logoDataUrl"
+        :src="brandingStore.logoDataUrl"
+        alt=""
+        class="brand-logo"
+        style="margin-bottom: 1rem"
+      />
+      <div v-else class="brand-mark" style="margin-bottom: 1rem">E</div>
       <h1>{{ t('login.title') }}</h1>
       <div class="field">
         <label>{{ t('login.tenantSlug') }}</label>

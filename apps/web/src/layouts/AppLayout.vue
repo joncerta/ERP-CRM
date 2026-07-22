@@ -7,11 +7,13 @@ import { useI18n } from 'vue-i18n'
 import { getTenantSettings } from '@/api/tenant-settings'
 import { applyBranding } from '@/utils/branding'
 import { listEnabledModules } from '@/api/modules'
+import { useBrandingStore } from '@/stores/branding'
 
 const auth = useAuthStore()
 const notificationsStore = useNotificationsStore()
 const router = useRouter()
 const { t } = useI18n()
+const brandingStore = useBrandingStore()
 
 // A platform operator manages tenants/modules — it has no CRM data of its
 // own to see, so it gets a completely different nav than a customer admin.
@@ -38,6 +40,7 @@ onMounted(async () => {
   try {
     const settings = await getTenantSettings()
     applyBranding({ primaryColor: settings.brandingPrimaryColor, secondaryColor: settings.brandingSecondaryColor })
+    brandingStore.setLogo(settings.brandingLogoData)
   } catch {
     // Not critical — the default palette is a perfectly fine fallback.
   }
@@ -59,8 +62,11 @@ onUnmounted(() => {
   <div class="shell">
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-mark">E</div>
-        <span>ERP-CRM</span>
+        <img v-if="brandingStore.logoDataUrl" :src="brandingStore.logoDataUrl" alt="" class="brand-logo sidebar-logo" />
+        <template v-else>
+          <div class="brand-mark">E</div>
+          <span>ERP-CRM</span>
+        </template>
       </div>
       <nav>
         <template v-if="isPlatformAdmin">
@@ -158,6 +164,9 @@ onUnmounted(() => {
   color: var(--color-heading);
   margin-bottom: 1.5rem;
   padding: 0 0.4rem;
+}
+.sidebar-logo {
+  max-height: 30px;
 }
 nav {
   display: flex;

@@ -64,10 +64,16 @@ export class TenantsService {
     return this.repo.save(tenant);
   }
 
-  async updateBranding(tenantId: string, primaryColor: string | null, secondaryColor: string | null): Promise<Tenant> {
+  async updateBranding(
+    tenantId: string,
+    primaryColor: string | null,
+    secondaryColor: string | null,
+    logoData?: string | null,
+  ): Promise<Tenant> {
     const tenant = await this.findOne(tenantId);
     tenant.brandingPrimaryColor = primaryColor;
     tenant.brandingSecondaryColor = secondaryColor;
+    if (logoData !== undefined) tenant.brandingLogoData = logoData;
     return this.repo.save(tenant);
   }
 }
