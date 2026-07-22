@@ -12,13 +12,16 @@ export class CreateProductDto {
   @IsString()
   description?: string;
 
-  @IsOptional()
   @IsString()
-  unit?: string;
+  unitId: string;
 
   @IsOptional()
+  @EmptyToUndefined()
   @IsString()
-  category?: string;
+  categoryId?: string;
+
+  @IsString()
+  warehouseId: string;
 
   @IsOptional()
   @IsNumber()

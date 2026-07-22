@@ -10,6 +10,7 @@
     "products": "Products",
     "warehouses": "Warehouses",
     "stock": "Stock",
+    "categoriesUnits": "Categories & units",
     "platform": "Platform",
     "settings": "Settings",
     "users": "Users",
@@ -121,6 +122,13 @@
       "transfer": "Transfer"
     }
   },
+  "categoriesUnits": {
+    "title": "Categories & units",
+    "categories": "Categories",
+    "units": "Units",
+    "newCategory": "New category",
+    "newUnit": "New unit"
+  },
   "dashboard": {
     "title": "Home",
     "pipelineValue": "Open pipeline value",
@@ -225,7 +233,7 @@
       "crm_quotes_read": "View quotes",
       "crm_quotes_write": "Create, edit, and send quotes",
       "inventory_products_read": "View products",
-      "inventory_products_write": "Create and edit products",
+      "inventory_products_write": "Create and edit products, categories, and units",
       "inventory_warehouses_read": "View warehouses",
       "inventory_warehouses_write": "Create and edit warehouses",
       "inventory_stock_read": "View stock balances and movement history",

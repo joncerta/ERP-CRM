@@ -86,6 +86,7 @@ onUnmounted(() => {
             <RouterLink to="/inventory/products">{{ t('nav.products') }}</RouterLink>
             <RouterLink to="/inventory/warehouses">{{ t('nav.warehouses') }}</RouterLink>
             <RouterLink to="/inventory/stock">{{ t('nav.stock') }}</RouterLink>
+            <RouterLink to="/inventory/categories-units">{{ t('nav.categoriesUnits') }}</RouterLink>
           </template>
         </template>
       </nav>

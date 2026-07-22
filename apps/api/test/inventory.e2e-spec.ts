@@ -60,17 +60,22 @@ describe('Inventory (e2e)', () => {
 
   async function createProductAndWarehouse(token: string) {
     const bearer = { Authorization: `Bearer ${token}` };
-    const product = await request(app.getHttpServer())
-      .post('/api/inventory/products')
-      .set(bearer)
-      .send({ sku: 'SKU-1', name: 'Producto de prueba' })
-      .expect(201);
     const warehouse = await request(app.getHttpServer())
       .post('/api/inventory/warehouses')
       .set(bearer)
       .send({ name: 'Bodega Principal' })
       .expect(201);
-    return { productId: product.body.id, warehouseId: warehouse.body.id };
+    const unit = await request(app.getHttpServer())
+      .post('/api/inventory/units')
+      .set(bearer)
+      .send({ name: 'unidad' })
+      .expect(201);
+    const product = await request(app.getHttpServer())
+      .post('/api/inventory/products')
+      .set(bearer)
+      .send({ sku: 'SKU-1', name: 'Producto de prueba', unitId: unit.body.id, warehouseId: warehouse.body.id })
+      .expect(201);
+    return { productId: product.body.id, warehouseId: warehouse.body.id, unitId: unit.body.id };
   }
 
   describe('module gating', () => {
@@ -97,17 +102,18 @@ describe('Inventory (e2e)', () => {
     it('creates, edits, and deletes a product; rejects a duplicate SKU', async () => {
       const tenant = await bootstrapTenantWithInventory('products');
       const bearer = { Authorization: `Bearer ${tenant.token}` };
+      const { warehouseId, unitId } = await createProductAndWarehouse(tenant.token);
 
       const product = await request(app.getHttpServer())
         .post('/api/inventory/products')
         .set(bearer)
-        .send({ sku: 'ABC-1', name: 'Widget', salePrice: 25 })
+        .send({ sku: 'ABC-1', name: 'Widget', salePrice: 25, unitId, warehouseId })
         .expect(201);
 
       await request(app.getHttpServer())
         .post('/api/inventory/products')
         .set(bearer)
-        .send({ sku: 'ABC-1', name: 'Otro widget' })
+        .send({ sku: 'ABC-1', name: 'Otro widget', unitId, warehouseId })
         .expect(409);
 
       await request(app.getHttpServer())
@@ -118,6 +124,17 @@ describe('Inventory (e2e)', () => {
         .expect((res) => expect(res.body.name).toBe('Widget renombrado'));
 
       await request(app.getHttpServer()).delete(`/api/inventory/products/${product.body.id}`).set(bearer).expect(200);
+    });
+
+    it('rejects a product without a unit or warehouse', async () => {
+      const tenant = await bootstrapTenantWithInventory('productsmissing');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+
+      await request(app.getHttpServer())
+        .post('/api/inventory/products')
+        .set(bearer)
+        .send({ sku: 'NOUNIT-1', name: 'Sin unidad ni bodega' })
+        .expect(400);
     });
 
     it('creates and deletes a warehouse', async () => {
@@ -131,6 +148,76 @@ describe('Inventory (e2e)', () => {
         .expect(201);
 
       await request(app.getHttpServer()).delete(`/api/inventory/warehouses/${warehouse.body.id}`).set(bearer).expect(200);
+    });
+  });
+
+  describe('product categories and units catalog', () => {
+    it('creates, lists, and deletes a category and a unit', async () => {
+      const tenant = await bootstrapTenantWithInventory('catalog');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+
+      const category = await request(app.getHttpServer())
+        .post('/api/inventory/categories')
+        .set(bearer)
+        .send({ name: 'Electrónica' })
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .post('/api/inventory/categories')
+        .set(bearer)
+        .send({ name: 'Electrónica' })
+        .expect(409);
+
+      const categories = await request(app.getHttpServer()).get('/api/inventory/categories').set(bearer).expect(200);
+      expect(categories.body).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'Electrónica' })]));
+
+      await request(app.getHttpServer()).delete(`/api/inventory/categories/${category.body.id}`).set(bearer).expect(200);
+
+      const unit = await request(app.getHttpServer())
+        .post('/api/inventory/units')
+        .set(bearer)
+        .send({ name: 'caja' })
+        .expect(201);
+
+      const units = await request(app.getHttpServer()).get('/api/inventory/units').set(bearer).expect(200);
+      expect(units.body).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'caja' })]));
+
+      await request(app.getHttpServer()).delete(`/api/inventory/units/${unit.body.id}`).set(bearer).expect(200);
+    });
+
+    it('refuses to delete a category or unit still in use by a product', async () => {
+      const tenant = await bootstrapTenantWithInventory('catalog-inuse');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+      const warehouse = await request(app.getHttpServer())
+        .post('/api/inventory/warehouses')
+        .set(bearer)
+        .send({ name: 'Bodega Principal' })
+        .expect(201);
+      const unit = await request(app.getHttpServer())
+        .post('/api/inventory/units')
+        .set(bearer)
+        .send({ name: 'unidad' })
+        .expect(201);
+      const category = await request(app.getHttpServer())
+        .post('/api/inventory/categories')
+        .set(bearer)
+        .send({ name: 'Consumibles' })
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .post('/api/inventory/products')
+        .set(bearer)
+        .send({
+          sku: 'INUSE-1',
+          name: 'Producto en uso',
+          unitId: unit.body.id,
+          warehouseId: warehouse.body.id,
+          categoryId: category.body.id,
+        })
+        .expect(201);
+
+      await request(app.getHttpServer()).delete(`/api/inventory/units/${unit.body.id}`).set(bearer).expect(400);
+      await request(app.getHttpServer()).delete(`/api/inventory/categories/${category.body.id}`).set(bearer).expect(400);
     });
   });
 

@@ -13,11 +13,17 @@ export class Product extends TenantScopedEntity {
   @Column({ nullable: true })
   description: string;
 
-  @Column({ default: 'unidad' })
-  unit: string;
+  @Column({ name: 'unit_id', type: 'uuid' })
+  unitId: string;
 
-  @Column({ nullable: true })
-  category: string;
+  @Column({ name: 'category_id', type: 'uuid', nullable: true })
+  categoryId: string | null;
+
+  /** Home warehouse for this product — separate from the multi-warehouse
+   * stock balances in StockBalance, which still track quantity per
+   * (product, warehouse) pair independently of this. */
+  @Column({ name: 'warehouse_id', type: 'uuid' })
+  warehouseId: string;
 
   @Column({ name: 'cost_price', type: 'numeric', precision: 14, scale: 2, default: 0 })
   costPrice: number;

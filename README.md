@@ -179,7 +179,16 @@ comparten las mismas tablas).
   eliminar una bodega con movimientos registrados.
 - **Productos** (`/api/inventory/products`): CRUD con SKU único por
   tenant (409 si se repite). Tampoco se puede eliminar uno con
-  movimientos registrados.
+  movimientos registrados. `unitId` y `warehouseId` son obligatorios;
+  `categoryId` es opcional. `warehouseId` es la bodega "dueña"/principal
+  del producto — un campo aparte del stock multi-bodega, que sigue
+  permitiendo saldo en varias bodegas independientemente de esto.
+- **Categorías y unidades** (`/api/inventory/categories`,
+  `/api/inventory/units`): catálogo simple por tenant (antes eran campos
+  de texto libre en el producto). CRUD gateado por los mismos permisos
+  `inventory.products.{read,write}`; no se puede eliminar una categoría
+  o unidad en uso por algún producto. Pantalla `Categorías y unidades`
+  en el nav de Inventario.
 - **Stock** (`/api/inventory/stock`):
   - `GET /balances` — saldo actual por producto+bodega (filtrable por
     `productId`/`warehouseId`).
@@ -264,10 +273,10 @@ reasignarlos.
 ## Branding por tenant
 
 Cada tenant puede tener sus propios colores de marca (primario y
-secundario), configurados únicamente por el admin de plataforma —
-`PATCH /api/platform/tenants/:tenantId/branding { primaryColor, secondaryColor }`
-(hex `#RRGGBB`, o `null` para volver a la paleta por defecto). Se aplican
-en el frontend sobreescribiendo variables CSS (`--color-primary`,
+secundario) y un logo, configurados únicamente por el admin de plataforma —
+`PATCH /api/platform/tenants/:tenantId/branding { primaryColor, secondaryColor, logoData }`
+(colores en hex `#RRGGBB`, o `null` para volver a la paleta por defecto).
+Se aplican en el frontend sobreescribiendo variables CSS (`--color-primary`,
 `--color-heading`, etc.):
 
 - En el **login**, apenas se escribe el slug de la empresa (con debounce),
@@ -277,6 +286,15 @@ en el frontend sobreescribiendo variables CSS (`--color-primary`,
 - Tras autenticarse, en **toda la app**, leyendo el mismo dato desde
   `GET /api/tenant-settings` (que ya devuelve la config de sesión del
   tenant propio).
+
+**Logo**: `logoData` es un data URI base64 (`data:image/png;base64,...`),
+validado en el DTO por tipo (`png`/`jpeg`/`svg+xml`/`webp`) y tamaño
+(~350KB) y guardado directamente en la fila del tenant — no en disco,
+porque los contenedores de la app son efímeros y perderían cualquier
+archivo local en cada redeploy. Se sube desde el panel `Plataforma`
+(input de archivo → `FileReader` → base64 en el navegador) y reemplaza la
+marca de letra tanto en el login como en el sidebar de la app cuando está
+configurado.
 
 ## Sesiones
 
@@ -332,6 +350,19 @@ cotización queda igual marcada como enviada y el link público sigue
 disponible para compartir manualmente. Es decir: correo real es un
 "mejor esfuerzo", no un requisito para que el flujo comercial funcione.
 
+## Feedback de acciones (toasts)
+
+Store global `stores/toast.ts` + `<ToastContainer />` (montado una vez en
+`App.vue`), usado en todas las pantallas CRUD para éxito/error al
+guardar, eliminar o ejecutar acciones de fila (activar/desactivar,
+enviar cotización, mover etapa en el pipeline, etc.). Reemplaza un patrón
+previo con un bug real: varias pantallas reutilizaban el `ref` de error
+de carga de página dentro de acciones de fila, así que una acción fallida
+después de cargar la tabla reemplazaba toda la tabla por un mensaje de
+error en vez de solo mostrar el error puntual. El interceptor de axios
+(`api/client.ts`) también dispara un toast genérico cuando una petición
+no obtiene respuesta del servidor (caído, red, CORS).
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia
@@ -355,6 +386,15 @@ Leads y Cotizaciones también tienen un buscador de texto simple
 Si el usuario logueado no tiene `core.users.read` (p. ej. un Vendedor),
 el selector de dueño no se muestra — el listado de usuarios devuelve 403
 y el formulario lo absorbe en silencio en vez de romper la pantalla.
+
+## Moneda de cotización
+
+El formulario de Cotizaciones tiene un selector de moneda (`GET
+/api/currencies`, catálogo sembrado en `run-seed.ts` — no es
+tenant-scoped, es compartido por toda la plataforma) en vez del valor
+`USD` fijo que tenía antes. El DTO del backend ya aceptaba cualquier
+código de 3 letras; el selector solo lo conecta a datos reales en vez de
+dejarlo como texto libre implícito.
 
 ## Descarga de cotización en PDF
 

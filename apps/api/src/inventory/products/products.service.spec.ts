@@ -22,7 +22,9 @@ describe('ProductsService', () => {
       productsRepo.findOne.mockResolvedValue({ id: 'existing' } as Product);
       const service = new ProductsService(productsRepo, movementsRepo);
 
-      await expect(service.create('tenant-a', { sku: 'ABC-1', name: 'Widget' })).rejects.toThrow(ConflictException);
+      await expect(
+        service.create('tenant-a', { sku: 'ABC-1', name: 'Widget', unitId: 'unit-1', warehouseId: 'warehouse-1' }),
+      ).rejects.toThrow(ConflictException);
     });
 
     it('creates a product when the SKU is free', async () => {
@@ -30,7 +32,12 @@ describe('ProductsService', () => {
       productsRepo.findOne.mockResolvedValue(null);
       const service = new ProductsService(productsRepo, movementsRepo);
 
-      const product = await service.create('tenant-a', { sku: 'ABC-1', name: 'Widget' });
+      const product = await service.create('tenant-a', {
+        sku: 'ABC-1',
+        name: 'Widget',
+        unitId: 'unit-1',
+        warehouseId: 'warehouse-1',
+      });
       expect(product).toEqual(expect.objectContaining({ sku: 'ABC-1', tenantId: 'tenant-a' }));
     });
   });

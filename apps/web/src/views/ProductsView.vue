@@ -2,15 +2,20 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { listProducts, createProduct, updateProduct, deleteProduct } from '@/api/products'
+import { listCategories, listUnits } from '@/api/product-catalog'
+import { listWarehouses } from '@/api/warehouses'
 import { getErrorMessage } from '@/api/error'
 import { compact } from '@/utils/compact'
 import { useToastStore } from '@/stores/toast'
-import type { Product } from '@/api/types'
+import type { Product, ProductCategory, ProductUnit, Warehouse } from '@/api/types'
 
 const { t } = useI18n()
 const toast = useToastStore()
 
 const products = ref<Product[]>([])
+const categories = ref<ProductCategory[]>([])
+const units = ref<ProductUnit[]>([])
+const warehouses = ref<Warehouse[]>([])
 const loading = ref(true)
 const error = ref('')
 const showModal = ref(false)
@@ -23,8 +28,9 @@ const searchQuery = ref('')
 const form = ref({
   sku: '',
   name: '',
-  unit: 'unidad',
-  category: '',
+  unitId: '',
+  categoryId: '',
+  warehouseId: '',
   costPrice: 0,
   salePrice: 0,
   minStock: undefined as number | undefined,
@@ -36,11 +42,28 @@ const visibleProducts = computed(() => {
   return products.value.filter((p) => `${p.sku} ${p.name}`.toLowerCase().includes(query))
 })
 
+function unitName(id: string) {
+  return units.value.find((u) => u.id === id)?.name ?? '—'
+}
+
+function warehouseName(id: string) {
+  return warehouses.value.find((w) => w.id === id)?.name ?? '—'
+}
+
 async function load() {
   loading.value = true
   error.value = ''
   try {
-    products.value = await listProducts()
+    const [productsData, categoriesData, unitsData, warehousesData] = await Promise.all([
+      listProducts(),
+      listCategories(),
+      listUnits(),
+      listWarehouses(),
+    ])
+    products.value = productsData
+    categories.value = categoriesData
+    units.value = unitsData
+    warehouses.value = warehousesData
   } catch (err) {
     error.value = getErrorMessage(err)
   } finally {
@@ -50,7 +73,16 @@ async function load() {
 
 function openCreateModal() {
   editingId.value = null
-  form.value = { sku: '', name: '', unit: 'unidad', category: '', costPrice: 0, salePrice: 0, minStock: undefined }
+  form.value = {
+    sku: '',
+    name: '',
+    unitId: units.value[0]?.id ?? '',
+    categoryId: '',
+    warehouseId: warehouses.value[0]?.id ?? '',
+    costPrice: 0,
+    salePrice: 0,
+    minStock: undefined,
+  }
   formError.value = ''
   showModal.value = true
 }
@@ -60,8 +92,9 @@ function openEditModal(product: Product) {
   form.value = {
     sku: product.sku,
     name: product.name,
-    unit: product.unit,
-    category: product.category ?? '',
+    unitId: product.unitId,
+    categoryId: product.categoryId ?? '',
+    warehouseId: product.warehouseId,
     costPrice: Number(product.costPrice),
     salePrice: Number(product.salePrice),
     minStock: product.minStock != null ? Number(product.minStock) : undefined,
@@ -125,6 +158,7 @@ onMounted(load)
           <th>SKU</th>
           <th>{{ t('common.name') }}</th>
           <th>{{ t('products.unit') }}</th>
+          <th>{{ t('warehouses.title') }}</th>
           <th>{{ t('products.costPrice') }}</th>
           <th>{{ t('products.salePrice') }}</th>
           <th>{{ t('common.actions') }}</th>
@@ -134,7 +168,8 @@ onMounted(load)
         <tr v-for="p in visibleProducts" :key="p.id">
           <td><code>{{ p.sku }}</code></td>
           <td>{{ p.name }}</td>
-          <td>{{ p.unit }}</td>
+          <td>{{ unitName(p.unitId) }}</td>
+          <td>{{ warehouseName(p.warehouseId) }}</td>
           <td>{{ Number(p.costPrice).toLocaleString() }}</td>
           <td>{{ Number(p.salePrice).toLocaleString() }}</td>
           <td class="actions-cell">
@@ -145,7 +180,7 @@ onMounted(load)
           </td>
         </tr>
         <tr v-if="!visibleProducts.length">
-          <td colspan="6" class="muted">—</td>
+          <td colspan="7" class="muted">—</td>
         </tr>
       </tbody>
     </table>
@@ -163,11 +198,24 @@ onMounted(load)
         </div>
         <div class="field">
           <label>{{ t('products.unit') }}</label>
-          <input v-model="form.unit" placeholder="unidad, kg, litro..." />
+          <select v-model="form.unitId" required>
+            <option value="" disabled>—</option>
+            <option v-for="u in units" :key="u.id" :value="u.id">{{ u.name }}</option>
+          </select>
         </div>
         <div class="field">
           <label>{{ t('products.category') }}</label>
-          <input v-model="form.category" />
+          <select v-model="form.categoryId">
+            <option value="">—</option>
+            <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>{{ t('warehouses.title') }}</label>
+          <select v-model="form.warehouseId" required>
+            <option value="" disabled>—</option>
+            <option v-for="w in warehouses" :key="w.id" :value="w.id">{{ w.name }}</option>
+          </select>
         </div>
         <div class="field">
           <label>{{ t('products.costPrice') }}</label>

@@ -10,6 +10,7 @@
     "products": "Productos",
     "warehouses": "Bodegas",
     "stock": "Stock",
+    "categoriesUnits": "Categorías y unidades",
     "platform": "Plataforma",
     "settings": "Configuración",
     "users": "Usuarios",
@@ -121,6 +122,13 @@
       "transfer": "Traslado"
     }
   },
+  "categoriesUnits": {
+    "title": "Categorías y unidades",
+    "categories": "Categorías",
+    "units": "Unidades",
+    "newCategory": "Nueva categoría",
+    "newUnit": "Nueva unidad"
+  },
   "dashboard": {
     "title": "Inicio",
     "pipelineValue": "Valor en pipeline (abierto)",
@@ -225,7 +233,7 @@
       "crm_quotes_read": "Ver cotizaciones",
       "crm_quotes_write": "Crear, editar y enviar cotizaciones",
       "inventory_products_read": "Ver productos",
-      "inventory_products_write": "Crear y editar productos",
+      "inventory_products_write": "Crear y editar productos, categorías y unidades",
       "inventory_warehouses_read": "Ver bodegas",
       "inventory_warehouses_write": "Crear y editar bodegas",
       "inventory_stock_read": "Ver saldos e historial de movimientos de stock",

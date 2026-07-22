@@ -140,12 +140,23 @@ export interface Product {
   sku: string;
   name: string;
   description?: string | null;
-  unit: string;
-  category?: string | null;
+  unitId: string;
+  categoryId?: string | null;
+  warehouseId: string;
   costPrice: number | string;
   salePrice: number | string;
   minStock: number | string | null;
   isActive: boolean;
+}
+
+export interface ProductCategory {
+  id: string;
+  name: string;
+}
+
+export interface ProductUnit {
+  id: string;
+  name: string;
 }
 
 export interface StockBalance {
