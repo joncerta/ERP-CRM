@@ -173,6 +173,42 @@ desde la pantalla `Usuarios` (visible con el permiso `core.users.read`):
   puede desactivarse a sí mismo, para no dejar un tenant sin admin activo.
 - `GET /api/roles` alimenta el selector de rol al invitar.
 
+## Roles personalizados
+
+Cada tenant arranca con dos roles del sistema (`Administrador` con `'*'`,
+`Vendedor` con permisos de CRM) sembrados por el seed — no se pueden
+editar ni eliminar. Desde la pantalla `Roles` (permiso `core.roles.read`,
+gestión con `core.roles.write`) se pueden crear roles personalizados
+eligiendo permisos puntuales de una lista fija.
+
+**Importante — límite de seguridad**: ningún rol de tenant puede incluir
+un permiso `platform.*`, ni siquiera escribiéndolo literalmente en el
+array de permisos. `RolesService` lo rechaza con 400 al crear/editar —
+esto cierra una vía de escalación que existía antes de este cambio: el
+`PermissionsGuard` ya bloqueaba el comodín `'*'` para permisos
+`platform.*`, pero no verificaba si el permiso venía dado explícitamente
+en el array, así que un Administrador de tenant podía crear un rol con
+`permissions: ["platform.tenants.manage"]` y asignárselo a un usuario
+para verlo y gestionar todos los tenants de la plataforma.
+
+Un rol con usuarios asignados no se puede eliminar (`400`) hasta
+reasignarlos.
+
+## Recuperación y cambio de contraseña
+
+- `POST /api/auth/forgot-password { tenantSlug, email }` — siempre
+  responde `204`, exista o no la cuenta (para no permitir enumerar
+  correos). Si existe y está activa, genera un token de un solo uso
+  (vence en 1 hora) y envía el link por correo (`EmailService`, ver
+  sección de cotizaciones).
+- `POST /api/auth/reset-password { token, newPassword }` — cambia la
+  contraseña y revoca **todas** las sesiones activas del usuario en
+  tiempo real (mismo mecanismo de `session:revoked` que el single-session).
+- `PATCH /api/users/me/password { currentPassword, newPassword }` —
+  cualquier usuario autenticado puede cambiar su propia contraseña desde
+  `Configuración`. También revoca todas las sesiones (incluida la
+  actual), forzando a iniciar sesión de nuevo.
+
 ## Branding por tenant
 
 Cada tenant puede tener sus propios colores de marca (primario y
@@ -253,6 +289,41 @@ de cierre) y desde ahí también se pueden marcar como perdidas — no tienen
 eliminación directa porque "perdida" ya es la forma de cerrarlas. Las
 Cotizaciones solo se pueden editar mientras están en estado `draft`
 (antes de enviarlas); una vez enviadas, el backend rechaza la edición.
+
+## Asignación de dueño, filtros y búsqueda
+
+Leads y Oportunidades tienen un selector de "Dueño" (cualquier usuario
+del tenant, vía `GET /api/users`) y un checkbox "Solo mías" que filtra la
+lista por el usuario autenticado — útil ahora que un tenant puede tener
+varios vendedores. Cotizaciones tiene el mismo filtro (el dueño se asigna
+automáticamente a quien la crea, no es editable). Empresas, Contactos,
+Leads y Cotizaciones también tienen un buscador de texto simple
+(filtrado en el cliente, sin paginación todavía).
+
+Si el usuario logueado no tiene `core.users.read` (p. ej. un Vendedor),
+el selector de dueño no se muestra — el listado de usuarios devuelve 403
+y el formulario lo absorbe en silencio en vez de romper la pantalla.
+
+## Descarga de cotización en PDF
+
+`GET /api/crm/quotes/:id/pdf` (autenticado) y
+`GET /api/public/quotes/:token/pdf` (público, mismo link que usa el
+cliente) generan un PDF con `pdfkit` al vuelo — no se guarda en disco ni
+en la base de datos, se arma en memoria en cada request. Botón "Descargar
+PDF" tanto en la pantalla de Cotizaciones como en la vista pública que ve
+el cliente.
+
+## Panel de inicio (dashboard)
+
+`/dashboard` es ahora la pantalla de aterrizaje tras iniciar sesión para
+tenants con CRM (el admin de plataforma sigue aterrizando en
+`Plataforma`). Se arma en el cliente reutilizando los endpoints de
+listado que ya existían (leads, oportunidades, cotizaciones,
+recordatorios) — no hay un endpoint de agregación nuevo. Muestra: valor
+en pipeline abierto (agrupado por moneda, por si el tenant cotiza en más
+de una), oportunidades abiertas, leads nuevos del mes, cotizaciones
+pendientes de respuesta, recordatorios vencidos, y un desglose de
+oportunidades por etapa.
 
 ## Tests (backend)
 

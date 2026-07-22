@@ -1,5 +1,6 @@
 {
   "nav": {
+    "dashboard": "Inicio",
     "pipeline": "Pipeline",
     "reminders": "Recordatorios",
     "leads": "Leads",
@@ -9,6 +10,7 @@
     "platform": "Plataforma",
     "settings": "Configuración",
     "users": "Usuarios",
+    "roles": "Roles",
     "logout": "Cerrar sesión"
   },
   "notifications": {
@@ -22,7 +24,20 @@
     "email": "Correo",
     "password": "Contraseña",
     "submit": "Entrar",
-    "error": "Credenciales inválidas"
+    "error": "Credenciales inválidas",
+    "forgotPassword": "¿Olvidaste tu contraseña?"
+  },
+  "forgotPassword": {
+    "title": "Recuperar contraseña",
+    "subtitle": "Te enviaremos un enlace para restablecerla.",
+    "submit": "Enviar enlace",
+    "sent": "Si el correo existe, te enviamos un enlace para restablecer tu contraseña. Revisa tu bandeja de entrada.",
+    "backToLogin": "Volver a iniciar sesión"
+  },
+  "resetPassword": {
+    "title": "Restablecer contraseña",
+    "newPassword": "Nueva contraseña",
+    "done": "Tu contraseña fue actualizada. Te llevamos al inicio de sesión..."
   },
   "common": {
     "loading": "Cargando...",
@@ -40,7 +55,10 @@
     "active": "Activo",
     "inactive": "Inactivo",
     "activate": "Activar",
-    "deactivate": "Desactivar"
+    "deactivate": "Desactivar",
+    "owner": "Dueño",
+    "onlyMine": "Solo mías",
+    "search": "Buscar..."
   },
   "leads": {
     "title": "Leads",
@@ -61,6 +79,15 @@
     "newCompany": "Nueva empresa",
     "city": "Ciudad",
     "country": "País"
+  },
+  "dashboard": {
+    "title": "Inicio",
+    "pipelineValue": "Valor en pipeline (abierto)",
+    "openOpportunities": "Oportunidades abiertas",
+    "newLeadsThisMonth": "Leads nuevos este mes",
+    "pendingQuotes": "Cotizaciones pendientes de respuesta",
+    "overdueFollowUps": "Recordatorios vencidos",
+    "stageBreakdown": "Oportunidades por etapa"
   },
   "pipeline": {
     "title": "Pipeline de oportunidades",
@@ -83,6 +110,7 @@
     "total": "Total",
     "views": "Vistas",
     "scheduleFollowUp": "Programar recordatorio",
+    "downloadPdf": "Descargar PDF",
     "status": {
       "draft": "Borrador",
       "sent": "Enviada",
@@ -127,6 +155,15 @@
     "role": "Rol",
     "status": "Estado"
   },
+  "roles": {
+    "title": "Roles",
+    "subtitle": "Roles del sistema (Administrador, Vendedor) no se pueden editar ni eliminar.",
+    "newRole": "Nuevo rol",
+    "permissions": "Permisos",
+    "permissionCount": "Permisos",
+    "allPermissions": "Todos",
+    "system": "Sistema"
+  },
   "settings": {
     "title": "Configuración",
     "sessionTitle": "Sesión",
@@ -135,6 +172,10 @@
     "idleTimeoutMinutes": "Minutos de inactividad",
     "languageTitle": "Idioma",
     "languageSubtitle": "Idioma de la interfaz para este usuario.",
+    "passwordTitle": "Contraseña",
+    "passwordSubtitle": "Cambiar tu contraseña cierra la sesión en todos los dispositivos.",
+    "currentPassword": "Contraseña actual",
+    "changePassword": "Cambiar contraseña",
     "saved": "Guardado."
   },
   "publicQuote": {

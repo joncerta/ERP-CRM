@@ -7,12 +7,14 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
 import { TenantsModule } from '../tenants/tenants.module';
 import { SessionsModule } from '../sessions/sessions.module';
+import { EmailModule } from '../../common/email/email.module';
 
 @Module({
   imports: [
     UsersModule,
     TenantsModule,
     SessionsModule,
+    EmailModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

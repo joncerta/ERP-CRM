@@ -1,6 +1,15 @@
 import { apiClient } from './client';
 import type { Quote, QuoteFollowUp, PendingFollowUp } from './types';
 
+function triggerDownload(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 export interface QuoteItemInput {
   description: string;
   quantity: number;
@@ -37,6 +46,11 @@ export async function sendQuote(id: string): Promise<Quote> {
   return data;
 }
 
+export async function downloadQuotePdf(id: string, quoteNumber: string): Promise<void> {
+  const { data } = await apiClient.get(`/crm/quotes/${id}/pdf`, { responseType: 'blob' });
+  triggerDownload(data, `${quoteNumber}.pdf`);
+}
+
 export async function listPendingFollowUps(): Promise<PendingFollowUp[]> {
   const { data } = await apiClient.get('/crm/quotes/follow-ups/pending');
   return data;
@@ -64,4 +78,9 @@ export async function getPublicQuote(token: string): Promise<Quote> {
 export async function respondPublicQuote(token: string, accepted: boolean): Promise<Quote> {
   const { data } = await apiClient.post(`/public/quotes/${token}/respond`, { accepted });
   return data;
+}
+
+export async function downloadPublicQuotePdf(token: string, quoteNumber: string): Promise<void> {
+  const { data } = await apiClient.get(`/public/quotes/${token}/pdf`, { responseType: 'blob' });
+  triggerDownload(data, `${quoteNumber}.pdf`);
 }

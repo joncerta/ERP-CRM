@@ -41,10 +41,10 @@ async function handleSubmit() {
   try {
     await auth.login({ tenantSlug: tenantSlug.value, email: email.value, password: password.value })
     const requestedRedirect = route.query.redirect as string | undefined
-    // "/pipeline" is just the pre-login guard's generic guess (it can't know
+    // "/dashboard" is just the pre-login guard's generic guess (it can't know
     // yet who's logging in) — ignore it and let "/" pick the right landing
     // page now that we know the user. Honor anything more specific though.
-    const redirect = requestedRedirect && requestedRedirect !== '/pipeline' ? requestedRedirect : '/'
+    const redirect = requestedRedirect && requestedRedirect !== '/dashboard' ? requestedRedirect : '/'
     router.push(redirect)
   } catch {
     error.value = t('login.error')
@@ -75,6 +75,7 @@ async function handleSubmit() {
       <button class="btn" type="submit" :disabled="loading" style="width: 100%">
         {{ t('login.submit') }}
       </button>
+      <RouterLink to="/forgot-password" class="back-link">{{ t('login.forgotPassword') }}</RouterLink>
     </form>
   </div>
 </template>
@@ -94,5 +95,11 @@ async function handleSubmit() {
 .login-card h1 {
   font-size: 1.25rem;
   margin-bottom: 1.25rem;
+}
+.back-link {
+  display: block;
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.85rem;
 }
 </style>

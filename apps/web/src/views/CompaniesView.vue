@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { listCompanies, createCompany, updateCompany, deleteCompany } from '@/api/companies'
 import { getErrorMessage } from '@/api/error'
@@ -15,6 +15,15 @@ const saving = ref(false)
 const formError = ref('')
 const editingId = ref<string | null>(null)
 const deletingId = ref<string | null>(null)
+const searchQuery = ref('')
+
+const visibleCompanies = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase()
+  if (!query) return companies.value
+  return companies.value.filter(
+    (c) => c.name.toLowerCase().includes(query) || (c.email ?? '').toLowerCase().includes(query),
+  )
+})
 
 const form = ref({ name: '', email: '', phone: '', city: '', country: '' })
 
@@ -91,6 +100,10 @@ onMounted(load)
       <button class="btn" @click="openCreateModal">+ {{ t('companies.newCompany') }}</button>
     </div>
 
+    <div class="list-filters">
+      <input v-model="searchQuery" type="text" class="search-input" :placeholder="t('common.search')" />
+    </div>
+
     <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
     <p v-else-if="error" class="error-text">{{ error }}</p>
     <table v-else>
@@ -105,7 +118,7 @@ onMounted(load)
         </tr>
       </thead>
       <tbody>
-        <tr v-for="c in companies" :key="c.id">
+        <tr v-for="c in visibleCompanies" :key="c.id">
           <td>{{ c.name }}</td>
           <td>{{ c.email || '—' }}</td>
           <td>{{ c.phone || '—' }}</td>
@@ -118,7 +131,7 @@ onMounted(load)
             </button>
           </td>
         </tr>
-        <tr v-if="!companies.length">
+        <tr v-if="!visibleCompanies.length">
           <td colspan="6" class="muted">—</td>
         </tr>
       </tbody>

@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { getPublicQuote, respondPublicQuote } from '@/api/quotes'
+import { getPublicQuote, respondPublicQuote, downloadPublicQuotePdf } from '@/api/quotes'
 import type { Quote } from '@/api/types'
 
 const route = useRoute()
@@ -24,6 +24,11 @@ async function load() {
   } finally {
     loading.value = false
   }
+}
+
+async function downloadPdf() {
+  if (!quote.value) return
+  await downloadPublicQuotePdf(token, quote.value.quoteNumber)
 }
 
 async function respond(accepted: boolean) {
@@ -49,6 +54,10 @@ onMounted(load)
           {{ t(`quotes.status.${quote.status}`) }}
         </span>
       </div>
+
+      <button class="btn secondary" style="margin-bottom: 1rem" @click="downloadPdf">
+        {{ t('quotes.downloadPdf') }}
+      </button>
 
       <table>
         <thead>

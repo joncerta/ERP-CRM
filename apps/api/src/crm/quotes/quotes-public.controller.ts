@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, StreamableFile } from '@nestjs/common';
 import { QuotesService } from './quotes.service';
+import { QuotePdfService } from './quote-pdf.service';
 import { Public } from '../../common/decorators/public.decorator';
 import { RespondQuoteDto } from './dto/respond-quote.dto';
 
@@ -10,12 +11,26 @@ import { RespondQuoteDto } from './dto/respond-quote.dto';
  */
 @Controller('public/quotes')
 export class QuotesPublicController {
-  constructor(private readonly quotesService: QuotesService) {}
+  constructor(
+    private readonly quotesService: QuotesService,
+    private readonly quotePdfService: QuotePdfService,
+  ) {}
 
   @Public()
   @Get(':token')
   async view(@Param('token') token: string) {
     return this.quotesService.registerPublicView(token);
+  }
+
+  @Public()
+  @Get(':token/pdf')
+  async downloadPdf(@Param('token') token: string): Promise<StreamableFile> {
+    const quote = await this.quotesService.findByAccessToken(token);
+    const pdf = await this.quotePdfService.generate(quote);
+    return new StreamableFile(pdf, {
+      type: 'application/pdf',
+      disposition: `attachment; filename="${quote.quoteNumber}.pdf"`,
+    });
   }
 
   @Public()

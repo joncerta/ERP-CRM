@@ -60,6 +60,7 @@ onUnmounted(() => {
           <RouterLink to="/platform/tenants">{{ t('nav.platform') }}</RouterLink>
         </template>
         <template v-else>
+          <RouterLink to="/dashboard">{{ t('nav.dashboard') }}</RouterLink>
           <RouterLink to="/pipeline">{{ t('nav.pipeline') }}</RouterLink>
           <RouterLink to="/reminders">{{ t('nav.reminders') }}</RouterLink>
           <RouterLink to="/leads">{{ t('nav.leads') }}</RouterLink>
@@ -71,6 +72,9 @@ onUnmounted(() => {
       <div class="sidebar-footer">
         <RouterLink v-if="auth.hasPermission('core.users.read')" to="/users" class="settings-link">
           {{ t('nav.users') }}
+        </RouterLink>
+        <RouterLink v-if="auth.hasPermission('core.roles.read')" to="/roles" class="settings-link">
+          {{ t('nav.roles') }}
         </RouterLink>
         <RouterLink to="/settings" class="settings-link">{{ t('nav.settings') }}</RouterLink>
         <div class="muted">{{ auth.user?.email }}</div>

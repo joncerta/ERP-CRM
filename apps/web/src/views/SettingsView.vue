@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { getTenantSettings, updateTenantSettings } from '@/api/tenant-settings'
+import { changeOwnPassword } from '@/api/users'
+import { useAuthStore } from '@/stores/auth'
 import { getErrorMessage } from '@/api/error'
 
 const { t, locale } = useI18n()
+const router = useRouter()
+const auth = useAuthStore()
 
 const loading = ref(true)
 const saving = ref(false)
@@ -12,6 +17,27 @@ const error = ref('')
 const successMessage = ref('')
 const idleTimeoutEnabled = ref(false)
 const idleTimeoutMinutes = ref(30)
+
+const currentPassword = ref('')
+const newPassword = ref('')
+const passwordSaving = ref(false)
+const passwordError = ref('')
+
+async function submitPasswordChange() {
+  passwordSaving.value = true
+  passwordError.value = ''
+  try {
+    await changeOwnPassword(currentPassword.value, newPassword.value)
+    // The server already revoked every session (including this one) —
+    // clear local state and send the user back to log in.
+    auth.logout()
+    router.push({ name: 'login' })
+  } catch (err) {
+    passwordError.value = getErrorMessage(err)
+  } finally {
+    passwordSaving.value = false
+  }
+}
 
 function setLocale(value: string) {
   locale.value = value
@@ -67,6 +93,25 @@ onMounted(load)
       </div>
     </div>
 
+    <div v-if="!loading" class="card" style="max-width: 480px; margin-bottom: 1rem">
+      <h2 style="font-size: 1rem; margin-bottom: 0.25rem">{{ t('settings.passwordTitle') }}</h2>
+      <p class="muted" style="margin-bottom: 1rem">{{ t('settings.passwordSubtitle') }}</p>
+      <form @submit.prevent="submitPasswordChange">
+        <div class="field">
+          <label>{{ t('settings.currentPassword') }}</label>
+          <input v-model="currentPassword" type="password" required />
+        </div>
+        <div class="field" style="margin-top: 0.75rem">
+          <label>{{ t('resetPassword.newPassword') }}</label>
+          <input v-model="newPassword" type="password" minlength="8" required />
+        </div>
+        <p v-if="passwordError" class="error-text" style="margin-top: 0.75rem">{{ passwordError }}</p>
+        <button class="btn" style="margin-top: 1rem" :disabled="passwordSaving" type="submit">
+          {{ t('settings.changePassword') }}
+        </button>
+      </form>
+    </div>
+
     <div v-if="!loading" class="card" style="max-width: 480px">
       <h2 style="font-size: 1rem; margin-bottom: 0.25rem">{{ t('settings.sessionTitle') }}</h2>
       <p class="muted" style="margin-bottom: 1rem">{{ t('settings.sessionSubtitle') }}</p>
@@ -93,12 +138,3 @@ onMounted(load)
   </div>
 </template>
 
-<style scoped>
-.checkbox-field {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-</style>

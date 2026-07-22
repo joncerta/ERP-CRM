@@ -6,6 +6,7 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { Role } from '../src/core/roles/entities/role.entity';
 import { Session } from '../src/core/sessions/entities/session.entity';
+import { User } from '../src/core/users/entities/user.entity';
 
 /**
  * End-to-end coverage of the flows this project's security actually rests
@@ -679,6 +680,192 @@ describe('CRM (e2e)', () => {
         .post('/api/auth/login')
         .send({ tenantSlug: tenant.slug, email: `other@${tenant.slug}.test`, password: 'OtherPass123!' })
         .expect(401);
+    });
+  });
+
+  describe('password recovery and change', () => {
+    it('resets the password via a forgot-password token and revokes existing sessions', async () => {
+      const tenant = await bootstrapTenant('pwreset');
+
+      await request(app.getHttpServer())
+        .get('/api/crm/leads')
+        .set('Authorization', `Bearer ${tenant.token}`)
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .post('/api/auth/forgot-password')
+        .send({ tenantSlug: tenant.slug, email: `admin@${tenant.slug}.test` })
+        .expect(204);
+
+      // SMTP isn't configured in tests, so the email is never actually
+      // sent — read the token straight from the DB, the way the idle
+      // timeout test backdates a session directly.
+      const user = await dataSource.getRepository(User).findOne({ where: { tenantId: tenant.tenantId } });
+      expect(user?.passwordResetToken).toBeTruthy();
+
+      await request(app.getHttpServer())
+        .post('/api/auth/reset-password')
+        .send({ token: user!.passwordResetToken, newPassword: 'BrandNewPass1!' })
+        .expect(204);
+
+      // Old token unusable a second time.
+      await request(app.getHttpServer())
+        .post('/api/auth/reset-password')
+        .send({ token: user!.passwordResetToken, newPassword: 'AnotherPass1!' })
+        .expect(400);
+
+      // Old password no longer works, the pre-reset session is dead, and
+      // the new password logs in fine.
+      await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ tenantSlug: tenant.slug, email: `admin@${tenant.slug}.test`, password: 'Sup3rSecret!' })
+        .expect(401);
+      await request(app.getHttpServer())
+        .get('/api/crm/leads')
+        .set('Authorization', `Bearer ${tenant.token}`)
+        .expect(401);
+      await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ tenantSlug: tenant.slug, email: `admin@${tenant.slug}.test`, password: 'BrandNewPass1!' })
+        .expect(201);
+    });
+
+    it('forgot-password responds the same way for an unknown email — no account enumeration', async () => {
+      const tenant = await bootstrapTenant('pwresetunknown');
+      await request(app.getHttpServer())
+        .post('/api/auth/forgot-password')
+        .send({ tenantSlug: tenant.slug, email: 'nobody-here@example.com' })
+        .expect(204);
+    });
+
+    it('lets a logged-in user change their own password, and it logs them out everywhere', async () => {
+      const tenant = await bootstrapTenant('pwchange');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+
+      await request(app.getHttpServer())
+        .patch('/api/users/me/password')
+        .set(bearer)
+        .send({ currentPassword: 'Sup3rSecret!', newPassword: 'ChangedPass1!' })
+        .expect(204);
+
+      await request(app.getHttpServer()).get('/api/crm/leads').set(bearer).expect(401);
+
+      await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ tenantSlug: tenant.slug, email: `admin@${tenant.slug}.test`, password: 'ChangedPass1!' })
+        .expect(201);
+    });
+
+    it('rejects changing the password with the wrong current password', async () => {
+      const tenant = await bootstrapTenant('pwchangewrong');
+      await request(app.getHttpServer())
+        .patch('/api/users/me/password')
+        .set('Authorization', `Bearer ${tenant.token}`)
+        .send({ currentPassword: 'NotTheRealPassword', newPassword: 'ChangedPass1!' })
+        .expect(401);
+    });
+  });
+
+  describe('custom roles', () => {
+    it('creates, edits, and deletes a custom role', async () => {
+      const tenant = await bootstrapTenant('rolescrud');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+
+      const created = await request(app.getHttpServer())
+        .post('/api/roles')
+        .set(bearer)
+        .send({ name: 'Soporte', permissions: ['crm.leads.read'] })
+        .expect(201);
+      expect(created.body.isSystem).toBe(false);
+
+      const updated = await request(app.getHttpServer())
+        .patch(`/api/roles/${created.body.id}`)
+        .set(bearer)
+        .send({ permissions: ['crm.leads.read', 'crm.leads.write'] })
+        .expect(200);
+      expect(updated.body.permissions).toEqual(['crm.leads.read', 'crm.leads.write']);
+
+      await request(app.getHttpServer()).delete(`/api/roles/${created.body.id}`).set(bearer).expect(200);
+      const list = await request(app.getHttpServer()).get('/api/roles').set(bearer).expect(200);
+      expect(list.body.map((r: { id: string }) => r.id)).not.toContain(created.body.id);
+    });
+
+    it('never lets a tenant grant platform.tenants.manage through a custom role, even spelled out literally', async () => {
+      const tenant = await bootstrapTenant('rolesescalation');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+
+      await request(app.getHttpServer())
+        .post('/api/roles')
+        .set(bearer)
+        .send({ name: 'Impostor', permissions: ['platform.tenants.manage'] })
+        .expect(400);
+    });
+
+    it('blocks editing or deleting system roles (Administrador, Vendedor)', async () => {
+      const tenant = await bootstrapTenant('rolessystem');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+
+      const roles = await request(app.getHttpServer()).get('/api/roles').set(bearer).expect(200);
+      const adminRole = roles.body.find((r: { name: string }) => r.name === 'Administrador');
+
+      await request(app.getHttpServer())
+        .patch(`/api/roles/${adminRole.id}`)
+        .set(bearer)
+        .send({ name: 'Hackeado' })
+        .expect(400);
+      await request(app.getHttpServer()).delete(`/api/roles/${adminRole.id}`).set(bearer).expect(400);
+    });
+
+    it('blocks deleting a role that is still assigned to a user', async () => {
+      const tenant = await bootstrapTenant('rolesinuse');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+
+      const role = await request(app.getHttpServer())
+        .post('/api/roles')
+        .set(bearer)
+        .send({ name: 'Ocupado', permissions: ['crm.leads.read'] })
+        .expect(201);
+      await request(app.getHttpServer())
+        .post('/api/users')
+        .set(bearer)
+        .send({ email: `withrole@${tenant.slug}.test`, password: 'Sup3rSecret1!', fullName: 'Con Rol', roleId: role.body.id })
+        .expect(201);
+
+      await request(app.getHttpServer()).delete(`/api/roles/${role.body.id}`).set(bearer).expect(400);
+    });
+  });
+
+  describe('quote PDF export', () => {
+    it('downloads a PDF for an authenticated tenant user', async () => {
+      const tenant = await bootstrapTenant('pdfauth');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+      const company = await request(app.getHttpServer()).post('/api/crm/companies').set(bearer).send({ name: 'PDF Co' }).expect(201);
+      const quote = await request(app.getHttpServer())
+        .post('/api/crm/quotes')
+        .set(bearer)
+        .send({ companyId: company.body.id, items: [{ description: 'Item', quantity: 1, unitPrice: 100 }] })
+        .expect(201);
+
+      const res = await request(app.getHttpServer())
+        .get(`/api/crm/quotes/${quote.body.id}/pdf`)
+        .set(bearer)
+        .expect(200);
+      expect(res.headers['content-type']).toContain('application/pdf');
+      expect(res.body.length).toBeGreaterThan(100);
+    });
+
+    it('downloads a PDF from the public link with no auth', async () => {
+      const tenant = await bootstrapTenant('pdfpublic');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+      const company = await request(app.getHttpServer()).post('/api/crm/companies').set(bearer).send({ name: 'PDF Public Co' }).expect(201);
+      const quote = await request(app.getHttpServer())
+        .post('/api/crm/quotes')
+        .set(bearer)
+        .send({ companyId: company.body.id, items: [{ description: 'Item', quantity: 1, unitPrice: 100 }] })
+        .expect(201);
+
+      const res = await request(app.getHttpServer()).get(`/api/public/quotes/${quote.body.accessToken}/pdf`).expect(200);
+      expect(res.headers['content-type']).toContain('application/pdf');
     });
   });
 });

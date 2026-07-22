@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, StreamableFile } from '@nestjs/common';
 import { QuotesService } from './quotes.service';
 import { QuoteFollowUpsService } from './quote-follow-ups.service';
+import { QuotePdfService } from './quote-pdf.service';
 import { CreateQuoteDto } from './dto/create-quote.dto';
 import { UpdateQuoteDto } from './dto/update-quote.dto';
 import { CreateFollowUpDto } from './dto/create-follow-up.dto';
@@ -15,6 +16,7 @@ export class QuotesController {
   constructor(
     private readonly quotesService: QuotesService,
     private readonly followUpsService: QuoteFollowUpsService,
+    private readonly quotePdfService: QuotePdfService,
   ) {}
 
   @Post()
@@ -40,6 +42,17 @@ export class QuotesController {
   @RequirePermissions('crm.quotes.read')
   findOne(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.quotesService.findOneForTenant(user.tenantId, id);
+  }
+
+  @Get(':id/pdf')
+  @RequirePermissions('crm.quotes.read')
+  async downloadPdf(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string): Promise<StreamableFile> {
+    const quote = await this.quotesService.findOneForTenant(user.tenantId, id);
+    const pdf = await this.quotePdfService.generate(quote);
+    return new StreamableFile(pdf, {
+      type: 'application/pdf',
+      disposition: `attachment; filename="${quote.quoteNumber}.pdf"`,
+    });
   }
 
   @Patch(':id')

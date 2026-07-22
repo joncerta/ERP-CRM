@@ -17,6 +17,18 @@ const router = createRouter({
       meta: { public: true },
     },
     {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: () => import('@/views/ForgotPasswordView.vue'),
+      meta: { public: true },
+    },
+    {
+      path: '/reset-password/:token',
+      name: 'reset-password',
+      component: () => import('@/views/ResetPasswordView.vue'),
+      meta: { public: true },
+    },
+    {
       path: '/',
       redirect: () => {
         const auth = useAuthStore();
@@ -25,8 +37,14 @@ const router = createRouter({
         // would just 403.
         return auth.hasPermission('platform.tenants.manage')
           ? { name: 'platform-tenants' }
-          : { name: 'pipeline' };
+          : { name: 'dashboard' };
       },
+    },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: () => import('@/views/DashboardView.vue'),
+      meta: { crmRoute: true },
     },
     {
       path: '/pipeline',
@@ -76,6 +94,12 @@ const router = createRouter({
       meta: { requiresPermission: 'core.users.read' },
     },
     {
+      path: '/roles',
+      name: 'roles',
+      component: () => import('@/views/RolesView.vue'),
+      meta: { requiresPermission: 'core.roles.read' },
+    },
+    {
       path: '/platform/tenants',
       name: 'platform-tenants',
       component: () => import('@/views/PlatformTenantsView.vue'),
@@ -92,7 +116,7 @@ router.beforeEach((to) => {
   }
   const requiredPermission = to.meta.requiresPermission as string | undefined;
   if (requiredPermission && !auth.hasPermission(requiredPermission)) {
-    return { name: 'pipeline' };
+    return { name: 'dashboard' };
   }
   // Platform operators have no CRM data of their own — keep them out of
   // customer-facing screens entirely, not just off the nav.

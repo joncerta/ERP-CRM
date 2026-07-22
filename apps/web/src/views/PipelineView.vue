@@ -9,22 +9,28 @@ import {
   closeOpportunityLost,
 } from '@/api/opportunities'
 import { listCompanies } from '@/api/companies'
+import { listUsers } from '@/api/users'
+import { useAuthStore } from '@/stores/auth'
 import { getErrorMessage } from '@/api/error'
 import { compact } from '@/utils/compact'
 import type { PipelineStage, Opportunity, Company } from '@/api/types'
+import type { TenantUser } from '@/api/users'
 
 const { t } = useI18n()
+const auth = useAuthStore()
 
 const stages = ref<PipelineStage[]>([])
 const opportunities = ref<Opportunity[]>([])
 const companies = ref<Company[]>([])
+const users = ref<TenantUser[]>([])
 const loading = ref(true)
 const error = ref('')
 const draggingId = ref<string | null>(null)
 const dragOverStageId = ref<string | null>(null)
+const onlyMine = ref(false)
 
 const editingOpp = ref<Opportunity | null>(null)
-const editForm = ref({ name: '', value: 0, expectedCloseDate: '' })
+const editForm = ref({ name: '', value: 0, expectedCloseDate: '', ownerUserId: '' })
 const savingEdit = ref(false)
 const editError = ref('')
 const closingLostId = ref<string | null>(null)
@@ -41,6 +47,7 @@ async function load() {
     stages.value = [...stagesData].sort((a, b) => a.order - b.order)
     opportunities.value = opportunitiesData
     companies.value = companiesData
+    users.value = await listUsers().catch(() => [])
   } catch (err) {
     error.value = getErrorMessage(err)
   } finally {
@@ -48,8 +55,16 @@ async function load() {
   }
 }
 
+const visibleOpportunities = computed(() =>
+  onlyMine.value ? opportunities.value.filter((o) => o.ownerUserId === auth.user?.sub) : opportunities.value,
+)
+
 function opportunitiesByStage(stageId: string) {
-  return opportunities.value.filter((o) => o.stageId === stageId)
+  return visibleOpportunities.value.filter((o) => o.stageId === stageId)
+}
+
+function ownerName(id: string | null) {
+  return users.value.find((u) => u.id === id)?.fullName ?? '—'
 }
 
 function companyName(id: string | null) {
@@ -92,6 +107,7 @@ function openEditModal(opp: Opportunity) {
     name: opp.name,
     value: Number(opp.value),
     expectedCloseDate: opp.expectedCloseDate ?? '',
+    ownerUserId: opp.ownerUserId ?? '',
   }
   editError.value = ''
 }
@@ -145,6 +161,13 @@ onMounted(load)
       <h1>{{ t('pipeline.title') }}</h1>
     </div>
 
+    <div class="list-filters">
+      <label class="checkbox-field">
+        <input v-model="onlyMine" type="checkbox" />
+        {{ t('common.onlyMine') }}
+      </label>
+    </div>
+
     <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
     <p v-else-if="error" class="error-text">{{ error }}</p>
     <div v-else class="board">
@@ -175,6 +198,7 @@ onMounted(load)
             <div class="opp-name">{{ opp.name }}</div>
             <div class="muted">{{ companyName(opp.companyId) }}</div>
             <div class="opp-value">{{ formatValue(opp) }}</div>
+            <div v-if="opp.ownerUserId" class="muted opp-owner">{{ ownerName(opp.ownerUserId) }}</div>
           </div>
         </div>
       </div>
@@ -194,6 +218,13 @@ onMounted(load)
         <div class="field">
           <label>{{ t('pipeline.expectedCloseDate') }}</label>
           <input v-model="editForm.expectedCloseDate" type="date" />
+        </div>
+        <div v-if="users.length" class="field">
+          <label>{{ t('common.owner') }}</label>
+          <select v-model="editForm.ownerUserId">
+            <option value="">—</option>
+            <option v-for="u in users" :key="u.id" :value="u.id">{{ u.fullName }}</option>
+          </select>
         </div>
         <p v-if="editError" class="error-text">{{ editError }}</p>
         <div class="modal-actions">
@@ -271,5 +302,9 @@ onMounted(load)
   font-weight: 700;
   color: var(--color-primary);
   margin-top: 0.4rem;
+}
+.opp-owner {
+  font-size: 0.75rem;
+  margin-top: 0.2rem;
 }
 </style>

@@ -12,24 +12,30 @@ export class SessionsService {
   ) {}
 
   /**
+   * Revokes every active session for this user and force-disconnects their
+   * sockets right away, instead of waiting for their next HTTP request to
+   * hit the 401. Shared by single-session enforcement (a login elsewhere)
+   * and anything that should immediately invalidate existing sessions,
+   * like a password change/reset.
+   */
+  async revokeAllActive(tenantId: string, userId: string, reason: string): Promise<void> {
+    const priorActive = await this.repo.find({ where: { tenantId, userId, revokedAt: IsNull() } });
+    if (priorActive.length === 0) return;
+
+    await this.repo.update({ tenantId, userId, revokedAt: IsNull() }, { revokedAt: new Date(), revokedReason: reason });
+    this.notificationsGateway.disconnectSessions(
+      priorActive.map((s) => s.id),
+      reason,
+    );
+  }
+
+  /**
    * Revokes every other active session for this user, then opens a new
    * one — enforcing "logging in on a new device immediately kicks out
-   * every other device" without a separate cleanup job. Sockets from the
-   * revoked sessions are force-disconnected right away instead of waiting
-   * for their next HTTP request to hit the 401.
+   * every other device" without a separate cleanup job.
    */
   async startSession(tenantId: string, userId: string, userAgent?: string): Promise<Session> {
-    const priorActive = await this.repo.find({ where: { tenantId, userId, revokedAt: IsNull() } });
-    if (priorActive.length > 0) {
-      await this.repo.update(
-        { tenantId, userId, revokedAt: IsNull() },
-        { revokedAt: new Date(), revokedReason: 'superseded_by_new_login' },
-      );
-      this.notificationsGateway.disconnectSessions(
-        priorActive.map((s) => s.id),
-        'superseded_by_new_login',
-      );
-    }
+    await this.revokeAllActive(tenantId, userId, 'superseded_by_new_login');
 
     const session = this.repo.create({
       tenantId,

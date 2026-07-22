@@ -1,4 +1,4 @@
-import { IsArray, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsString } from 'class-validator';
 
 export class CreateRoleDto {
   @IsString()
@@ -7,7 +7,4 @@ export class CreateRoleDto {
   @IsArray()
   @IsString({ each: true })
   permissions: string[];
-
-  @IsOptional()
-  isSystem?: boolean;
 }

@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { listQuotes, createQuote, updateQuote, sendQuote, createFollowUp } from '@/api/quotes'
+import { listQuotes, createQuote, updateQuote, sendQuote, createFollowUp, downloadQuotePdf } from '@/api/quotes'
 import { listCompanies } from '@/api/companies'
 import { listContacts } from '@/api/contacts'
+import { useAuthStore } from '@/stores/auth'
 import { getErrorMessage } from '@/api/error'
 import { compact } from '@/utils/compact'
 import type { Quote, Company, Contact } from '@/api/types'
 import type { QuoteItemInput } from '@/api/quotes'
 
 const { t } = useI18n()
+const auth = useAuthStore()
 
 const quotes = ref<Quote[]>([])
 const companies = ref<Company[]>([])
@@ -25,6 +27,8 @@ const followUpQuote = ref<Quote | null>(null)
 const followUpDate = ref('')
 const followUpNote = ref('')
 const followUpError = ref('')
+const onlyMine = ref(false)
+const searchQuery = ref('')
 
 const form = ref({
   companyId: '',
@@ -37,6 +41,18 @@ const form = ref({
 const contactsForSelectedCompany = computed(() =>
   form.value.companyId ? contacts.value.filter((c) => c.companyId === form.value.companyId) : contacts.value,
 )
+
+const visibleQuotes = computed(() => {
+  let result = quotes.value
+  if (onlyMine.value) result = result.filter((q) => q.ownerUserId === auth.user?.sub)
+  const query = searchQuery.value.trim().toLowerCase()
+  if (query) {
+    result = result.filter(
+      (q) => q.quoteNumber.toLowerCase().includes(query) || companyName(q.companyId).toLowerCase().includes(query),
+    )
+  }
+  return result
+})
 
 async function load() {
   loading.value = true
@@ -154,6 +170,10 @@ function publicUrl(quote: Quote) {
   return `${window.location.origin}/q/${quote.accessToken}`
 }
 
+async function handleDownloadPdf(quote: Quote) {
+  await downloadQuotePdf(quote.id, quote.quoteNumber)
+}
+
 const statusBadge: Record<string, string> = {
   draft: '',
   sent: 'blue',
@@ -173,6 +193,14 @@ onMounted(load)
       <button class="btn" @click="openModal">+ {{ t('quotes.newQuote') }}</button>
     </div>
 
+    <div class="list-filters">
+      <input v-model="searchQuery" type="text" class="search-input" :placeholder="t('common.search')" />
+      <label class="checkbox-field">
+        <input v-model="onlyMine" type="checkbox" />
+        {{ t('common.onlyMine') }}
+      </label>
+    </div>
+
     <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
     <p v-else-if="error" class="error-text">{{ error }}</p>
     <table v-else>
@@ -187,7 +215,7 @@ onMounted(load)
         </tr>
       </thead>
       <tbody>
-        <tr v-for="q in quotes" :key="q.id">
+        <tr v-for="q in visibleQuotes" :key="q.id">
           <td>{{ q.quoteNumber }}</td>
           <td>{{ companyName(q.companyId) }}</td>
           <td>{{ q.currencyCode }} {{ Number(q.total).toLocaleString() }}</td>
@@ -201,10 +229,11 @@ onMounted(load)
               {{ t('quotes.send') }}
             </button>
             <a v-if="q.status !== 'draft'" :href="publicUrl(q)" target="_blank" class="muted">{{ t('publicQuote.title') }} ↗</a>
+            <button class="btn secondary" @click="handleDownloadPdf(q)">{{ t('quotes.downloadPdf') }}</button>
             <button class="btn secondary" @click="openFollowUp(q)">{{ t('quotes.scheduleFollowUp') }}</button>
           </td>
         </tr>
-        <tr v-if="!quotes.length">
+        <tr v-if="!visibleQuotes.length">
           <td colspan="6" class="muted">—</td>
         </tr>
       </tbody>

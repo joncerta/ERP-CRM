@@ -6,6 +6,7 @@ import { QuoteFollowUp } from './entities/quote-follow-up.entity';
 import { Company } from '../companies/entities/company.entity';
 import { QuotesService } from './quotes.service';
 import { QuoteFollowUpsService } from './quote-follow-ups.service';
+import { QuotePdfService } from './quote-pdf.service';
 import { QuotesController } from './quotes.controller';
 import { QuotesPublicController } from './quotes-public.controller';
 import { NotificationsModule } from '../../notifications/notifications.module';
@@ -19,7 +20,7 @@ import { EmailModule } from '../../common/email/email.module';
     ContactsModule,
     EmailModule,
   ],
-  providers: [QuotesService, QuoteFollowUpsService],
+  providers: [QuotesService, QuoteFollowUpsService, QuotePdfService],
   controllers: [QuotesController, QuotesPublicController],
   exports: [QuotesService, QuoteFollowUpsService],
 })

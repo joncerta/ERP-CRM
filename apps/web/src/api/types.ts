@@ -35,6 +35,7 @@ export interface Lead {
   status: LeadStatus;
   priority: LeadPriority;
   ownerUserId: string | null;
+  createdAt: string;
 }
 
 export interface PipelineStage {

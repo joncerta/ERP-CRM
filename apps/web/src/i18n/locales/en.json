@@ -1,5 +1,6 @@
 {
   "nav": {
+    "dashboard": "Home",
     "pipeline": "Pipeline",
     "reminders": "Reminders",
     "leads": "Leads",
@@ -9,6 +10,7 @@
     "platform": "Platform",
     "settings": "Settings",
     "users": "Users",
+    "roles": "Roles",
     "logout": "Log out"
   },
   "notifications": {
@@ -22,7 +24,20 @@
     "email": "Email",
     "password": "Password",
     "submit": "Sign in",
-    "error": "Invalid credentials"
+    "error": "Invalid credentials",
+    "forgotPassword": "Forgot your password?"
+  },
+  "forgotPassword": {
+    "title": "Recover password",
+    "subtitle": "We'll send you a link to reset it.",
+    "submit": "Send link",
+    "sent": "If the email exists, we sent a link to reset your password. Check your inbox.",
+    "backToLogin": "Back to sign in"
+  },
+  "resetPassword": {
+    "title": "Reset password",
+    "newPassword": "New password",
+    "done": "Your password was updated. Taking you to sign in..."
   },
   "common": {
     "loading": "Loading...",
@@ -40,7 +55,10 @@
     "active": "Active",
     "inactive": "Inactive",
     "activate": "Activate",
-    "deactivate": "Deactivate"
+    "deactivate": "Deactivate",
+    "owner": "Owner",
+    "onlyMine": "Only mine",
+    "search": "Search..."
   },
   "leads": {
     "title": "Leads",
@@ -61,6 +79,15 @@
     "newCompany": "New company",
     "city": "City",
     "country": "Country"
+  },
+  "dashboard": {
+    "title": "Home",
+    "pipelineValue": "Open pipeline value",
+    "openOpportunities": "Open opportunities",
+    "newLeadsThisMonth": "New leads this month",
+    "pendingQuotes": "Quotes awaiting response",
+    "overdueFollowUps": "Overdue reminders",
+    "stageBreakdown": "Opportunities by stage"
   },
   "pipeline": {
     "title": "Opportunity pipeline",
@@ -83,6 +110,7 @@
     "total": "Total",
     "views": "Views",
     "scheduleFollowUp": "Schedule reminder",
+    "downloadPdf": "Download PDF",
     "status": {
       "draft": "Draft",
       "sent": "Sent",
@@ -127,6 +155,15 @@
     "role": "Role",
     "status": "Status"
   },
+  "roles": {
+    "title": "Roles",
+    "subtitle": "System roles (Administrador, Vendedor) can't be edited or deleted.",
+    "newRole": "New role",
+    "permissions": "Permissions",
+    "permissionCount": "Permissions",
+    "allPermissions": "All",
+    "system": "System"
+  },
   "settings": {
     "title": "Settings",
     "sessionTitle": "Session",
@@ -135,6 +172,10 @@
     "idleTimeoutMinutes": "Idle minutes",
     "languageTitle": "Language",
     "languageSubtitle": "Interface language for this user.",
+    "passwordTitle": "Password",
+    "passwordSubtitle": "Changing your password signs you out everywhere.",
+    "currentPassword": "Current password",
+    "changePassword": "Change password",
     "saved": "Saved."
   },
   "publicQuote": {

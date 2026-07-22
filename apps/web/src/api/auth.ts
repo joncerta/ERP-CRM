@@ -14,3 +14,11 @@ export async function login(payload: LoginPayload): Promise<{ accessToken: strin
 export async function logout(): Promise<void> {
   await apiClient.post('/auth/logout');
 }
+
+export async function forgotPassword(tenantSlug: string, email: string): Promise<void> {
+  await apiClient.post('/auth/forgot-password', { tenantSlug, email });
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  await apiClient.post('/auth/reset-password', { token, newPassword });
+}

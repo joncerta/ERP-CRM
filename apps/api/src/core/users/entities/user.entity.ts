@@ -4,6 +4,7 @@ import { Role } from '../../roles/entities/role.entity';
 
 @Entity('users')
 @Index(['tenantId', 'email'], { unique: true })
+@Index(['passwordResetToken'])
 export class User extends TenantScopedEntity {
   @Column()
   email: string;
@@ -26,4 +27,10 @@ export class User extends TenantScopedEntity {
 
   @Column({ name: 'preferred_locale', default: 'es' })
   preferredLocale: string;
+
+  @Column({ name: 'password_reset_token', type: 'varchar', nullable: true })
+  passwordResetToken: string | null;
+
+  @Column({ name: 'password_reset_expires_at', type: 'timestamptz', nullable: true })
+  passwordResetExpiresAt: Date | null;
 }

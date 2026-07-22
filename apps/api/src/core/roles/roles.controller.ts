@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
 import { RequirePermissions } from '../../common/decorators/require-permissions.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.types';
@@ -19,5 +20,17 @@ export class RolesController {
   @RequirePermissions('core.roles.read')
   findAll(@CurrentUser() user: AuthenticatedUser) {
     return this.rolesService.findAllForTenant(user.tenantId);
+  }
+
+  @Patch(':id')
+  @RequirePermissions('core.roles.write')
+  update(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateRoleDto) {
+    return this.rolesService.update(user.tenantId, id, dto);
+  }
+
+  @Delete(':id')
+  @RequirePermissions('core.roles.write')
+  remove(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.rolesService.removeRole(user.tenantId, id);
   }
 }

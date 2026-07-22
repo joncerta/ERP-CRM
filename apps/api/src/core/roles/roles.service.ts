@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Role } from './entities/role.entity';
 import { CreateRoleDto } from './dto/create-role.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
 import { TenantScopedService } from '../../common/services/tenant-scoped.service';
+import { UsersService } from '../users/users.service';
 
 export const DEFAULT_ROLE_TEMPLATES: Array<{ name: string; permissions: string[] }> = [
   {
@@ -25,15 +27,51 @@ export const DEFAULT_ROLE_TEMPLATES: Array<{ name: string; permissions: string[]
   },
 ];
 
+/** Reachable only via the seed script directly against the DB — never
+ * grantable through a tenant's own role editor. Same boundary the
+ * PermissionsGuard enforces for the '*' wildcard, closed here too so a
+ * tenant can't just spell the permission out literally instead. */
+function assertNoPlatformPermissions(permissions: string[]): void {
+  if (permissions.some((p) => p.startsWith('platform.'))) {
+    throw new BadRequestException('No se pueden asignar permisos de plataforma a un rol de tenant');
+  }
+}
+
 @Injectable()
 export class RolesService extends TenantScopedService<Role> {
-  constructor(@InjectRepository(Role) repo: Repository<Role>) {
+  constructor(
+    @InjectRepository(Role) repo: Repository<Role>,
+    private readonly usersService: UsersService,
+  ) {
     super(repo);
   }
 
-  create(tenantId: string, dto: CreateRoleDto): Promise<Role> {
-    const role = this.repository.create({ ...dto, tenantId });
+  async create(tenantId: string, dto: CreateRoleDto): Promise<Role> {
+    assertNoPlatformPermissions(dto.permissions);
+    const role = this.repository.create({ ...dto, tenantId, isSystem: false });
     return this.repository.save(role);
+  }
+
+  async update(tenantId: string, id: string, dto: UpdateRoleDto): Promise<Role> {
+    const role = await this.findOneForTenant(tenantId, id);
+    if (role.isSystem) {
+      throw new BadRequestException('Los roles del sistema (Administrador, Vendedor) no se pueden modificar');
+    }
+    if (dto.permissions) assertNoPlatformPermissions(dto.permissions);
+    Object.assign(role, dto);
+    return this.repository.save(role);
+  }
+
+  async removeRole(tenantId: string, id: string): Promise<void> {
+    const role = await this.findOneForTenant(tenantId, id);
+    if (role.isSystem) {
+      throw new BadRequestException('Los roles del sistema (Administrador, Vendedor) no se pueden eliminar');
+    }
+    const usersWithRole = await this.usersService.findAllForTenant(tenantId);
+    if (usersWithRole.some((u) => u.roleId === id)) {
+      throw new BadRequestException('No se puede eliminar un rol que sigue asignado a usuarios');
+    }
+    await this.repository.remove(role);
   }
 
   async createDefaultRolesForTenant(tenantId: string): Promise<Role[]> {

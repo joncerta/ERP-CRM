@@ -31,3 +31,7 @@ export async function setUserActive(id: string, isActive: boolean): Promise<Tena
   const { data } = await apiClient.patch(`/users/${id}/active`, { isActive })
   return data
 }
+
+export async function changeOwnPassword(currentPassword: string, newPassword: string): Promise<void> {
+  await apiClient.patch('/users/me/password', { currentPassword, newPassword })
+}
