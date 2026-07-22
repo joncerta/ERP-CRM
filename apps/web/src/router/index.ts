@@ -65,6 +65,11 @@ const router = createRouter({
       meta: { crmRoute: true },
     },
     {
+      path: '/settings',
+      name: 'settings',
+      component: () => import('@/views/SettingsView.vue'),
+    },
+    {
       path: '/platform/tenants',
       name: 'platform-tenants',
       component: () => import('@/views/PlatformTenantsView.vue'),

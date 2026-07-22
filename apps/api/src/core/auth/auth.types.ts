@@ -4,6 +4,7 @@ export interface AuthenticatedUser {
   email: string;
   roleId: string;
   permissions: string[];
+  sessionId: string;
 }
 
 export interface JwtPayload {
@@ -12,4 +13,5 @@ export interface JwtPayload {
   email: string;
   roleId: string;
   permissions: string[];
+  sid: string; // session id — see core/sessions
 }

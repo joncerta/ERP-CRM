@@ -10,3 +10,7 @@ export async function login(payload: LoginPayload): Promise<{ accessToken: strin
   const { data } = await apiClient.post('/auth/login', payload);
   return data;
 }
+
+export async function logout(): Promise<void> {
+  await apiClient.post('/auth/logout');
+}

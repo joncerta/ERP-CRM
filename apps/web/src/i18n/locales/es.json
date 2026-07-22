@@ -7,6 +7,7 @@
     "companies": "Empresas",
     "quotes": "Cotizaciones",
     "platform": "Plataforma",
+    "settings": "Configuración",
     "logout": "Cerrar sesión"
   },
   "login": {
@@ -96,6 +97,14 @@
     "core": "Núcleo",
     "enable": "Activar",
     "disable": "Desactivar"
+  },
+  "settings": {
+    "title": "Configuración",
+    "sessionTitle": "Sesión",
+    "sessionSubtitle": "Iniciar sesión en un dispositivo nuevo cierra automáticamente los demás.",
+    "enableIdleTimeout": "Cerrar sesión automáticamente por inactividad",
+    "idleTimeoutMinutes": "Minutos de inactividad",
+    "saved": "Guardado."
   },
   "publicQuote": {
     "title": "Cotización",

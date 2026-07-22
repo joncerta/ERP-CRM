@@ -160,6 +160,23 @@ tenant no lo tiene activo. Dos formas de activar/desactivar:
   `platform.tenants.manage`, ver sección anterior): pantalla `Plataforma`
   en el frontend, o `PATCH /api/platform/tenants/:tenantId/modules/:code`
 
+## Sesiones
+
+El JWT por sí solo no se puede revocar antes de que expire, así que cada
+login crea una fila en `sessions` y el JWT lleva su id (`sid`). Cada
+request autenticado valida contra esa sesión, lo que permite:
+
+- **Single-session**: iniciar sesión en un dispositivo/navegador nuevo
+  revoca automáticamente cualquier otra sesión activa del mismo usuario —
+  el dispositivo anterior queda desconectado en su siguiente petición.
+- **Logout real**: `POST /api/auth/logout` revoca la sesión en el
+  servidor, no solo borra el token del lado del cliente.
+- **Expiración por inactividad, configurable por tenant**: cada tenant
+  define sus propios minutos de inactividad (o ninguno) desde
+  `Configuración` en el frontend, o `GET`/`PATCH /api/tenant-settings`
+  (permiso `core.tenant.settings.write`). Sin configurar, solo aplica la
+  expiración fija del JWT (`JWT_EXPIRES_IN`, 8h por defecto).
+
 ## Tests (backend)
 
 ```bash

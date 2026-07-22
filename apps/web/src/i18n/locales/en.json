@@ -7,6 +7,7 @@
     "companies": "Companies",
     "quotes": "Quotes",
     "platform": "Platform",
+    "settings": "Settings",
     "logout": "Log out"
   },
   "login": {
@@ -96,6 +97,14 @@
     "core": "Core",
     "enable": "Enable",
     "disable": "Disable"
+  },
+  "settings": {
+    "title": "Settings",
+    "sessionTitle": "Session",
+    "sessionSubtitle": "Logging in on a new device automatically signs out the others.",
+    "enableIdleTimeout": "Automatically sign out after inactivity",
+    "idleTimeoutMinutes": "Idle minutes",
+    "saved": "Saved."
   },
   "publicQuote": {
     "title": "Quote",

@@ -5,6 +5,7 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { Role } from '../src/core/roles/entities/role.entity';
+import { Session } from '../src/core/sessions/entities/session.entity';
 
 /**
  * End-to-end coverage of the flows this project's security actually rests
@@ -285,6 +286,91 @@ describe('CRM (e2e)', () => {
         .get(`/api/crm/companies/${company.body.id}`)
         .set('Authorization', `Bearer ${tenantB.token}`)
         .expect(404);
+    });
+  });
+
+  describe('session management', () => {
+    it('logging in on a second device immediately kicks out the first — single-session', async () => {
+      const tenant = await bootstrapTenant('singlesess');
+
+      // "device 1" logs in, works fine
+      const login1 = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ tenantSlug: tenant.slug, email: `admin@${tenant.slug}.test`, password: 'Sup3rSecret!' })
+        .expect(201);
+      await request(app.getHttpServer())
+        .get('/api/crm/leads')
+        .set('Authorization', `Bearer ${login1.body.accessToken}`)
+        .expect(200);
+
+      // "device 2" logs in with the same credentials
+      const login2 = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ tenantSlug: tenant.slug, email: `admin@${tenant.slug}.test`, password: 'Sup3rSecret!' })
+        .expect(201);
+
+      // device 1's token is now dead, device 2's works
+      await request(app.getHttpServer())
+        .get('/api/crm/leads')
+        .set('Authorization', `Bearer ${login1.body.accessToken}`)
+        .expect(401);
+      await request(app.getHttpServer())
+        .get('/api/crm/leads')
+        .set('Authorization', `Bearer ${login2.body.accessToken}`)
+        .expect(200);
+    });
+
+    it('logout revokes the session server-side, not just client-side', async () => {
+      const tenant = await bootstrapTenant('logout');
+
+      await request(app.getHttpServer())
+        .get('/api/crm/leads')
+        .set('Authorization', `Bearer ${tenant.token}`)
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .post('/api/auth/logout')
+        .set('Authorization', `Bearer ${tenant.token}`)
+        .expect(204);
+
+      await request(app.getHttpServer())
+        .get('/api/crm/leads')
+        .set('Authorization', `Bearer ${tenant.token}`)
+        .expect(401);
+    });
+
+    it('lets a tenant configure its own idle timeout, and enforces it', async () => {
+      const tenant = await bootstrapTenant('idletimeout');
+      const bearer = { Authorization: `Bearer ${tenant.token}` };
+
+      const before = await request(app.getHttpServer()).get('/api/tenant-settings').set(bearer).expect(200);
+      expect(before.body.sessionIdleTimeoutMinutes).toBeNull();
+
+      await request(app.getHttpServer())
+        .patch('/api/tenant-settings')
+        .set(bearer)
+        .send({ sessionIdleTimeoutMinutes: 5 })
+        .expect(200)
+        .expect((res) => expect(res.body.sessionIdleTimeoutMinutes).toBe(5));
+
+      // still within the window right after configuring it
+      await request(app.getHttpServer()).get('/api/crm/leads').set(bearer).expect(200);
+
+      // simulate 10 idle minutes passing by backdating the session directly
+      await dataSource
+        .getRepository(Session)
+        .update({ tenantId: tenant.tenantId }, { lastSeenAt: new Date(Date.now() - 10 * 60_000) });
+
+      await request(app.getHttpServer()).get('/api/crm/leads').set(bearer).expect(401);
+    });
+
+    it('rejects an out-of-range idle timeout instead of silently clamping it', async () => {
+      const tenant = await bootstrapTenant('idlerange');
+      await request(app.getHttpServer())
+        .patch('/api/tenant-settings')
+        .set('Authorization', `Bearer ${tenant.token}`)
+        .send({ sessionIdleTimeoutMinutes: 1 }) // below the 5-minute floor
+        .expect(400);
     });
   });
 });

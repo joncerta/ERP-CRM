@@ -12,8 +12,8 @@ const { t } = useI18n()
 // own to see, so it gets a completely different nav than a customer admin.
 const isPlatformAdmin = computed(() => auth.hasPermission('platform.tenants.manage'))
 
-function handleLogout() {
-  auth.logout()
+async function handleLogout() {
+  await auth.logoutEverywhere()
   router.push({ name: 'login' })
 }
 </script>
@@ -36,6 +36,7 @@ function handleLogout() {
         </template>
       </nav>
       <div class="sidebar-footer">
+        <RouterLink to="/settings" class="settings-link">{{ t('nav.settings') }}</RouterLink>
         <div class="muted">{{ auth.user?.email }}</div>
         <button class="btn secondary" @click="handleLogout">{{ t('nav.logout') }}</button>
       </div>
@@ -92,6 +93,14 @@ nav a.router-link-active {
   gap: 0.5rem;
   padding-top: 1rem;
   border-top: 1px solid var(--color-border);
+}
+.settings-link {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+.settings-link:hover {
+  color: var(--color-text);
 }
 .content {
   flex: 1;

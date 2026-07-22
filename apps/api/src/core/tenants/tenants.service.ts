@@ -57,4 +57,10 @@ export class TenantsService {
   findBySlug(slug: string): Promise<Tenant | null> {
     return this.repo.findOne({ where: { slug } });
   }
+
+  async updateSessionIdleTimeout(tenantId: string, minutes: number | null): Promise<Tenant> {
+    const tenant = await this.findOne(tenantId);
+    tenant.sessionIdleTimeoutMinutes = minutes;
+    return this.repo.save(tenant);
+  }
 }
