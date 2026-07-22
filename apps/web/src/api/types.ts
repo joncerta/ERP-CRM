@@ -127,3 +127,44 @@ export interface Currency {
   symbol: string;
   decimalPlaces: number;
 }
+
+export interface Warehouse {
+  id: string;
+  name: string;
+  address?: string | null;
+  isActive: boolean;
+}
+
+export interface Product {
+  id: string;
+  sku: string;
+  name: string;
+  description?: string | null;
+  unit: string;
+  category?: string | null;
+  costPrice: number | string;
+  salePrice: number | string;
+  minStock: number | string | null;
+  isActive: boolean;
+}
+
+export interface StockBalance {
+  id: string;
+  productId: string;
+  warehouseId: string;
+  quantity: number | string;
+}
+
+export type StockMovementType = 'purchase' | 'sale' | 'adjustment' | 'transfer';
+
+export interface StockMovement {
+  id: string;
+  productId: string;
+  warehouseId: string;
+  type: StockMovementType;
+  quantityDelta: number | string;
+  note: string | null;
+  transferGroupId: string | null;
+  createdByUserId: string;
+  createdAt: string;
+}

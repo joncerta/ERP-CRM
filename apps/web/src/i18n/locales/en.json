@@ -7,6 +7,9 @@
     "contacts": "Contacts",
     "companies": "Companies",
     "quotes": "Quotes",
+    "products": "Products",
+    "warehouses": "Warehouses",
+    "stock": "Stock",
     "platform": "Platform",
     "settings": "Settings",
     "users": "Users",
@@ -79,6 +82,42 @@
     "newCompany": "New company",
     "city": "City",
     "country": "Country"
+  },
+  "warehouses": {
+    "title": "Warehouses",
+    "newWarehouse": "New warehouse",
+    "address": "Address"
+  },
+  "products": {
+    "title": "Products",
+    "newProduct": "New product",
+    "unit": "Unit",
+    "category": "Category",
+    "costPrice": "Cost price",
+    "salePrice": "Sale price",
+    "minStock": "Minimum stock"
+  },
+  "stock": {
+    "title": "Stock",
+    "balances": "Current balance",
+    "history": "Movement history",
+    "recordMovement": "Record movement",
+    "transfer": "Transfer between warehouses",
+    "quantity": "Quantity",
+    "type": "Type",
+    "date": "Date",
+    "note": "Note",
+    "direction": "Direction",
+    "directionIn": "In",
+    "directionOut": "Out",
+    "fromWarehouse": "From warehouse",
+    "toWarehouse": "To warehouse",
+    "types": {
+      "purchase": "Purchase",
+      "sale": "Sale",
+      "adjustment": "Adjustment",
+      "transfer": "Transfer"
+    }
   },
   "dashboard": {
     "title": "Home",

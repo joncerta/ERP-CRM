@@ -7,6 +7,9 @@
     "contacts": "Contactos",
     "companies": "Empresas",
     "quotes": "Cotizaciones",
+    "products": "Productos",
+    "warehouses": "Bodegas",
+    "stock": "Stock",
     "platform": "Plataforma",
     "settings": "Configuración",
     "users": "Usuarios",
@@ -79,6 +82,42 @@
     "newCompany": "Nueva empresa",
     "city": "Ciudad",
     "country": "País"
+  },
+  "warehouses": {
+    "title": "Bodegas",
+    "newWarehouse": "Nueva bodega",
+    "address": "Dirección"
+  },
+  "products": {
+    "title": "Productos",
+    "newProduct": "Nuevo producto",
+    "unit": "Unidad",
+    "category": "Categoría",
+    "costPrice": "Precio de costo",
+    "salePrice": "Precio de venta",
+    "minStock": "Stock mínimo"
+  },
+  "stock": {
+    "title": "Stock",
+    "balances": "Saldo actual",
+    "history": "Historial de movimientos",
+    "recordMovement": "Registrar movimiento",
+    "transfer": "Trasladar entre bodegas",
+    "quantity": "Cantidad",
+    "type": "Tipo",
+    "date": "Fecha",
+    "note": "Nota",
+    "direction": "Dirección",
+    "directionIn": "Entrada",
+    "directionOut": "Salida",
+    "fromWarehouse": "Bodega origen",
+    "toWarehouse": "Bodega destino",
+    "types": {
+      "purchase": "Compra",
+      "sale": "Venta",
+      "adjustment": "Ajuste",
+      "transfer": "Traslado"
+    }
   },
   "dashboard": {
     "title": "Inicio",

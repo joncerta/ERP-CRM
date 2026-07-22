@@ -151,14 +151,66 @@ primer usuario y activa el módulo `crm`. Con eso ya se puede hacer login en
 
 El catálogo vive en `module_definitions` (sembrado por `npm run seed`) y el
 estado por tenant en `tenant_modules`. Un `ModuleEnabledGuard` global
-bloquea cualquier endpoint marcado con `@RequireModule('crm')` si el
-tenant no lo tiene activo. Dos formas de activar/desactivar:
+bloquea cualquier endpoint marcado con `@RequireModule('crm')` (o
+`@RequireModule('inventory')`) si el tenant no lo tiene activo. Dos formas
+de activar/desactivar:
 
 - **Un tenant sobre sí mismo** (permiso `core.modules.write`, cualquier
   Administrador de ese tenant): `POST /api/modules/:code { "isEnabled": true }`
 - **El admin de plataforma sobre cualquier tenant** (permiso
   `platform.tenants.manage`, ver sección anterior): pantalla `Plataforma`
   en el frontend, o `PATCH /api/platform/tenants/:tenantId/modules/:code`
+
+El sidebar del frontend ahora refleja esto de verdad: `AppLayout.vue`
+consulta `GET /api/modules/enabled` al cargar y solo muestra los enlaces
+de CRM/Inventario si el módulo correspondiente está activo — antes de
+este cambio el nav de CRM se mostraba siempre y un tenant sin el módulo
+solo se enteraba al hacer clic y recibir un 403.
+
+## Inventario (segundo módulo del ERP, más allá del CRM)
+
+Multi-bodega desde el diseño inicial — el stock se guarda por
+producto **y** bodega, no como un total único. Vive en
+`src/inventory/` (`WarehousesModule`, `ProductsModule`, `StockModule`
+lógicamente, aunque técnicamente son un solo `InventoryModule` porque
+comparten las mismas tablas).
+
+- **Bodegas** (`/api/inventory/warehouses`): CRUD simple. No se puede
+  eliminar una bodega con movimientos registrados.
+- **Productos** (`/api/inventory/products`): CRUD con SKU único por
+  tenant (409 si se repite). Tampoco se puede eliminar uno con
+  movimientos registrados.
+- **Stock** (`/api/inventory/stock`):
+  - `GET /balances` — saldo actual por producto+bodega (filtrable por
+    `productId`/`warehouseId`).
+  - `GET /movements` — historial completo, más reciente primero.
+  - `POST /movements { productId, warehouseId, type, quantity, direction, note? }`
+    — `type` es `purchase`/`sale`/`adjustment`; `direction` (`in`/`out`)
+    es independiente del `type` para no necesitar seis tipos distintos
+    solo para expresar la dirección. Rechaza con 400 cualquier
+    movimiento que deje el saldo en negativo — no se puede vender ni
+    ajustar por debajo de cero.
+  - `POST /transfers { productId, fromWarehouseId, toWarehouseId, quantity, note? }`
+    — mueve stock entre dos bodegas del mismo tenant como una operación
+    atómica (dos movimientos `transfer`, uno negativo y uno positivo,
+    compartiendo un `transferGroupId`). Si la bodega de origen no tiene
+    suficiente stock, no se ejecuta ninguna de las dos partes.
+
+**Detalle de implementación importante**: el saldo (`inventory_stock_balances`)
+es una tabla desnormalizada que se actualiza dentro de la misma
+transacción de base de datos que cada movimiento — no se recalcula
+sumando el historial en cada lectura. Esto es lo que hace posible
+bloquear stock negativo de forma confiable (se valida contra el saldo
+actual dentro de la transacción, no contra una foto vieja) y mantiene
+"¿cuánto stock tengo ahora?" como una consulta barata sin importar
+cuántos movimientos se acumulen con el tiempo.
+
+Activado por defecto para el tenant demo `cliente` en el seed. Los
+permisos son `inventory.warehouses.{read,write}`,
+`inventory.products.{read,write}`, `inventory.stock.{read,write}` — el
+rol `Vendedor` sembrado no los incluye por defecto (es un módulo
+operativo, no comercial), pero un Administrador puede dárselos a
+cualquier rol personalizado desde la pantalla `Roles`.
 
 ## Gestión de equipo (Usuarios)
 

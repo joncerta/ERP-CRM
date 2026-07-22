@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getTenantSettings } from '@/api/tenant-settings'
 import { applyBranding } from '@/utils/branding'
+import { listEnabledModules } from '@/api/modules'
 
 const auth = useAuthStore()
 const notificationsStore = useNotificationsStore()
@@ -16,6 +17,7 @@ const { t } = useI18n()
 // own to see, so it gets a completely different nav than a customer admin.
 const isPlatformAdmin = computed(() => auth.hasPermission('platform.tenants.manage'))
 
+const enabledModuleCodes = ref<string[]>([])
 const notificationsOpen = ref(false)
 
 async function handleLogout() {
@@ -39,6 +41,11 @@ onMounted(async () => {
   } catch {
     // Not critical — the default palette is a perfectly fine fallback.
   }
+  if (!isPlatformAdmin.value) {
+    listEnabledModules()
+      .then((modules) => (enabledModuleCodes.value = modules.map((m) => m.moduleCode)))
+      .catch(() => {})
+  }
   notificationsStore.connect()
   notificationsStore.load().catch(() => {})
 })
@@ -61,12 +68,19 @@ onUnmounted(() => {
         </template>
         <template v-else>
           <RouterLink to="/dashboard">{{ t('nav.dashboard') }}</RouterLink>
-          <RouterLink to="/pipeline">{{ t('nav.pipeline') }}</RouterLink>
-          <RouterLink to="/reminders">{{ t('nav.reminders') }}</RouterLink>
-          <RouterLink to="/leads">{{ t('nav.leads') }}</RouterLink>
-          <RouterLink to="/contacts">{{ t('nav.contacts') }}</RouterLink>
-          <RouterLink to="/companies">{{ t('nav.companies') }}</RouterLink>
-          <RouterLink to="/quotes">{{ t('nav.quotes') }}</RouterLink>
+          <template v-if="enabledModuleCodes.includes('crm')">
+            <RouterLink to="/pipeline">{{ t('nav.pipeline') }}</RouterLink>
+            <RouterLink to="/reminders">{{ t('nav.reminders') }}</RouterLink>
+            <RouterLink to="/leads">{{ t('nav.leads') }}</RouterLink>
+            <RouterLink to="/contacts">{{ t('nav.contacts') }}</RouterLink>
+            <RouterLink to="/companies">{{ t('nav.companies') }}</RouterLink>
+            <RouterLink to="/quotes">{{ t('nav.quotes') }}</RouterLink>
+          </template>
+          <template v-if="enabledModuleCodes.includes('inventory')">
+            <RouterLink to="/inventory/products">{{ t('nav.products') }}</RouterLink>
+            <RouterLink to="/inventory/warehouses">{{ t('nav.warehouses') }}</RouterLink>
+            <RouterLink to="/inventory/stock">{{ t('nav.stock') }}</RouterLink>
+          </template>
         </template>
       </nav>
       <div class="sidebar-footer">

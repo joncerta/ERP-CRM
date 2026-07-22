@@ -83,6 +83,24 @@ const router = createRouter({
       meta: { crmRoute: true },
     },
     {
+      path: '/inventory/products',
+      name: 'inventory-products',
+      component: () => import('@/views/ProductsView.vue'),
+      meta: { crmRoute: true },
+    },
+    {
+      path: '/inventory/warehouses',
+      name: 'inventory-warehouses',
+      component: () => import('@/views/WarehousesView.vue'),
+      meta: { crmRoute: true },
+    },
+    {
+      path: '/inventory/stock',
+      name: 'inventory-stock',
+      component: () => import('@/views/StockView.vue'),
+      meta: { crmRoute: true },
+    },
+    {
       path: '/settings',
       name: 'settings',
       component: () => import('@/views/SettingsView.vue'),

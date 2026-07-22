@@ -19,6 +19,7 @@ const CURRENCIES = [
 
 const MODULES = [
   { code: 'crm', name: 'CRM Comercial', description: 'Contactos, leads, oportunidades y cotizaciones', isCore: false },
+  { code: 'inventory', name: 'Inventario', description: 'Productos, bodegas, movimientos y traslados de stock', isCore: false },
 ];
 
 const SALT_ROUNDS = 12;
@@ -32,6 +33,7 @@ interface SeedTenantOptions {
   /** Extra permissions appended only to this tenant's Administrador role — never granted by '*'. */
   extraAdminPermissions?: string[];
   enableCrm?: boolean;
+  enableInventory?: boolean;
 }
 
 async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
@@ -79,6 +81,11 @@ async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
       tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'crm', isEnabled: true, enabledAt: new Date() }),
     );
   }
+  if (opts.enableInventory) {
+    await tenantModuleRepo.save(
+      tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'inventory', isEnabled: true, enabledAt: new Date() }),
+    );
+  }
 
   console.log(`Tenant "${opts.slug}" creado:`);
   console.log(`  email:    ${opts.adminEmail}`);
@@ -122,6 +129,7 @@ async function run() {
     adminPassword: process.env.SEED_CLIENT_ADMIN_PASSWORD ?? 'Cliente123!',
     adminFullName: process.env.SEED_CLIENT_ADMIN_NAME ?? 'Admin Cliente',
     enableCrm: true,
+    enableInventory: true,
   });
 
   console.log(`Seed completo: ${CURRENCIES.length} monedas, ${MODULES.length} módulos.`);

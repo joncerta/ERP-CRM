@@ -9,6 +9,7 @@ import { AppService } from './app.service';
 import { typeOrmDataSourceOptions } from './config/typeorm.config';
 import { CoreModule } from './core/core.module';
 import { CrmModule } from './crm/crm.module';
+import { InventoryModule } from './inventory/inventory.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
 import { ModuleEnabledGuard } from './common/guards/module-enabled.guard';
@@ -24,6 +25,7 @@ import { ModuleEnabledGuard } from './common/guards/module-enabled.guard';
     }),
     CoreModule,
     CrmModule,
+    InventoryModule,
   ],
   controllers: [AppController],
   providers: [
