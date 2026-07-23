@@ -8,6 +8,7 @@ export interface Company {
   address?: string | null;
   city?: string | null;
   country?: string | null;
+  employeeCount?: number | null;
 }
 
 export interface Contact {
@@ -514,4 +515,76 @@ export interface KnowledgeArticle {
   viewCount: number;
   createdByUserId: string;
   createdAt: string;
+}
+
+export type CampaignChannel = 'email' | 'sms' | 'whatsapp';
+export type CampaignStatus = 'draft' | 'sent' | 'cancelled';
+export type CampaignRecipientStatus = 'pending' | 'sent' | 'simulated' | 'failed';
+
+export interface Campaign {
+  id: string;
+  name: string;
+  channel: CampaignChannel;
+  status: CampaignStatus;
+  subject: string | null;
+  content: string;
+  sentAt: string | null;
+  createdByUserId: string;
+  createdAt: string;
+}
+
+export interface CampaignRecipient {
+  id: string;
+  campaignId: string;
+  contactId: string;
+  status: CampaignRecipientStatus;
+  failureReason: string | null;
+  sentAt: string | null;
+}
+
+export interface LandingForm {
+  id: string;
+  name: string;
+  slug: string;
+  campaignName: string | null;
+  active: boolean;
+  submissionCount: number;
+  createdAt: string;
+}
+
+export interface NurtureStep {
+  delayDays: number;
+  subject: string;
+  content: string;
+}
+
+export type NurtureEnrollmentStatus = 'active' | 'completed' | 'cancelled';
+
+export interface NurtureSequence {
+  id: string;
+  name: string;
+  active: boolean;
+  steps: NurtureStep[];
+  createdAt: string;
+}
+
+export interface NurtureEnrollment {
+  id: string;
+  sequenceId: string;
+  contactId: string;
+  status: NurtureEnrollmentStatus;
+  currentStep: number;
+  nextStepDueAt: string | null;
+  lastStepSentAt: string | null;
+  createdAt: string;
+}
+
+export interface SegmentContact {
+  id: string;
+  firstName: string;
+  lastName: string;
+  position: string | null;
+  email: string | null;
+  phone: string | null;
+  company: { id: string; name: string; industry: string | null; city: string | null; employeeCount: number | null } | null;
 }

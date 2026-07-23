@@ -795,6 +795,55 @@ base de conocimiento, y un "chatbot" deliberadamente simple.
   a un agente (o a un futuro widget público); entender intención real
   necesitaría una integración de IA, fuera de alcance aquí.
 
+## Marketing
+
+Módulo activable `marketing` (`marketing/campaigns/*`,
+`marketing/landing-forms/*`, `marketing/nurture-sequences/*`,
+`marketing/segments/*`, permisos `marketing.campaigns.read/write`,
+`marketing.landing_forms.read/write`, `marketing.nurture.read/write`,
+`marketing.segments.read`) — campañas, captura de leads, segmentación y
+nutrición, con el mismo criterio de alcance manejable que el resto del
+proyecto: cada simplificación queda documentada aquí en vez de fingirse.
+
+- **Campañas** (`Campaign` + `CampaignRecipient`): email, SMS o WhatsApp,
+  con destinatarios elegidos entre los contactos existentes al momento de
+  enviar (`POST .../:id/send`). **El email es un envío real** vía el mismo
+  `EmailService` (SMTP) que usan las Cotizaciones. **SMS y WhatsApp no
+  tienen pasarela configurada** (no hay credenciales de Twilio/Meta en este
+  proyecto) — en vez de fingir la entrega, el destinatario queda marcado
+  con un estado propio `simulated` (distinto de `sent`), y queda un
+  `logger.warn` en el servidor. Solo se puede editar/cancelar/enviar una
+  campaña en `draft`.
+- **Formularios de captura** (`LandingForm`): cada formulario tiene un
+  `slug` único por tenant y un endpoint público real,
+  `POST /public/marketing/:tenantSlug/forms/:formSlug`, al que puede
+  apuntar el `action` de cualquier formulario externo (landing page propia,
+  o embebida en redes) — cada envío crea un `Lead` reutilizando sus campos
+  existentes `source` (fijo en `landing_page`) y `campaign` (el nombre de
+  campaña del formulario), en vez de añadir un `campaignId` nuevo al
+  esquema. El frontend además sirve una página propia en `/lp/:tenantSlug/
+  :formSlug` (`PublicLandingFormView`) por si el tenant no tiene su propia
+  landing page. **Conectar directamente los lead-ads de Meta/LinkedIn
+  requeriría sus credenciales de API**, que este proyecto no tiene — el
+  endpoint es real y funcional para cualquier formulario externo, pero esa
+  integración específica queda pendiente.
+- **Segmentación** (`GET /marketing/segments/contacts`): no es un esquema
+  nuevo, es una consulta filtrada sobre `Contact`/`Company` existentes —
+  por industria, ciudad, tamaño de empresa (`Company.employeeCount`, campo
+  nuevo) y cargo (`Contact.position`). Un segmento se calcula al vuelo, no
+  se guarda como entidad.
+- **Nutrición** (`NurtureSequence` + `NurtureEnrollment`): una secuencia
+  guarda sus pasos como `jsonb` (`{delayDays, subject, content}[]`) en vez
+  de una tabla hija, porque se edita como un todo. Al inscribir contactos
+  (`POST .../:id/enroll`) se agenda `nextStepDueAt` para el primer paso.
+  **No hay scheduler en este proyecto** (mismo límite que depreciación o
+  facturación recurrente) — `POST /marketing/nurture-sequences/process` es
+  un disparador manual que una persona, o un cron externo, debe llamar
+  periódicamente; envía por email cada paso vencido, avanza al siguiente, y
+  marca `completed` al llegar al último. Un contacto sin correo se salta
+  ese ciclo y se reintenta en la próxima corrida (nunca se marca `failed`
+  ni se pierde).
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia

@@ -64,6 +64,18 @@ const PERMISSION_GROUPS: Array<{ labelKey: string; codes: string[] }> = [
     ],
   },
   {
+    labelKey: 'roles.groupMarketing',
+    codes: [
+      'marketing.campaigns.read',
+      'marketing.campaigns.write',
+      'marketing.landing_forms.read',
+      'marketing.landing_forms.write',
+      'marketing.nurture.read',
+      'marketing.nurture.write',
+      'marketing.segments.read',
+    ],
+  },
+  {
     labelKey: 'roles.groupCore',
     codes: [
       'core.users.read',

@@ -26,4 +26,10 @@ export class Company extends TenantScopedEntity {
 
   @Column({ nullable: true })
   country: string;
+
+  /** Headcount bucket for Marketing segmentation — a raw count kept
+   * simple rather than a size-range enum, since filtering by
+   * min/max is just as easy either way. */
+  @Column({ name: 'employee_count', type: 'int', nullable: true })
+  employeeCount: number | null;
 }

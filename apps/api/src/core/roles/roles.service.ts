@@ -36,6 +36,13 @@ export const DEFAULT_ROLE_TEMPLATES: Array<{ name: string; permissions: string[]
       'support.tickets.read',
       'support.tickets.write',
       'support.knowledge.read',
+      'marketing.campaigns.read',
+      'marketing.campaigns.write',
+      'marketing.landing_forms.read',
+      'marketing.landing_forms.write',
+      'marketing.nurture.read',
+      'marketing.nurture.write',
+      'marketing.segments.read',
     ],
   },
 ];

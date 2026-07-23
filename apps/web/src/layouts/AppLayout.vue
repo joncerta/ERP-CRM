@@ -104,6 +104,9 @@ onUnmounted(() => {
           <template v-if="enabledModuleCodes.includes('customer_service')">
             <RouterLink to="/support">{{ t('nav.support') }}</RouterLink>
           </template>
+          <template v-if="enabledModuleCodes.includes('marketing')">
+            <RouterLink to="/marketing">{{ t('nav.marketing') }}</RouterLink>
+          </template>
         </template>
       </nav>
       <div class="sidebar-footer">

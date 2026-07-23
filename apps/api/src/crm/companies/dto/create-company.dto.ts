@@ -1,4 +1,4 @@
-import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsInt, IsOptional, IsString, Min } from 'class-validator';
 import { EmptyToUndefined } from '../../../common/decorators/empty-to-undefined.decorator';
 
 export class CreateCompanyDto {
@@ -33,4 +33,9 @@ export class CreateCompanyDto {
   @IsOptional()
   @IsString()
   country?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  employeeCount?: number;
 }

@@ -29,6 +29,12 @@ const router = createRouter({
       meta: { public: true },
     },
     {
+      path: '/lp/:tenantSlug/:formSlug',
+      name: 'public-landing-form',
+      component: () => import('@/views/PublicLandingFormView.vue'),
+      meta: { public: true },
+    },
+    {
       path: '/forgot-password',
       name: 'forgot-password',
       component: () => import('@/views/ForgotPasswordView.vue'),
@@ -128,6 +134,12 @@ const router = createRouter({
       path: '/support',
       name: 'support',
       component: () => import('@/views/SupportView.vue'),
+      meta: { crmRoute: true },
+    },
+    {
+      path: '/marketing',
+      name: 'marketing',
+      component: () => import('@/views/MarketingView.vue'),
       meta: { crmRoute: true },
     },
     {

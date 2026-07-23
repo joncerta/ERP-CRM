@@ -17,6 +17,7 @@
     "accounting": "Contabilidad",
     "fixedAssets": "Activos fijos",
     "support": "Servicio al cliente",
+    "marketing": "Marketing",
     "platform": "Plataforma",
     "settings": "Configuración",
     "users": "Usuarios",
@@ -105,7 +106,9 @@
     "title": "Empresas",
     "newCompany": "Nueva empresa",
     "city": "Ciudad",
-    "country": "País"
+    "country": "País",
+    "industry": "Industria",
+    "employeeCount": "N.º de empleados"
   },
   "warehouses": {
     "title": "Bodegas",
@@ -452,6 +455,78 @@
     "trackIt": "Ver seguimiento",
     "notFound": "Ticket no encontrado."
   },
+  "marketing": {
+    "title": "Marketing",
+    "campaigns": "Campañas",
+    "landingForms": "Formularios",
+    "nurture": "Nutrición",
+    "segments": "Segmentos",
+    "newCampaign": "Nueva campaña",
+    "newForm": "Nuevo formulario",
+    "newSequence": "Nueva secuencia",
+    "name": "Nombre",
+    "channel": "Canal",
+    "sentAt": "Enviada",
+    "subject": "Asunto",
+    "content": "Contenido",
+    "simulatedHint": "No hay pasarela de SMS/WhatsApp configurada (sin credenciales de Twilio/Meta) — el envío queda registrado como \"simulado\", no se entrega de verdad.",
+    "channelLabel": {
+      "email": "Email",
+      "sms": "SMS",
+      "whatsapp": "WhatsApp"
+    },
+    "statusLabel": {
+      "draft": "Borrador",
+      "sent": "Enviada",
+      "cancelled": "Cancelada"
+    },
+    "recipientStatus": {
+      "pending": "Pendiente",
+      "sent": "Enviado",
+      "simulated": "Simulado",
+      "failed": "Fallido"
+    },
+    "selectRecipients": "Seleccionar destinatarios",
+    "send": "Enviar",
+    "recipients": "Destinatarios",
+    "formsHint": "Apunta el action de cualquier formulario externo (landing page propia, o embebido en redes) a la ruta pública de abajo. Conectar directamente los lead-ads de Meta/LinkedIn requeriría sus credenciales de API, que este proyecto no tiene — queda pendiente.",
+    "formPath": "Ruta pública",
+    "campaignName": "Campaña",
+    "submissions": "Envíos",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "activate": "Activar",
+    "deactivate": "Desactivar",
+    "steps": "Pasos",
+    "delayDays": "Días de espera",
+    "addStep": "Agregar paso",
+    "stepSummary": "Día {day}: {subject}",
+    "enroll": "Inscribir contactos",
+    "enrollments": "Inscripciones",
+    "enrollmentStatus": {
+      "active": "Activa",
+      "completed": "Completada",
+      "cancelled": "Cancelada"
+    },
+    "stepOf": "paso {current} de {total}",
+    "processNow": "Procesar pasos pendientes",
+    "processHint": "No hay tareas programadas en este proyecto — un humano, o un cron externo, dispara este botón periódicamente para enviar los pasos que ya vencieron.",
+    "processResult": "{sent} enviados, {completed} secuencias completadas",
+    "minEmployees": "Empleados mín.",
+    "maxEmployees": "Empleados máx.",
+    "employeeCount": "Empleados",
+    "segmentTotal": "{total} contactos encontrados"
+  },
+  "publicLandingForm": {
+    "title": "Déjanos tus datos",
+    "name": "Nombre",
+    "email": "Correo",
+    "phone": "Teléfono",
+    "company": "Empresa",
+    "message": "Mensaje",
+    "submit": "Enviar",
+    "thanks": "¡Gracias! Hemos recibido tu información."
+  },
   "contacts": {
     "title": "Contactos",
     "newContact": "Nuevo contacto",
@@ -505,6 +580,7 @@
     "groupInventory": "Inventario",
     "groupFinance": "Finanzas",
     "groupSupport": "Servicio al cliente",
+    "groupMarketing": "Marketing",
     "groupCore": "Núcleo",
     "permDesc": {
       "crm_contacts_read": "Ver contactos y empresas",
@@ -545,7 +621,14 @@
       "support_tickets_read": "Ver tickets y PQRS",
       "support_tickets_write": "Crear, asignar, escalar y comentar tickets",
       "support_knowledge_read": "Ver artículos de la base de conocimiento",
-      "support_knowledge_write": "Crear y editar artículos de la base de conocimiento"
+      "support_knowledge_write": "Crear y editar artículos de la base de conocimiento",
+      "marketing_campaigns_read": "Ver campañas de email/SMS/WhatsApp y sus destinatarios",
+      "marketing_campaigns_write": "Crear, editar, cancelar y enviar campañas",
+      "marketing_landing_forms_read": "Ver formularios de captura de leads",
+      "marketing_landing_forms_write": "Crear y editar formularios de captura de leads",
+      "marketing_nurture_read": "Ver secuencias de nutrición e inscripciones",
+      "marketing_nurture_write": "Crear secuencias, inscribir contactos y procesar el envío de pasos pendientes",
+      "marketing_segments_read": "Consultar segmentos de contactos por industria, ciudad, tamaño de empresa y cargo"
     }
   },
   "audit": {

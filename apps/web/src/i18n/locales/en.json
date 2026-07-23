@@ -17,6 +17,7 @@
     "accounting": "Accounting",
     "fixedAssets": "Fixed assets",
     "support": "Customer service",
+    "marketing": "Marketing",
     "platform": "Platform",
     "settings": "Settings",
     "users": "Users",
@@ -105,7 +106,9 @@
     "title": "Companies",
     "newCompany": "New company",
     "city": "City",
-    "country": "Country"
+    "country": "Country",
+    "industry": "Industry",
+    "employeeCount": "Employee count"
   },
   "warehouses": {
     "title": "Warehouses",
@@ -452,6 +455,78 @@
     "trackIt": "View tracking",
     "notFound": "Ticket not found."
   },
+  "marketing": {
+    "title": "Marketing",
+    "campaigns": "Campaigns",
+    "landingForms": "Forms",
+    "nurture": "Nurture",
+    "segments": "Segments",
+    "newCampaign": "New campaign",
+    "newForm": "New form",
+    "newSequence": "New sequence",
+    "name": "Name",
+    "channel": "Channel",
+    "sentAt": "Sent",
+    "subject": "Subject",
+    "content": "Content",
+    "simulatedHint": "No SMS/WhatsApp gateway is configured (no Twilio/Meta credentials) — the send is recorded as \"simulated\", it isn't actually delivered.",
+    "channelLabel": {
+      "email": "Email",
+      "sms": "SMS",
+      "whatsapp": "WhatsApp"
+    },
+    "statusLabel": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "cancelled": "Cancelled"
+    },
+    "recipientStatus": {
+      "pending": "Pending",
+      "sent": "Sent",
+      "simulated": "Simulated",
+      "failed": "Failed"
+    },
+    "selectRecipients": "Select recipients",
+    "send": "Send",
+    "recipients": "Recipients",
+    "formsHint": "Point any external form's action (your own landing page, or one embedded on social) at the public path below. Wiring Meta/LinkedIn lead-ads directly would need their API credentials, which this project doesn't have — that stays pending.",
+    "formPath": "Public path",
+    "campaignName": "Campaign",
+    "submissions": "Submissions",
+    "active": "Active",
+    "inactive": "Inactive",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "steps": "Steps",
+    "delayDays": "Delay (days)",
+    "addStep": "Add step",
+    "stepSummary": "Day {day}: {subject}",
+    "enroll": "Enroll contacts",
+    "enrollments": "Enrollments",
+    "enrollmentStatus": {
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "stepOf": "step {current} of {total}",
+    "processNow": "Process pending steps",
+    "processHint": "This project has no scheduled tasks — a person, or an external cron, triggers this button periodically to send steps that are already due.",
+    "processResult": "{sent} sent, {completed} sequences completed",
+    "minEmployees": "Min. employees",
+    "maxEmployees": "Max. employees",
+    "employeeCount": "Employees",
+    "segmentTotal": "{total} contacts found"
+  },
+  "publicLandingForm": {
+    "title": "Leave us your details",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "company": "Company",
+    "message": "Message",
+    "submit": "Submit",
+    "thanks": "Thanks! We've received your information."
+  },
   "contacts": {
     "title": "Contacts",
     "newContact": "New contact",
@@ -505,6 +580,7 @@
     "groupInventory": "Inventory",
     "groupFinance": "Finance",
     "groupSupport": "Customer service",
+    "groupMarketing": "Marketing",
     "groupCore": "Core",
     "permDesc": {
       "crm_contacts_read": "View contacts and companies",
@@ -545,7 +621,14 @@
       "support_tickets_read": "View tickets and PQRS requests",
       "support_tickets_write": "Create, assign, escalate, and comment on tickets",
       "support_knowledge_read": "View knowledge-base articles",
-      "support_knowledge_write": "Create and edit knowledge-base articles"
+      "support_knowledge_write": "Create and edit knowledge-base articles",
+      "marketing_campaigns_read": "View email/SMS/WhatsApp campaigns and their recipients",
+      "marketing_campaigns_write": "Create, edit, cancel, and send campaigns",
+      "marketing_landing_forms_read": "View lead-capture forms",
+      "marketing_landing_forms_write": "Create and edit lead-capture forms",
+      "marketing_nurture_read": "View nurture sequences and enrollments",
+      "marketing_nurture_write": "Create sequences, enroll contacts, and process pending steps",
+      "marketing_segments_read": "Query contact segments by industry, city, company size, and position"
     }
   },
   "audit": {

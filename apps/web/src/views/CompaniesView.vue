@@ -27,11 +27,11 @@ const formError = ref('')
 const editingId = ref<string | null>(null)
 const deletingId = ref<string | null>(null)
 
-const form = ref({ name: '', email: '', phone: '', city: '', country: '' })
+const form = ref({ name: '', email: '', phone: '', city: '', country: '', industry: '', employeeCount: undefined as number | undefined })
 
 function openCreateModal() {
   editingId.value = null
-  form.value = { name: '', email: '', phone: '', city: '', country: '' }
+  form.value = { name: '', email: '', phone: '', city: '', country: '', industry: '', employeeCount: undefined }
   formError.value = ''
   showModal.value = true
 }
@@ -44,6 +44,8 @@ function openEditModal(company: Company) {
     phone: company.phone ?? '',
     city: company.city ?? '',
     country: company.country ?? '',
+    industry: company.industry ?? '',
+    employeeCount: company.employeeCount ?? undefined,
   }
   formError.value = ''
   showModal.value = true
@@ -154,6 +156,14 @@ onMounted(load)
         <div class="field">
           <label>{{ t('companies.country') }}</label>
           <input v-model="form.country" />
+        </div>
+        <div class="field">
+          <label>{{ t('companies.industry') }}</label>
+          <input v-model="form.industry" />
+        </div>
+        <div class="field">
+          <label>{{ t('companies.employeeCount') }}</label>
+          <input v-model.number="form.employeeCount" type="number" min="0" />
         </div>
         <p v-if="formError" class="error-text">{{ formError }}</p>
         <div class="modal-actions">
