@@ -74,10 +74,16 @@ async function run() {
   }
   const tenantId = tenant!.id;
 
+  // Marker of "this script already ran here" — checking for *any* company
+  // would also trip on a tenant that already has real/manual data unrelated
+  // to this seed, permanently blocking it from ever running. Checking for
+  // the first mock company by name is precise instead: skip only if this
+  // exact seed already ran, run (and add to whatever else is there)
+  // otherwise.
   const companyRepo = dataSource.getRepository(Company);
-  const existing = await companyRepo.count({ where: { tenantId } });
-  if (existing > 0) {
-    console.log(`El tenant "${tenantSlug}" ya tiene datos (${existing} empresas) — no se duplica. Nada que hacer.`);
+  const marker = await companyRepo.findOne({ where: { tenantId, name: 'Andina Textiles S.A.S.' } });
+  if (marker) {
+    console.log(`El tenant "${tenantSlug}" ya tiene los datos mock de este seed — no se duplican. Nada que hacer.`);
     await app.close();
     return;
   }
