@@ -3,6 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   listQuotesPaginated,
+  getQuote,
   createQuote,
   updateQuote,
   sendQuote,
@@ -50,6 +51,7 @@ const followUpNote = ref('')
 const followUpError = ref('')
 const onlyMine = ref(false)
 const revisingId = ref<string | null>(null)
+const editLoadingId = ref<string | null>(null)
 
 watch(onlyMine, (value) => {
   filters.ownerUserId = value ? auth.user?.sub : undefined
@@ -101,21 +103,32 @@ function openModal() {
   showModal.value = true
 }
 
-function openEditModal(quote: Quote) {
-  editingId.value = quote.id
-  form.value = {
-    companyId: quote.companyId,
-    contactId: quote.contactId ?? '',
-    currencyCode: quote.currencyCode,
-    taxRate: quote.subtotal ? Math.round((Number(quote.tax) / Number(quote.subtotal)) * 1000) / 10 : 0,
-    items: quote.items.map((item) => ({
-      description: item.description,
-      quantity: Number(item.quantity),
-      unitPrice: Number(item.unitPrice),
-    })),
+async function openEditModal(quote: Quote) {
+  // The paginated list doesn't include line items (they're not joined by
+  // the query builder behind server-side pagination) — fetch the full
+  // quote before populating the form.
+  editLoadingId.value = quote.id
+  try {
+    const full = await getQuote(quote.id)
+    editingId.value = full.id
+    form.value = {
+      companyId: full.companyId,
+      contactId: full.contactId ?? '',
+      currencyCode: full.currencyCode,
+      taxRate: full.subtotal ? Math.round((Number(full.tax) / Number(full.subtotal)) * 1000) / 10 : 0,
+      items: full.items.map((item) => ({
+        description: item.description,
+        quantity: Number(item.quantity),
+        unitPrice: Number(item.unitPrice),
+      })),
+    }
+    formError.value = ''
+    showModal.value = true
+  } catch (err) {
+    toast.error(getErrorMessage(err))
+  } finally {
+    editLoadingId.value = null
   }
-  formError.value = ''
-  showModal.value = true
 }
 
 function addItem() {
@@ -263,7 +276,12 @@ onMounted(() => {
             <td><span class="badge" :class="statusBadge[q.status]">{{ t(`quotes.status.${q.status}`) }}</span></td>
             <td>{{ q.viewCount }}</td>
             <td class="actions-cell">
-              <button v-if="q.status === 'draft'" class="btn secondary" @click="openEditModal(q)">
+              <button
+                v-if="q.status === 'draft'"
+                class="btn secondary"
+                :disabled="editLoadingId === q.id"
+                @click="openEditModal(q)"
+              >
                 {{ t('common.edit') }}
               </button>
               <button v-if="q.status === 'draft'" class="btn secondary" :disabled="sendingId === q.id" @click="handleSend(q)">

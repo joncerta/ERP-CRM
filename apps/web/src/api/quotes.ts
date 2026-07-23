@@ -32,6 +32,11 @@ export async function listQuotes(): Promise<Quote[]> {
   return data;
 }
 
+export async function getQuote(id: string): Promise<Quote> {
+  const { data } = await apiClient.get(`/crm/quotes/${id}`);
+  return data;
+}
+
 export async function listQuotesPaginated(
   params: PageParams & { status?: string; ownerUserId?: string; companyId?: string },
 ): Promise<Paginated<Quote>> {
