@@ -29,6 +29,8 @@ export const DEFAULT_ROLE_TEMPLATES: Array<{ name: string; permissions: string[]
       'crm.activities.write',
       'finance.invoices.read',
       'finance.invoices.write',
+      'finance.purchases.read',
+      'finance.purchases.write',
     ],
   },
 ];

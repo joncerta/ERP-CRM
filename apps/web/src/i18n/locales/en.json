@@ -13,6 +13,7 @@
     "stock": "Stock",
     "categoriesUnits": "Categories & units",
     "invoices": "Invoicing",
+    "purchases": "Purchasing",
     "platform": "Platform",
     "settings": "Settings",
     "users": "Users",
@@ -264,6 +265,44 @@
       "cancelled": "Cancelled"
     }
   },
+  "purchases": {
+    "title": "Purchasing & suppliers",
+    "orders": "Purchase orders",
+    "suppliers": "Suppliers",
+    "supplierInvoices": "Supplier invoices",
+    "newOrder": "New purchase order",
+    "newSupplier": "New supplier",
+    "newSupplierInvoice": "New supplier invoice",
+    "supplier": "Supplier",
+    "taxId": "Tax ID",
+    "product": "Product",
+    "unitCost": "Unit cost",
+    "expectedDate": "Expected date",
+    "received": "Received",
+    "send": "Send",
+    "receiveGoods": "Receive goods",
+    "pendingQty": "Pending",
+    "receiveQty": "Quantity to receive",
+    "warehouse": "Warehouse",
+    "registerReceipt": "Register receipt",
+    "receivedOk": "Receipt registered successfully.",
+    "supplierInvoiceNumber": "Supplier invoice number",
+    "confirmCancelOrder": "Are you sure you want to cancel this purchase order?",
+    "confirmCancelInvoice": "Are you sure you want to cancel this supplier invoice?",
+    "orderStatus": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "partially_received": "Partially received",
+      "received": "Received",
+      "cancelled": "Cancelled"
+    },
+    "supplierInvoiceStatus": {
+      "pending": "Pending",
+      "partially_paid": "Partially paid",
+      "paid": "Paid",
+      "cancelled": "Cancelled"
+    }
+  },
   "contacts": {
     "title": "Contacts",
     "newContact": "New contact",
@@ -336,6 +375,8 @@
       "inventory_stock_write": "Record stock movements and transfers",
       "finance_invoices_read": "View invoices, payments, and recurring invoicing",
       "finance_invoices_write": "Create and issue invoices, register payments and credit/debit notes",
+      "finance_purchases_read": "View suppliers, purchase orders, and supplier invoices",
+      "finance_purchases_write": "Create suppliers and purchase orders, receive goods, and register supplier payments",
       "core_users_read": "View the team's user list",
       "core_users_write": "Invite users and activate/deactivate their access",
       "core_roles_read": "View available roles",

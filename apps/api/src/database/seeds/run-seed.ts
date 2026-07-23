@@ -21,6 +21,7 @@ const MODULES = [
   { code: 'crm', name: 'CRM Comercial', description: 'Contactos, leads, oportunidades y cotizaciones', isCore: false },
   { code: 'inventory', name: 'Inventario', description: 'Productos, bodegas, movimientos y traslados de stock', isCore: false },
   { code: 'sales_invoicing', name: 'Facturación', description: 'Facturas, notas crédito/débito, pagos y facturación recurrente', isCore: false },
+  { code: 'purchasing', name: 'Compras y proveedores', description: 'Proveedores, órdenes de compra, recepción de mercancía y facturas de proveedor', isCore: false },
 ];
 
 const SALT_ROUNDS = 12;
@@ -36,6 +37,7 @@ interface SeedTenantOptions {
   enableCrm?: boolean;
   enableInventory?: boolean;
   enableInvoicing?: boolean;
+  enablePurchasing?: boolean;
 }
 
 async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
@@ -93,6 +95,11 @@ async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
       tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'sales_invoicing', isEnabled: true, enabledAt: new Date() }),
     );
   }
+  if (opts.enablePurchasing) {
+    await tenantModuleRepo.save(
+      tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'purchasing', isEnabled: true, enabledAt: new Date() }),
+    );
+  }
 
   console.log(`Tenant "${opts.slug}" creado:`);
   console.log(`  email:    ${opts.adminEmail}`);
@@ -138,6 +145,7 @@ async function run() {
     enableCrm: true,
     enableInventory: true,
     enableInvoicing: true,
+    enablePurchasing: true,
   });
 
   console.log(`Seed completo: ${CURRENCIES.length} monedas, ${MODULES.length} módulos.`);

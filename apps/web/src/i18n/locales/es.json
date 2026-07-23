@@ -13,6 +13,7 @@
     "stock": "Stock",
     "categoriesUnits": "Categorías y unidades",
     "invoices": "Facturación",
+    "purchases": "Compras",
     "platform": "Plataforma",
     "settings": "Configuración",
     "users": "Usuarios",
@@ -264,6 +265,44 @@
       "cancelled": "Cancelada"
     }
   },
+  "purchases": {
+    "title": "Compras y proveedores",
+    "orders": "Órdenes de compra",
+    "suppliers": "Proveedores",
+    "supplierInvoices": "Facturas de proveedor",
+    "newOrder": "Nueva orden de compra",
+    "newSupplier": "Nuevo proveedor",
+    "newSupplierInvoice": "Nueva factura de proveedor",
+    "supplier": "Proveedor",
+    "taxId": "NIT / RUT",
+    "product": "Producto",
+    "unitCost": "Costo unitario",
+    "expectedDate": "Fecha esperada",
+    "received": "Recibido",
+    "send": "Enviar",
+    "receiveGoods": "Recepción de mercancía",
+    "pendingQty": "Pendiente",
+    "receiveQty": "Cantidad a recibir",
+    "warehouse": "Bodega",
+    "registerReceipt": "Registrar recepción",
+    "receivedOk": "Recepción registrada correctamente.",
+    "supplierInvoiceNumber": "Número de factura del proveedor",
+    "confirmCancelOrder": "¿Seguro que quieres cancelar esta orden de compra?",
+    "confirmCancelInvoice": "¿Seguro que quieres cancelar esta factura de proveedor?",
+    "orderStatus": {
+      "draft": "Borrador",
+      "sent": "Enviada",
+      "partially_received": "Recepción parcial",
+      "received": "Recibida",
+      "cancelled": "Cancelada"
+    },
+    "supplierInvoiceStatus": {
+      "pending": "Pendiente",
+      "partially_paid": "Pago parcial",
+      "paid": "Pagada",
+      "cancelled": "Cancelada"
+    }
+  },
   "contacts": {
     "title": "Contactos",
     "newContact": "Nuevo contacto",
@@ -336,6 +375,8 @@
       "inventory_stock_write": "Registrar movimientos y traslados de stock",
       "finance_invoices_read": "Ver facturas, pagos y facturación recurrente",
       "finance_invoices_write": "Crear y emitir facturas, registrar pagos y notas crédito/débito",
+      "finance_purchases_read": "Ver proveedores, órdenes de compra y facturas de proveedor",
+      "finance_purchases_write": "Crear proveedores y órdenes de compra, recibir mercancía y registrar pagos a proveedores",
       "core_users_read": "Ver la lista de usuarios del equipo",
       "core_users_write": "Invitar usuarios y activar/desactivar su acceso",
       "core_roles_read": "Ver los roles disponibles",

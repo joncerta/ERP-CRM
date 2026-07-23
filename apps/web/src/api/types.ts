@@ -276,3 +276,67 @@ export interface RecurringInvoiceTemplate {
   isActive: boolean;
   lastGeneratedAt: string | null;
 }
+
+export interface Supplier {
+  id: string;
+  name: string;
+  taxId: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  isActive: boolean;
+}
+
+export type PurchaseOrderStatus = 'draft' | 'sent' | 'partially_received' | 'received' | 'cancelled';
+
+export interface PurchaseOrderItem {
+  id: string;
+  productId: string | null;
+  description: string;
+  quantity: number | string;
+  quantityReceived: number | string;
+  unitCost: number | string;
+  total: number | string;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  orderNumber: string;
+  supplierId: string;
+  status: PurchaseOrderStatus;
+  currencyCode: string;
+  subtotal: number | string;
+  tax: number | string;
+  total: number | string;
+  expectedDate: string | null;
+  ownerUserId: string;
+  items: PurchaseOrderItem[];
+  createdAt: string;
+}
+
+export type SupplierInvoiceStatus = 'pending' | 'partially_paid' | 'paid' | 'cancelled';
+
+export interface SupplierInvoice {
+  id: string;
+  supplierId: string;
+  purchaseOrderId: string | null;
+  supplierInvoiceNumber: string;
+  currencyCode: string;
+  amount: number | string;
+  amountPaid: number | string;
+  status: SupplierInvoiceStatus;
+  issueDate: string;
+  dueDate: string | null;
+  ownerUserId: string;
+  createdAt: string;
+}
+
+export interface SupplierPayment {
+  id: string;
+  supplierInvoiceId: string;
+  amount: number | string;
+  method: string | null;
+  paidAt: string;
+  note: string | null;
+  createdByUserId: string;
+}

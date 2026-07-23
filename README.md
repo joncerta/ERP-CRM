@@ -594,6 +594,46 @@ mantener el alcance manejable.
   la base de datos ni que notifique automáticamente al vencer, por la
   misma razón de no tener scheduler.
 
+## Compras y proveedores
+
+Módulo activable `purchasing` (`GET/POST/PATCH /api/finance/suppliers/*`,
+`/api/finance/purchase-orders/*`, `/api/finance/supplier-invoices/*`,
+permisos `finance.purchases.read` / `finance.purchases.write`) — el
+espejo de Facturación mirando hacia el proveedor, con recepción de
+mercancía integrada a Inventario.
+
+- **`Supplier`**: ficha simple (nombre, NIT/RUT, contacto, activo/inactivo)
+  sin lógica propia más allá de CRUD estándar.
+- **`PurchaseOrder`** sigue el mismo patrón que `Invoice`/`Quote` (ítems
+  eager, numeración vía `DocumentSeriesService` con el tipo de documento
+  `'purchase_order'` y prefijo `OC`). Ciclo de estados: `draft → sent →
+  partially_received/received`, o `cancelled` en cualquier punto antes de
+  estar recibida por completo. Solo se edita en `draft`.
+- **Recepción de mercancía** (`POST
+  /finance/purchase-orders/:id/receive`): cada `PurchaseOrderItem` lleva
+  su propio `quantityReceived` para soportar recepciones parciales en
+  varias entregas. Por cada línea recibida que tenga un `productId`
+  enlazado (las líneas de solo servicio no lo tienen), se llama a
+  `StockService.recordMovement()` para registrar el ingreso real al
+  inventario en la bodega indicada — es el punto de integración entre
+  Compras e Inventario. La orden pasa a `received` solo cuando **todas**
+  sus líneas están completas; si queda algo pendiente, a
+  `partially_received`. Cada recepción escala una notificación al dueño
+  de la orden y a su líder (módulo 8) vía `NotificationEscalationService`.
+- **`SupplierInvoice`**: a diferencia de `Invoice.invoiceNumber`, el
+  campo `supplierInvoiceNumber` es texto libre — es el número que el
+  proveedor le puso a su propia factura, no algo que nosotros generamos,
+  así que deliberadamente no pasa por `DocumentSeriesService`. Puede
+  enlazarse opcionalmente a la orden de compra que la originó
+  (`purchaseOrderId`).
+- **Pagos a proveedor** (`SupplierPayment`): mismo patrón que
+  `InvoicePayment` — cada pago recalcula `amountPaid` y el estado
+  (`partially_paid`/`paid`), y escala una notificación al dueño de la
+  factura.
+- **Pendiente**: no hay conciliación automática entre la factura del
+  proveedor y la orden de compra (comparar cantidades/montos) — queda a
+  criterio de quien la registra.
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia
