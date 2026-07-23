@@ -75,36 +75,36 @@ onUnmounted(() => {
         <template v-else>
           <RouterLink to="/dashboard">{{ t('nav.dashboard') }}</RouterLink>
           <template v-if="enabledModuleCodes.includes('crm')">
-            <RouterLink to="/pipeline">{{ t('nav.pipeline') }}</RouterLink>
-            <RouterLink to="/activities">{{ t('nav.activities') }}</RouterLink>
-            <RouterLink to="/reminders">{{ t('nav.reminders') }}</RouterLink>
-            <RouterLink to="/leads">{{ t('nav.leads') }}</RouterLink>
-            <RouterLink to="/contacts">{{ t('nav.contacts') }}</RouterLink>
-            <RouterLink to="/companies">{{ t('nav.companies') }}</RouterLink>
-            <RouterLink to="/quotes">{{ t('nav.quotes') }}</RouterLink>
+            <RouterLink v-if="auth.hasPermission('crm.opportunities.read')" to="/pipeline">{{ t('nav.pipeline') }}</RouterLink>
+            <RouterLink v-if="auth.hasPermission('crm.activities.read')" to="/activities">{{ t('nav.activities') }}</RouterLink>
+            <RouterLink v-if="auth.hasPermission('crm.quotes.read')" to="/reminders">{{ t('nav.reminders') }}</RouterLink>
+            <RouterLink v-if="auth.hasPermission('crm.leads.read')" to="/leads">{{ t('nav.leads') }}</RouterLink>
+            <RouterLink v-if="auth.hasPermission('crm.contacts.read')" to="/contacts">{{ t('nav.contacts') }}</RouterLink>
+            <RouterLink v-if="auth.hasPermission('crm.contacts.read')" to="/companies">{{ t('nav.companies') }}</RouterLink>
+            <RouterLink v-if="auth.hasPermission('crm.quotes.read')" to="/quotes">{{ t('nav.quotes') }}</RouterLink>
           </template>
           <template v-if="enabledModuleCodes.includes('inventory')">
-            <RouterLink to="/inventory/products">{{ t('nav.products') }}</RouterLink>
-            <RouterLink to="/inventory/warehouses">{{ t('nav.warehouses') }}</RouterLink>
-            <RouterLink to="/inventory/stock">{{ t('nav.stock') }}</RouterLink>
-            <RouterLink to="/inventory/categories-units">{{ t('nav.categoriesUnits') }}</RouterLink>
+            <RouterLink v-if="auth.hasPermission('inventory.products.read')" to="/inventory/products">{{ t('nav.products') }}</RouterLink>
+            <RouterLink v-if="auth.hasPermission('inventory.warehouses.read')" to="/inventory/warehouses">{{ t('nav.warehouses') }}</RouterLink>
+            <RouterLink v-if="auth.hasPermission('inventory.stock.read')" to="/inventory/stock">{{ t('nav.stock') }}</RouterLink>
+            <RouterLink v-if="auth.hasPermission('inventory.products.read')" to="/inventory/categories-units">{{ t('nav.categoriesUnits') }}</RouterLink>
           </template>
-          <template v-if="enabledModuleCodes.includes('sales_invoicing')">
+          <template v-if="enabledModuleCodes.includes('sales_invoicing') && auth.hasPermission('finance.invoices.read')">
             <RouterLink to="/invoices">{{ t('nav.invoices') }}</RouterLink>
           </template>
-          <template v-if="enabledModuleCodes.includes('purchasing')">
+          <template v-if="enabledModuleCodes.includes('purchasing') && auth.hasPermission('finance.purchases.read')">
             <RouterLink to="/purchases">{{ t('nav.purchases') }}</RouterLink>
           </template>
-          <template v-if="enabledModuleCodes.includes('accounting')">
+          <template v-if="enabledModuleCodes.includes('accounting') && auth.hasPermission('accounting.entries.read')">
             <RouterLink to="/accounting">{{ t('nav.accounting') }}</RouterLink>
           </template>
-          <template v-if="enabledModuleCodes.includes('fixed_assets')">
+          <template v-if="enabledModuleCodes.includes('fixed_assets') && auth.hasPermission('fixed_assets.read')">
             <RouterLink to="/fixed-assets">{{ t('nav.fixedAssets') }}</RouterLink>
           </template>
-          <template v-if="enabledModuleCodes.includes('customer_service')">
+          <template v-if="enabledModuleCodes.includes('customer_service') && (auth.hasPermission('support.tickets.read') || auth.hasPermission('support.knowledge.read'))">
             <RouterLink to="/support">{{ t('nav.support') }}</RouterLink>
           </template>
-          <template v-if="enabledModuleCodes.includes('marketing')">
+          <template v-if="enabledModuleCodes.includes('marketing') && auth.hasPermission('marketing.campaigns.read')">
             <RouterLink to="/marketing">{{ t('nav.marketing') }}</RouterLink>
           </template>
         </template>

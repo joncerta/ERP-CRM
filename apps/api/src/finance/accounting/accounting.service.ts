@@ -123,7 +123,13 @@ export class AccountingService extends TenantScopedService<Account> {
   private journalEntriesPaginatedHelper(tenantId: string, query: ListJournalEntriesQueryDto): Promise<Paginated<JournalEntry>> {
     const page = Math.max(query.page ?? 1, 1);
     const pageSize = Math.min(Math.max(query.pageSize ?? 25, 1), 200);
-    const qb = this.journalEntriesRepo.createQueryBuilder('entry').where('entry.tenantId = :tenantId', { tenantId });
+    // createQueryBuilder doesn't auto-join `eager: true` relations the way
+    // repository.find() does — without this, entry.lines comes back
+    // undefined for every row (same gotcha already fixed for Quotes).
+    const qb = this.journalEntriesRepo
+      .createQueryBuilder('entry')
+      .leftJoinAndSelect('entry.lines', 'lines')
+      .where('entry.tenantId = :tenantId', { tenantId });
     if (query.sourceType) qb.andWhere('entry.sourceType = :sourceType', { sourceType: query.sourceType });
     if (query.search) qb.andWhere('(entry.entryNumber ILIKE :s OR entry.description ILIKE :s)', { s: `%${query.search}%` });
     qb.orderBy('entry.date', 'DESC').addOrderBy('entry.createdAt', 'DESC').skip((page - 1) * pageSize).take(pageSize);

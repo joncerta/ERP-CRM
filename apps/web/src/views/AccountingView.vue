@@ -445,7 +445,7 @@ onMounted(() => {
               <td>{{ e.date }}</td>
               <td>{{ e.description }}</td>
               <td>{{ t(`accounting.sourceType.${e.sourceType}`) }}</td>
-              <td>{{ e.lines.reduce((s, l) => s + Number(l.debit), 0).toLocaleString() }}</td>
+              <td>{{ (e.lines ?? []).reduce((s, l) => s + Number(l.debit), 0).toLocaleString() }}</td>
             </tr>
             <tr v-if="!entries.length">
               <td colspan="5" class="muted">—</td>
