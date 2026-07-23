@@ -11,6 +11,7 @@ import { CoreModule } from './core/core.module';
 import { CrmModule } from './crm/crm.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { FinanceModule } from './finance/finance.module';
+import { SupportModule } from './support/support.module';
 import { AuditModule } from './audit/audit.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
@@ -30,6 +31,7 @@ import { RequestContextInterceptor } from './common/interceptors/request-context
     CrmModule,
     InventoryModule,
     FinanceModule,
+    SupportModule,
     AuditModule,
   ],
   controllers: [AppController],

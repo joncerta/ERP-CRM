@@ -33,6 +33,7 @@ const MODULES = [
   { code: 'purchasing', name: 'Compras y proveedores', description: 'Proveedores, órdenes de compra, recepción de mercancía y facturas de proveedor', isCore: false },
   { code: 'accounting', name: 'Contabilidad y tesorería', description: 'Plan de cuentas, asientos contables, caja y bancos, y reportes financieros básicos', isCore: false },
   { code: 'fixed_assets', name: 'Activos fijos', description: 'Registro de activos, depreciación, mantenimiento, traslado y baja', isCore: false },
+  { code: 'customer_service', name: 'Servicio al cliente', description: 'Tickets y PQRS con SLA, base de conocimiento y sugerencias automáticas de artículos', isCore: false },
 ];
 
 const SALT_ROUNDS = 12;
@@ -52,6 +53,7 @@ interface SeedTenantOptions {
   enableAccounting?: boolean;
   enableFixedAssets?: boolean;
   seedTaxes?: boolean;
+  enableCustomerService?: boolean;
 }
 
 async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
@@ -130,6 +132,11 @@ async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
     const taxRepo = ds.getRepository(Tax);
     await taxRepo.save(DEFAULT_TAXES.map((tx) => taxRepo.create({ tenantId: tenant.id, ...tx })));
   }
+  if (opts.enableCustomerService) {
+    await tenantModuleRepo.save(
+      tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'customer_service', isEnabled: true, enabledAt: new Date() }),
+    );
+  }
 
   console.log(`Tenant "${opts.slug}" creado:`);
   console.log(`  email:    ${opts.adminEmail}`);
@@ -179,6 +186,7 @@ async function run() {
     enableAccounting: true,
     enableFixedAssets: true,
     seedTaxes: true,
+    enableCustomerService: true,
   });
 
   console.log(`Seed completo: ${CURRENCIES.length} monedas, ${MODULES.length} módulos.`);

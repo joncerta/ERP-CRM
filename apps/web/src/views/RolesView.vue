@@ -55,6 +55,15 @@ const PERMISSION_GROUPS: Array<{ labelKey: string; codes: string[] }> = [
     ],
   },
   {
+    labelKey: 'roles.groupSupport',
+    codes: [
+      'support.tickets.read',
+      'support.tickets.write',
+      'support.knowledge.read',
+      'support.knowledge.write',
+    ],
+  },
+  {
     labelKey: 'roles.groupCore',
     codes: [
       'core.users.read',

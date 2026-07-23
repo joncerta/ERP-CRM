@@ -33,6 +33,9 @@ export const DEFAULT_ROLE_TEMPLATES: Array<{ name: string; permissions: string[]
       'finance.purchases.write',
       'accounting.entries.read',
       'core.taxes.read',
+      'support.tickets.read',
+      'support.tickets.write',
+      'support.knowledge.read',
     ],
   },
 ];

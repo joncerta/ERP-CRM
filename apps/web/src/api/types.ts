@@ -472,3 +472,46 @@ export interface Tax {
   isDefault: boolean;
   isActive: boolean;
 }
+
+export type TicketStatus = 'open' | 'in_progress' | 'waiting_customer' | 'resolved' | 'closed';
+export type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+export interface Ticket {
+  id: string;
+  ticketNumber: string;
+  subject: string;
+  description: string;
+  status: TicketStatus;
+  priority: TicketPriority;
+  contactId: string | null;
+  companyId: string | null;
+  reporterName: string | null;
+  reporterEmail: string | null;
+  accessToken: string;
+  assignedToUserId: string | null;
+  slaDueAt: string | null;
+  resolvedAt: string | null;
+  closedAt: string | null;
+  createdAt: string;
+}
+
+export interface TicketComment {
+  id: string;
+  ticketId: string;
+  authorUserId: string | null;
+  body: string;
+  isInternal: boolean;
+  createdAt: string;
+}
+
+export interface KnowledgeArticle {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  category: string | null;
+  isPublished: boolean;
+  viewCount: number;
+  createdByUserId: string;
+  createdAt: string;
+}

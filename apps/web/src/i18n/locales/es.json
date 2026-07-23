@@ -16,6 +16,7 @@
     "purchases": "Compras",
     "accounting": "Contabilidad",
     "fixedAssets": "Activos fijos",
+    "support": "Servicio al cliente",
     "platform": "Plataforma",
     "settings": "Configuración",
     "users": "Usuarios",
@@ -403,6 +404,54 @@
       "disposal": "Baja"
     }
   },
+  "support": {
+    "title": "Servicio al cliente",
+    "tickets": "Tickets",
+    "knowledgeBase": "Base de conocimiento",
+    "newTicket": "Nuevo ticket",
+    "newArticle": "Nuevo artículo",
+    "allStatuses": "Todos los estados",
+    "subject": "Asunto",
+    "priority": "Prioridad",
+    "assignedTo": "Asignado a",
+    "assignTo": "Asignar a",
+    "escalate": "Escalar",
+    "comments": "Comentarios",
+    "addComment": "Agregar comentario",
+    "internal": "Interno",
+    "reporter": "Reportado por",
+    "slaBreached": "SLA vencido",
+    "articleTitle": "Título",
+    "category": "Categoría",
+    "views": "Vistas",
+    "published": "Publicado",
+    "draft": "Borrador",
+    "chatbot": "Buscador de artículos",
+    "chatbotHint": "Sugiere artículos de la base de conocimiento a partir de palabras clave — no es un asistente con IA, solo coincidencia de texto.",
+    "chatbotPlaceholder": "Ej: cómo restablezco mi contraseña",
+    "status": {
+      "open": "Abierto",
+      "in_progress": "En progreso",
+      "waiting_customer": "Esperando al cliente",
+      "resolved": "Resuelto",
+      "closed": "Cerrado"
+    },
+    "priorityLevel": {
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta",
+      "urgent": "Urgente"
+    }
+  },
+  "publicTicket": {
+    "submitTitle": "Radicar una solicitud (PQRS)",
+    "yourName": "Tu nombre",
+    "yourEmail": "Tu correo",
+    "submit": "Enviar",
+    "createdOk": "Tu solicitud {number} fue registrada. Guarda el enlace de seguimiento.",
+    "trackIt": "Ver seguimiento",
+    "notFound": "Ticket no encontrado."
+  },
   "contacts": {
     "title": "Contactos",
     "newContact": "Nuevo contacto",
@@ -455,6 +504,7 @@
     "groupCrm": "CRM",
     "groupInventory": "Inventario",
     "groupFinance": "Finanzas",
+    "groupSupport": "Servicio al cliente",
     "groupCore": "Núcleo",
     "permDesc": {
       "crm_contacts_read": "Ver contactos y empresas",
@@ -491,7 +541,11 @@
       "core_org_read": "Ver sucursales, centros de costo, departamentos, cargos y el organigrama",
       "core_org_write": "Crear y editar la estructura organizacional, y asignar líder/sucursal/departamento a cada usuario",
       "core_taxes_read": "Ver el catálogo de impuestos y seleccionarlos en cotizaciones y facturas",
-      "core_taxes_write": "Crear y editar impuestos, y marcar cuál es el de por defecto"
+      "core_taxes_write": "Crear y editar impuestos, y marcar cuál es el de por defecto",
+      "support_tickets_read": "Ver tickets y PQRS",
+      "support_tickets_write": "Crear, asignar, escalar y comentar tickets",
+      "support_knowledge_read": "Ver artículos de la base de conocimiento",
+      "support_knowledge_write": "Crear y editar artículos de la base de conocimiento"
     }
   },
   "audit": {

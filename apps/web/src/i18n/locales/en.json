@@ -16,6 +16,7 @@
     "purchases": "Purchasing",
     "accounting": "Accounting",
     "fixedAssets": "Fixed assets",
+    "support": "Customer service",
     "platform": "Platform",
     "settings": "Settings",
     "users": "Users",
@@ -403,6 +404,54 @@
       "disposal": "Disposal"
     }
   },
+  "support": {
+    "title": "Customer service",
+    "tickets": "Tickets",
+    "knowledgeBase": "Knowledge base",
+    "newTicket": "New ticket",
+    "newArticle": "New article",
+    "allStatuses": "All statuses",
+    "subject": "Subject",
+    "priority": "Priority",
+    "assignedTo": "Assigned to",
+    "assignTo": "Assign to",
+    "escalate": "Escalate",
+    "comments": "Comments",
+    "addComment": "Add comment",
+    "internal": "Internal",
+    "reporter": "Reported by",
+    "slaBreached": "SLA breached",
+    "articleTitle": "Title",
+    "category": "Category",
+    "views": "Views",
+    "published": "Published",
+    "draft": "Draft",
+    "chatbot": "Article finder",
+    "chatbotHint": "Suggests knowledge-base articles from keywords — plain text matching, not an AI assistant.",
+    "chatbotPlaceholder": "e.g. how do I reset my password",
+    "status": {
+      "open": "Open",
+      "in_progress": "In progress",
+      "waiting_customer": "Waiting on customer",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "priorityLevel": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "urgent": "Urgent"
+    }
+  },
+  "publicTicket": {
+    "submitTitle": "File a request (PQRS)",
+    "yourName": "Your name",
+    "yourEmail": "Your email",
+    "submit": "Submit",
+    "createdOk": "Your request {number} was filed. Save the tracking link.",
+    "trackIt": "View tracking",
+    "notFound": "Ticket not found."
+  },
   "contacts": {
     "title": "Contacts",
     "newContact": "New contact",
@@ -455,6 +504,7 @@
     "groupCrm": "CRM",
     "groupInventory": "Inventory",
     "groupFinance": "Finance",
+    "groupSupport": "Customer service",
     "groupCore": "Core",
     "permDesc": {
       "crm_contacts_read": "View contacts and companies",
@@ -491,7 +541,11 @@
       "core_org_read": "View branches, cost centers, departments, positions, and the org chart",
       "core_org_write": "Create and edit the org structure, and assign each user's manager/branch/department",
       "core_taxes_read": "View the tax catalog and select taxes on quotes and invoices",
-      "core_taxes_write": "Create and edit taxes, and mark which one is the default"
+      "core_taxes_write": "Create and edit taxes, and mark which one is the default",
+      "support_tickets_read": "View tickets and PQRS requests",
+      "support_tickets_write": "Create, assign, escalate, and comment on tickets",
+      "support_knowledge_read": "View knowledge-base articles",
+      "support_knowledge_write": "Create and edit knowledge-base articles"
     }
   },
   "audit": {

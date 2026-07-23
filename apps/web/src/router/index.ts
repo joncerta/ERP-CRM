@@ -17,6 +17,18 @@ const router = createRouter({
       meta: { public: true },
     },
     {
+      path: '/pqrs/ticket/:token',
+      name: 'public-ticket-track',
+      component: () => import('@/views/PublicTicketTrackView.vue'),
+      meta: { public: true },
+    },
+    {
+      path: '/pqrs/:tenantSlug',
+      name: 'public-ticket-submit',
+      component: () => import('@/views/PublicTicketSubmitView.vue'),
+      meta: { public: true },
+    },
+    {
       path: '/forgot-password',
       name: 'forgot-password',
       component: () => import('@/views/ForgotPasswordView.vue'),
@@ -110,6 +122,12 @@ const router = createRouter({
       path: '/fixed-assets',
       name: 'fixed-assets',
       component: () => import('@/views/FixedAssetsView.vue'),
+      meta: { crmRoute: true },
+    },
+    {
+      path: '/support',
+      name: 'support',
+      component: () => import('@/views/SupportView.vue'),
       meta: { crmRoute: true },
     },
     {

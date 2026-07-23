@@ -757,6 +757,44 @@ alcance manejable de siempre.
   "se omite con advertencia si falta el plan de cuentas" que el resto de
   las integraciones con Contabilidad.
 
+## Servicio al cliente
+
+Módulo activable `customer_service` (`support/tickets/*`,
+`support/knowledge/*`, permisos `support.tickets.read/write` y
+`support.knowledge.read/write`) — soporte post-venta: tickets con SLA,
+base de conocimiento, y un "chatbot" deliberadamente simple.
+
+- **`Ticket`**: numerado vía `DocumentSeriesService` (tipo `ticket`,
+  prefijo `TK`). El SLA es **reloj de pared, sin calendario de horario
+  laboral** (`SLA_HOURS_BY_PRIORITY`: urgente 4h, alta 8h, media 24h, baja
+  72h) — la misma decisión de alcance manejable que ya se tomó en otros
+  módulos. El incumplimiento de SLA no se marca con un job; se calcula al
+  vuelo en el frontend comparando `slaDueAt` contra hoy, igual que
+  "vencida" en Facturas y Cotizaciones.
+- **Asignar y escalar**: `PATCH .../:id/assign` notifica al agente
+  asignado y a su líder (módulo 8) vía `NotificationEscalationService`.
+  `PATCH .../:id/escalate` sube la prioridad un nivel y recalcula el SLA
+  desde ahora — solo se puede usar mientras no esté ya en `urgent`.
+- **Canal público (PQRS)**: `POST /public/support/:tenantSlug/tickets`
+  permite radicar un ticket sin cuenta (nombre + correo del reportante en
+  vez de un `contactId`), con un `accessToken` propio para hacer
+  seguimiento después (`GET /public/support/tickets/:accessToken`) —
+  mismo patrón que el enlace público de Cotizaciones. Prioridad siempre
+  `medium` al entrar por este canal: un reportante externo no puede
+  autodeclararse "urgente".
+- **Comentarios** (`TicketComment`): pueden marcarse `isInternal` (nota
+  interna del equipo, nunca visible en el seguimiento público) o
+  visibles para el cliente.
+- **Base de conocimiento** (`KnowledgeArticle`): título, contenido,
+  categoría, publicado/borrador, con `slug` único por tenant
+  auto-generado (y desambiguado con un sufijo numérico si ya existe).
+- **"Chatbot"**: `GET /support/knowledge-articles/suggest?q=` — **no hay
+  integración con un LLM**; es coincidencia simple de palabras clave
+  contra título/contenido de artículos publicados, ordenado por cuántas
+  palabras de la búsqueda aparecen. Suficiente para sugerirle un artículo
+  a un agente (o a un futuro widget público); entender intención real
+  necesitaría una integración de IA, fuera de alcance aquí.
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia
