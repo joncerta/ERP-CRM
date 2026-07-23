@@ -11,6 +11,7 @@ import { OrgModule } from '../../core/org/org.module';
 import { UsersModule } from '../../core/users/users.module';
 import { QuotesModule } from '../../crm/quotes/quotes.module';
 import { AccountingModule } from '../accounting/accounting.module';
+import { TaxesModule } from '../../core/taxes/taxes.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { AccountingModule } from '../accounting/accounting.module';
     UsersModule,
     QuotesModule,
     AccountingModule,
+    TaxesModule,
   ],
   providers: [InvoicesService],
   controllers: [InvoicesController],

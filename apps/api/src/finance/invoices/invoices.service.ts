@@ -19,6 +19,7 @@ import { NotificationEscalationService } from '../../core/users/notification-esc
 import { QuotesService } from '../../crm/quotes/quotes.service';
 import { QuoteStatus } from '../../crm/quotes/entities/quote.entity';
 import { AccountingService } from '../accounting/accounting.service';
+import { TaxesService } from '../../core/taxes/taxes.service';
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
@@ -44,8 +45,20 @@ export class InvoicesService extends TenantScopedService<Invoice> {
     private readonly notificationEscalationService: NotificationEscalationService,
     private readonly quotesService: QuotesService,
     private readonly accountingService: AccountingService,
+    private readonly taxesService: TaxesService,
   ) {
     super(repo);
+  }
+
+  /** A selected catalog tax always wins over a hand-typed percentage — if
+   * the id doesn't resolve to an active tax, fall back to the manual rate
+   * instead of blocking the save. */
+  private async resolveTaxRate(tenantId: string, taxId: string | undefined, fallbackRate: number | undefined): Promise<number> {
+    if (taxId) {
+      const tax = await this.taxesService.findOneForTenant(tenantId, taxId).catch(() => null);
+      if (tax) return Number(tax.rate);
+    }
+    return fallbackRate ?? 0;
   }
 
   private buildItemsAndTotals(items: { description: string; quantity: number; unitPrice: number }[], taxRate = 0) {
@@ -87,7 +100,8 @@ export class InvoicesService extends TenantScopedService<Invoice> {
   }
 
   async create(tenantId: string, ownerUserId: string, dto: CreateInvoiceDto): Promise<Invoice> {
-    const { invoiceItems, subtotal, tax, total } = this.buildItemsAndTotals(dto.items, dto.taxRate);
+    const taxRate = await this.resolveTaxRate(tenantId, dto.taxId, dto.taxRate);
+    const { invoiceItems, subtotal, tax, total } = this.buildItemsAndTotals(dto.items, taxRate);
     const invoice = this.repository.create({
       tenantId,
       ownerUserId,
@@ -95,6 +109,7 @@ export class InvoicesService extends TenantScopedService<Invoice> {
       contactId: dto.contactId ?? null,
       quoteId: dto.quoteId ?? null,
       currencyCode: dto.currencyCode ?? 'USD',
+      taxId: dto.taxId ?? null,
       issueDate: dto.issueDate,
       dueDate: dto.dueDate ?? null,
       status: InvoiceStatus.DRAFT,
@@ -108,21 +123,23 @@ export class InvoicesService extends TenantScopedService<Invoice> {
   }
 
   /** Converts an accepted quote into a draft invoice, copying its
-   * company/contact/currency/items — the numbers get recomputed here
-   * rather than trusted verbatim, in case the quote's tax rate implied by
-   * subtotal/tax has since drifted. */
+   * company/contact/currency/items. If the quote used a catalog tax, that
+   * same tax carries over (and its *current* rate applies, in case it
+   * changed since); otherwise the tax rate implied by the quote's
+   * subtotal/tax is recomputed rather than trusted verbatim. */
   async createFromQuote(tenantId: string, ownerUserId: string, quoteId: string, issueDate: string): Promise<Invoice> {
     const quote = await this.quotesService.findOneForTenant(tenantId, quoteId);
     if (quote.status !== QuoteStatus.ACCEPTED) {
       throw new BadRequestException('Solo se puede facturar una cotización aceptada');
     }
-    const taxRate = Number(quote.subtotal) > 0 ? (Number(quote.tax) / Number(quote.subtotal)) * 100 : 0;
+    const impliedTaxRate = Number(quote.subtotal) > 0 ? (Number(quote.tax) / Number(quote.subtotal)) * 100 : 0;
     return this.create(tenantId, ownerUserId, {
       companyId: quote.companyId,
       contactId: quote.contactId ?? undefined,
       quoteId: quote.id,
       currencyCode: quote.currencyCode,
-      taxRate,
+      taxId: quote.taxId ?? undefined,
+      taxRate: impliedTaxRate,
       issueDate,
       items: quote.items.map((item) => ({
         description: item.description,
@@ -137,12 +154,15 @@ export class InvoicesService extends TenantScopedService<Invoice> {
     if (invoice.status !== InvoiceStatus.DRAFT) {
       throw new BadRequestException('Solo se pueden editar facturas en borrador');
     }
-    if (dto.items) {
-      const { invoiceItems, subtotal, tax, total } = this.buildItemsAndTotals(dto.items, dto.taxRate);
+    if (dto.items || dto.taxId !== undefined || dto.taxRate !== undefined) {
+      const taxId = dto.taxId !== undefined ? dto.taxId : (invoice.taxId ?? undefined);
+      const taxRate = await this.resolveTaxRate(tenantId, taxId, dto.taxRate);
+      const { invoiceItems, subtotal, tax, total } = this.buildItemsAndTotals(dto.items ?? invoice.items, taxRate);
       invoice.items = invoiceItems;
       invoice.subtotal = subtotal;
       invoice.tax = tax;
       invoice.total = total;
+      invoice.taxId = taxId ?? null;
     }
     if (dto.companyId) invoice.companyId = dto.companyId;
     if (dto.contactId) invoice.contactId = dto.contactId;

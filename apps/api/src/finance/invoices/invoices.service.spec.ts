@@ -10,6 +10,7 @@ import { NotificationEscalationService } from '../../core/users/notification-esc
 import { QuotesService } from '../../crm/quotes/quotes.service';
 import { QuoteStatus } from '../../crm/quotes/entities/quote.entity';
 import { AccountingService } from '../accounting/accounting.service';
+import { TaxesService } from '../../core/taxes/taxes.service';
 
 function buildDeps() {
   const repo = {
@@ -46,7 +47,10 @@ function buildDeps() {
     postInvoiceIssued: jest.fn().mockResolvedValue(undefined),
     postInvoicePayment: jest.fn().mockResolvedValue(undefined),
   } as unknown as jest.Mocked<AccountingService>;
-  return { repo, adjustmentsRepo, paymentsRepo, templatesRepo, documentSeriesService, notificationEscalationService, quotesService, accountingService };
+  const taxesService = {
+    findOneForTenant: jest.fn().mockRejectedValue(new Error('not found')),
+  } as unknown as jest.Mocked<TaxesService>;
+  return { repo, adjustmentsRepo, paymentsRepo, templatesRepo, documentSeriesService, notificationEscalationService, quotesService, accountingService, taxesService };
 }
 
 function buildService() {
@@ -60,6 +64,7 @@ function buildService() {
     deps.notificationEscalationService,
     deps.quotesService,
     deps.accountingService,
+    deps.taxesService,
   );
   return { service, ...deps };
 }
@@ -78,6 +83,21 @@ describe('InvoicesService', () => {
 
       expect(documentSeriesService.consumeNext).toHaveBeenCalledWith('tenant-a', 'invoice');
       expect(invoice).toMatchObject({ subtotal: 200, tax: 38, total: 238, status: InvoiceStatus.DRAFT });
+    });
+
+    it('uses the selected catalog tax rate over a hand-typed one', async () => {
+      const { service, taxesService } = buildService();
+      taxesService.findOneForTenant.mockResolvedValue({ id: 'tax-1', rate: 19 } as never);
+
+      const invoice = await service.create('tenant-a', 'user-1', {
+        companyId: 'company-1',
+        issueDate: '2026-01-01',
+        taxId: 'tax-1',
+        taxRate: 5, // should be ignored — taxId wins
+        items: [{ description: 'Servicio', quantity: 1, unitPrice: 100 }],
+      });
+
+      expect(invoice).toMatchObject({ taxId: 'tax-1', subtotal: 100, tax: 19, total: 119 });
     });
   });
 

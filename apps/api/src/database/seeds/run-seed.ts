@@ -11,6 +11,13 @@ import { TenantModule } from '../../core/modules-catalog/entities/tenant-module.
 import { DEFAULT_ROLE_TEMPLATES } from '../../core/roles/roles.service';
 import { Account } from '../../finance/accounting/entities/account.entity';
 import { DEFAULT_CHART_OF_ACCOUNTS } from '../../finance/accounting/accounting.service';
+import { Tax } from '../../core/taxes/entities/tax.entity';
+
+const DEFAULT_TAXES = [
+  { name: 'IVA 19%', rate: 19, isDefault: true },
+  { name: 'IVA 5%', rate: 5, isDefault: false },
+  { name: 'Exento', rate: 0, isDefault: false },
+];
 
 const CURRENCIES = [
   { code: 'USD', name: 'Dólar estadounidense', symbol: '$', decimalPlaces: 2 },
@@ -44,6 +51,7 @@ interface SeedTenantOptions {
   enablePurchasing?: boolean;
   enableAccounting?: boolean;
   enableFixedAssets?: boolean;
+  seedTaxes?: boolean;
 }
 
 async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
@@ -118,6 +126,10 @@ async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
       tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'fixed_assets', isEnabled: true, enabledAt: new Date() }),
     );
   }
+  if (opts.seedTaxes) {
+    const taxRepo = ds.getRepository(Tax);
+    await taxRepo.save(DEFAULT_TAXES.map((tx) => taxRepo.create({ tenantId: tenant.id, ...tx })));
+  }
 
   console.log(`Tenant "${opts.slug}" creado:`);
   console.log(`  email:    ${opts.adminEmail}`);
@@ -166,6 +178,7 @@ async function run() {
     enablePurchasing: true,
     enableAccounting: true,
     enableFixedAssets: true,
+    seedTaxes: true,
   });
 
   console.log(`Seed completo: ${CURRENCIES.length} monedas, ${MODULES.length} módulos.`);

@@ -461,11 +461,32 @@ entre usuarios. Pantalla `Estructura organizacional` en el nav.
   siga donde iba en vez de reiniciar en `COT-000001`.
   `QuotesService.nextQuoteNumber()` ahora delega aquí en vez de contar
   filas de `crm_quotes`.
-- **Zona horaria e impuestos por tenant**: `Tenant` gana `timezone`,
-  `taxLabel` y `taxRatePercent` — valores de referencia que una sucursal
-  puede sobreescribir con su propio `timezone`. Se editan en
+- **Zona horaria por tenant**: `Tenant.timezone` — valor de referencia que
+  una sucursal puede sobreescribir con la suya propia. Se edita en
   `Configuración` vía `PATCH /api/tenant-settings/org` (mismo permiso que
-  la configuración de sesión, `core.tenant.settings.write`).
+  la configuración de sesión, `core.tenant.settings.write`), con un
+  desplegable poblado desde `Intl.supportedValuesOf('timeZone')` (la base
+  de datos IANA completa del navegador) en vez de un campo de texto libre
+  — así no hay que mantener a mano una lista de zonas horarias válidas.
+- **Catálogo de impuestos** (`core/taxes`, `GET/POST/PATCH /api/taxes`,
+  permisos `core.taxes.read` / `core.taxes.write`): reemplaza el antiguo
+  par `Tenant.taxLabel`/`taxRatePercent` (un solo impuesto por tenant) por
+  una tabla `Tax` (nombre, tasa, activo, y un flag `isDefault` — solo uno
+  puede ser el de por defecto, `TaxesService` desmarca cualquier otro al
+  fijar uno nuevo). Administración simple en `Configuración` → "Impuestos"
+  (crear, editar, activar/desactivar, marcar por defecto). No está detrás
+  de `@RequireModule` — es compartido por Cotizaciones (CRM) y Facturas
+  (Facturación), que son módulos activables por separado, igual que
+  Monedas.
+  - `Quote`/`Invoice` ganan `taxId` (nullable): al crear o editar, si se
+    selecciona un impuesto del catálogo su tasa gana sobre cualquier
+    número escrito a mano (`taxRate` sigue existiendo en el DTO como
+    respaldo manual — "Otro" en el desplegable — para tasas puntuales que
+    no ameritan estar en el catálogo). Si el `taxId` no resuelve a un
+    impuesto activo del tenant (borrado/desactivado después de creado el
+    documento), se usa `taxRate` en su lugar en vez de fallar la petición.
+    `QuotesService.createRevision()` y
+    `InvoicesService.createFromQuote()` propagan el `taxId` original.
 
 ## Notificaciones con escalamiento por jerarquía
 

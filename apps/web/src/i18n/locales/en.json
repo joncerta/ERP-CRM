@@ -205,6 +205,8 @@
     "unitPrice": "Unit price",
     "subtotal": "Subtotal",
     "tax": "Tax",
+    "taxManual": "Other (enter rate manually)",
+    "taxNone": "No tax",
     "total": "Total",
     "views": "Views",
     "scheduleFollowUp": "Schedule reminder",
@@ -487,7 +489,9 @@
       "core_tenant_settings_write": "Change the company's session settings",
       "core_audit_read": "View the audit log: who changed what, and when",
       "core_org_read": "View branches, cost centers, departments, positions, and the org chart",
-      "core_org_write": "Create and edit the org structure, and assign each user's manager/branch/department"
+      "core_org_write": "Create and edit the org structure, and assign each user's manager/branch/department",
+      "core_taxes_read": "View the tax catalog and select taxes on quotes and invoices",
+      "core_taxes_write": "Create and edit taxes, and mark which one is the default"
     }
   },
   "audit": {
@@ -520,11 +524,16 @@
     "changePassword": "Change password",
     "saved": "Saved.",
     "passwordChangedOk": "Password updated. Please sign in again.",
-    "orgTitle": "Timezone & taxes",
-    "orgSubtitle": "Company-wide defaults: used as a reference and to pre-fill new documents.",
+    "orgTitle": "Timezone",
+    "orgSubtitle": "The company's default timezone, used by branches that don't set their own.",
     "timezone": "Timezone",
-    "taxLabel": "Tax name",
-    "taxRatePercent": "Tax rate (%)"
+    "taxesTitle": "Taxes",
+    "taxesSubtitle": "The taxes your team can apply when creating quotes and invoices.",
+    "newTax": "New tax",
+    "taxName": "Name",
+    "taxRate": "Rate (%)",
+    "taxDefault": "Default",
+    "setAsDefault": "Set as default"
   },
   "orgStructure": {
     "title": "Org structure",

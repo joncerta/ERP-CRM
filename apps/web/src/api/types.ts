@@ -85,6 +85,7 @@ export interface Quote {
   contactId: string | null;
   status: QuoteStatus;
   currencyCode: string;
+  taxId: string | null;
   subtotal: number | string;
   tax: number | string;
   total: number | string;
@@ -220,6 +221,7 @@ export interface Invoice {
   quoteId: string | null;
   status: InvoiceStatus;
   currencyCode: string;
+  taxId: string | null;
   subtotal: number | string;
   tax: number | string;
   total: number | string;
@@ -461,4 +463,12 @@ export interface FixedAssetDepreciationEntry {
   period: string;
   amount: number | string;
   accumulatedAfter: number | string;
+}
+
+export interface Tax {
+  id: string;
+  name: string;
+  rate: number | string;
+  isDefault: boolean;
+  isActive: boolean;
 }

@@ -35,6 +35,12 @@ export class Invoice extends TenantScopedEntity {
   @Column({ name: 'currency_code', length: 3, default: 'USD' })
   currencyCode: string;
 
+  /** Which catalog tax (core.taxes) was applied, if any — its rate at
+   * creation time is what actually got baked into `tax`/`total` below. */
+  @Index()
+  @Column({ name: 'tax_id', type: 'uuid', nullable: true })
+  taxId: string | null;
+
   @Column({ type: 'numeric', precision: 14, scale: 2, default: 0 })
   subtotal: number;
 

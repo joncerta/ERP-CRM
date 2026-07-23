@@ -13,6 +13,7 @@ export interface CreateInvoicePayload {
   contactId?: string;
   quoteId?: string;
   currencyCode?: string;
+  taxId?: string;
   taxRate?: number;
   issueDate: string;
   dueDate?: string;

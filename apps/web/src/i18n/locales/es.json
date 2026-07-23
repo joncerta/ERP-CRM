@@ -205,6 +205,8 @@
     "unitPrice": "Precio unitario",
     "subtotal": "Subtotal",
     "tax": "Impuesto",
+    "taxManual": "Otro (ingresar tasa manualmente)",
+    "taxNone": "Sin impuesto",
     "total": "Total",
     "views": "Vistas",
     "scheduleFollowUp": "Programar recordatorio",
@@ -487,7 +489,9 @@
       "core_tenant_settings_write": "Cambiar la configuración de sesión de la empresa",
       "core_audit_read": "Ver el registro de auditoría: quién cambió qué y cuándo",
       "core_org_read": "Ver sucursales, centros de costo, departamentos, cargos y el organigrama",
-      "core_org_write": "Crear y editar la estructura organizacional, y asignar líder/sucursal/departamento a cada usuario"
+      "core_org_write": "Crear y editar la estructura organizacional, y asignar líder/sucursal/departamento a cada usuario",
+      "core_taxes_read": "Ver el catálogo de impuestos y seleccionarlos en cotizaciones y facturas",
+      "core_taxes_write": "Crear y editar impuestos, y marcar cuál es el de por defecto"
     }
   },
   "audit": {
@@ -520,11 +524,16 @@
     "changePassword": "Cambiar contraseña",
     "saved": "Guardado.",
     "passwordChangedOk": "Contraseña actualizada. Vuelve a iniciar sesión.",
-    "orgTitle": "Zona horaria e impuestos",
-    "orgSubtitle": "Valores por defecto de la empresa: se usan como referencia y para prellenar documentos nuevos.",
+    "orgTitle": "Zona horaria",
+    "orgSubtitle": "Zona horaria por defecto de la empresa, usada por las sucursales que no definen la suya propia.",
     "timezone": "Zona horaria",
-    "taxLabel": "Nombre del impuesto",
-    "taxRatePercent": "Tasa del impuesto (%)"
+    "taxesTitle": "Impuestos",
+    "taxesSubtitle": "Los impuestos que puede aplicar tu equipo al crear cotizaciones y facturas.",
+    "newTax": "Nuevo impuesto",
+    "taxName": "Nombre",
+    "taxRate": "Tasa (%)",
+    "taxDefault": "Por defecto",
+    "setAsDefault": "Marcar por defecto"
   },
   "orgStructure": {
     "title": "Estructura organizacional",

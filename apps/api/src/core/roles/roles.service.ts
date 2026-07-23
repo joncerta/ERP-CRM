@@ -32,6 +32,7 @@ export const DEFAULT_ROLE_TEMPLATES: Array<{ name: string; permissions: string[]
       'finance.purchases.read',
       'finance.purchases.write',
       'accounting.entries.read',
+      'core.taxes.read',
     ],
   },
 ];

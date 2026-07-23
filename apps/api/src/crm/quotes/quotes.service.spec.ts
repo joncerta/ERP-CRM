@@ -7,6 +7,7 @@ import { ContactsService } from '../contacts/contacts.service';
 import { EmailService } from '../../common/email/email.service';
 import { ConfigService } from '@nestjs/config';
 import { DocumentSeriesService } from '../../core/org/document-series.service';
+import { TaxesService } from '../../core/taxes/taxes.service';
 
 function buildDeps() {
   const repo = {
@@ -23,7 +24,10 @@ function buildDeps() {
   const documentSeriesService = {
     consumeNext: jest.fn().mockResolvedValue('COT-000002'),
   } as unknown as jest.Mocked<DocumentSeriesService>;
-  return { repo, notificationEscalationService, contactsService, emailService, config, documentSeriesService };
+  const taxesService = {
+    findOneForTenant: jest.fn().mockRejectedValue(new Error('not found')),
+  } as unknown as jest.Mocked<TaxesService>;
+  return { repo, notificationEscalationService, contactsService, emailService, config, documentSeriesService, taxesService };
 }
 
 function buildService() {
@@ -35,11 +39,40 @@ function buildService() {
     deps.emailService,
     deps.config,
     deps.documentSeriesService,
+    deps.taxesService,
   );
   return { service, ...deps };
 }
 
 describe('QuotesService', () => {
+  describe('create', () => {
+    it('uses the selected catalog tax rate over a hand-typed one', async () => {
+      const { service, taxesService } = buildService();
+      taxesService.findOneForTenant.mockResolvedValue({ id: 'tax-1', rate: 19 } as never);
+
+      const quote = await service.create('tenant-a', 'user-1', {
+        companyId: 'company-1',
+        taxId: 'tax-1',
+        taxRate: 5, // should be ignored — taxId wins
+        items: [{ description: 'Item A', quantity: 1, unitPrice: 100 }],
+      } as never);
+
+      expect(quote).toMatchObject({ taxId: 'tax-1', subtotal: 100, tax: 19, total: 119 });
+    });
+
+    it('falls back to the manual rate when no tax is selected', async () => {
+      const { service } = buildService();
+
+      const quote = await service.create('tenant-a', 'user-1', {
+        companyId: 'company-1',
+        taxRate: 10,
+        items: [{ description: 'Item A', quantity: 1, unitPrice: 100 }],
+      } as never);
+
+      expect(quote).toMatchObject({ taxId: null, subtotal: 100, tax: 10, total: 110 });
+    });
+  });
+
   describe('createRevision', () => {
     it('refuses to revise a quote that is still a draft', async () => {
       const { service, repo } = buildService();

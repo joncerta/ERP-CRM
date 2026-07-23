@@ -22,12 +22,13 @@ import {
 import { listCompanies } from '@/api/companies'
 import { listContacts } from '@/api/contacts'
 import { listCurrencies } from '@/api/currencies'
+import { listTaxes } from '@/api/taxes'
 import { useAuthStore } from '@/stores/auth'
 import { getErrorMessage } from '@/api/error'
 import { useToastStore } from '@/stores/toast'
 import { usePaginatedList } from '@/composables/usePaginatedList'
 import Pagination from '@/components/Pagination.vue'
-import type { Invoice, InvoiceAdjustment, InvoicePayment, Company, Contact, RecurringInvoiceTemplate } from '@/api/types'
+import type { Invoice, InvoiceAdjustment, InvoicePayment, Company, Contact, RecurringInvoiceTemplate, Tax } from '@/api/types'
 import type { Currency } from '@/api/currencies'
 
 const { t } = useI18n()
@@ -55,17 +56,20 @@ watch(onlyMine, (value) => {
 const companies = ref<Company[]>([])
 const contacts = ref<Contact[]>([])
 const currencies = ref<Currency[]>([])
+const taxes = ref<Tax[]>([])
 
 async function loadPickers() {
   try {
-    const [companiesData, contactsData, currenciesData] = await Promise.all([
+    const [companiesData, contactsData, currenciesData, taxesData] = await Promise.all([
       listCompanies(),
       listContacts(),
       listCurrencies(),
+      listTaxes(),
     ])
     companies.value = companiesData
     contacts.value = contactsData
     currencies.value = currenciesData
+    taxes.value = taxesData.filter((tx) => tx.isActive)
   } catch {
     // Pickers are a convenience for the create form — a failure here
     // shouldn't block the invoice list itself.
@@ -103,22 +107,32 @@ const form = ref({
   companyId: '',
   contactId: '',
   currencyCode: 'USD',
+  taxId: '',
   taxRate: 0,
   issueDate: new Date().toISOString().slice(0, 10),
   dueDate: '',
   items: [{ description: '', quantity: 1, unitPrice: 0 }] as InvoiceItemInput[],
 })
 
+/** Selecting a catalog tax pins the rate to it; picking "manual" frees the
+ * rate field back up for hand entry. */
+function onTaxSelect() {
+  const tax = taxes.value.find((tx) => tx.id === form.value.taxId)
+  if (tax) form.value.taxRate = Number(tax.rate)
+}
+
 const contactsForSelectedCompany = computed(() =>
   form.value.companyId ? contacts.value.filter((c) => c.companyId === form.value.companyId) : contacts.value,
 )
 
 function openCreateModal() {
+  const defaultTax = taxes.value.find((tx) => tx.isDefault)
   form.value = {
     companyId: '',
     contactId: '',
     currencyCode: currencies.value[0]?.code ?? 'USD',
-    taxRate: 0,
+    taxId: defaultTax?.id ?? '',
+    taxRate: defaultTax ? Number(defaultTax.rate) : 0,
     issueDate: new Date().toISOString().slice(0, 10),
     dueDate: '',
     items: [{ description: '', quantity: 1, unitPrice: 0 }],
@@ -148,6 +162,7 @@ async function submit() {
       companyId: form.value.companyId,
       contactId: form.value.contactId || undefined,
       currencyCode: form.value.currencyCode,
+      taxId: form.value.taxId || undefined,
       taxRate: form.value.taxRate,
       issueDate: form.value.issueDate,
       dueDate: form.value.dueDate || undefined,
@@ -557,6 +572,13 @@ onMounted(() => {
         </button>
 
         <div class="field" style="margin-top: 1rem">
+          <label>{{ t('quotes.tax') }}</label>
+          <select v-model="form.taxId" @change="onTaxSelect">
+            <option value="">{{ t('quotes.taxManual') }}</option>
+            <option v-for="tx in taxes" :key="tx.id" :value="tx.id">{{ tx.name }} ({{ Number(tx.rate) }}%)</option>
+          </select>
+        </div>
+        <div v-if="!form.taxId" class="field" style="margin-top: 0.5rem">
           <label>{{ t('quotes.tax') }} (%)</label>
           <input v-model.number="form.taxRate" type="number" min="0" step="0.1" />
         </div>

@@ -21,8 +21,6 @@ export class TenantSettingsController {
       brandingSecondaryColor: tenant.brandingSecondaryColor,
       brandingLogoData: tenant.brandingLogoData,
       timezone: tenant.timezone,
-      taxLabel: tenant.taxLabel,
-      taxRatePercent: tenant.taxRatePercent,
     };
   }
 
@@ -37,6 +35,6 @@ export class TenantSettingsController {
   @RequirePermissions('core.tenant.settings.write')
   async updateOrg(@CurrentUser() user: AuthenticatedUser, @Body() dto: UpdateOrgSettingsDto) {
     const tenant = await this.tenantsService.updateOrgSettings(user.tenantId, dto);
-    return { timezone: tenant.timezone, taxLabel: tenant.taxLabel, taxRatePercent: tenant.taxRatePercent };
+    return { timezone: tenant.timezone };
   }
 }

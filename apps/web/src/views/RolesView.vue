@@ -66,6 +66,8 @@ const PERMISSION_GROUPS: Array<{ labelKey: string; codes: string[] }> = [
       'core.audit.read',
       'core.org.read',
       'core.org.write',
+      'core.taxes.read',
+      'core.taxes.write',
     ],
   },
 ]

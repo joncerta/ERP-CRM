@@ -14,6 +14,7 @@ import { ConfigService } from '@nestjs/config';
 import { ListQuotesQueryDto } from './dto/list-quotes-query.dto';
 import { Paginated } from '../../common/pagination/pagination.types';
 import { DocumentSeriesService } from '../../core/org/document-series.service';
+import { TaxesService } from '../../core/taxes/taxes.service';
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
@@ -30,8 +31,21 @@ export class QuotesService extends TenantScopedService<Quote> {
     private readonly emailService: EmailService,
     private readonly config: ConfigService,
     private readonly documentSeriesService: DocumentSeriesService,
+    private readonly taxesService: TaxesService,
   ) {
     super(repo);
+  }
+
+  /** A selected catalog tax always wins over a hand-typed percentage — if
+   * the id doesn't resolve to an active tax (deleted/inactive since the
+   * dropdown was rendered), fall back to the manual rate instead of
+   * blocking the save. */
+  private async resolveTaxRate(tenantId: string, taxId: string | undefined, fallbackRate: number | undefined): Promise<number> {
+    if (taxId) {
+      const tax = await this.taxesService.findOneForTenant(tenantId, taxId).catch(() => null);
+      if (tax) return Number(tax.rate);
+    }
+    return fallbackRate ?? 0;
   }
 
   private buildItemsAndTotals(items: CreateQuoteDto['items'], taxRate = 0) {
@@ -58,7 +72,8 @@ export class QuotesService extends TenantScopedService<Quote> {
   }
 
   async create(tenantId: string, ownerUserId: string, dto: CreateQuoteDto): Promise<Quote> {
-    const { quoteItems, subtotal, tax, total } = this.buildItemsAndTotals(dto.items, dto.taxRate);
+    const taxRate = await this.resolveTaxRate(tenantId, dto.taxId, dto.taxRate);
+    const { quoteItems, subtotal, tax, total } = this.buildItemsAndTotals(dto.items, taxRate);
     const quote = this.repository.create({
       tenantId,
       ownerUserId,
@@ -66,6 +81,7 @@ export class QuotesService extends TenantScopedService<Quote> {
       companyId: dto.companyId,
       contactId: dto.contactId,
       currencyCode: dto.currencyCode ?? 'USD',
+      taxId: dto.taxId ?? null,
       validUntil: dto.validUntil,
       status: QuoteStatus.DRAFT,
       quoteNumber: await this.nextQuoteNumber(tenantId),
@@ -84,12 +100,15 @@ export class QuotesService extends TenantScopedService<Quote> {
       throw new BadRequestException('Solo se pueden editar cotizaciones en borrador');
     }
 
-    if (dto.items) {
-      const { quoteItems, subtotal, tax, total } = this.buildItemsAndTotals(dto.items, dto.taxRate);
+    if (dto.items || dto.taxId !== undefined || dto.taxRate !== undefined) {
+      const taxId = dto.taxId !== undefined ? dto.taxId : (quote.taxId ?? undefined);
+      const taxRate = await this.resolveTaxRate(tenantId, taxId, dto.taxRate);
+      const { quoteItems, subtotal, tax, total } = this.buildItemsAndTotals(dto.items ?? quote.items, taxRate);
       quote.items = quoteItems;
       quote.subtotal = subtotal;
       quote.tax = tax;
       quote.total = total;
+      quote.taxId = taxId ?? null;
     }
     if (dto.companyId) quote.companyId = dto.companyId;
     if (dto.contactId) quote.contactId = dto.contactId;
@@ -209,6 +228,7 @@ export class QuotesService extends TenantScopedService<Quote> {
       companyId: original.companyId,
       contactId: original.contactId,
       currencyCode: original.currencyCode,
+      taxId: original.taxId,
       status: QuoteStatus.DRAFT,
       quoteNumber: await this.nextQuoteNumber(tenantId),
       accessToken: randomBytes(24).toString('hex'),

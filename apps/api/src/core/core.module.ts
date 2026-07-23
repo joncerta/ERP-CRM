@@ -7,6 +7,7 @@ import { CurrenciesModule } from './currencies/currencies.module';
 import { ModulesCatalogModule } from './modules-catalog/modules-catalog.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { OrgModule } from './org/org.module';
+import { TaxesModule } from './taxes/taxes.module';
 
 @Module({
   imports: [
@@ -18,7 +19,17 @@ import { OrgModule } from './org/org.module';
     ModulesCatalogModule,
     SessionsModule,
     OrgModule,
+    TaxesModule,
   ],
-  exports: [TenantsModule, UsersModule, RolesModule, CurrenciesModule, ModulesCatalogModule, SessionsModule, OrgModule],
+  exports: [
+    TenantsModule,
+    UsersModule,
+    RolesModule,
+    CurrenciesModule,
+    ModulesCatalogModule,
+    SessionsModule,
+    OrgModule,
+    TaxesModule,
+  ],
 })
 export class CoreModule {}

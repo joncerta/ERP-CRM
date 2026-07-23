@@ -13,6 +13,7 @@ import { UsersModule } from '../../core/users/users.module';
 import { ContactsModule } from '../contacts/contacts.module';
 import { EmailModule } from '../../common/email/email.module';
 import { OrgModule } from '../../core/org/org.module';
+import { TaxesModule } from '../../core/taxes/taxes.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { OrgModule } from '../../core/org/org.module';
     ContactsModule,
     EmailModule,
     OrgModule,
+    TaxesModule,
   ],
   providers: [QuotesService, QuoteFollowUpsService, QuotePdfService],
   controllers: [QuotesController, QuotesPublicController],

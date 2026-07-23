@@ -22,6 +22,7 @@ export interface CreateQuotePayload {
   opportunityId?: string;
   contactId?: string;
   currencyCode?: string;
+  taxId?: string;
   taxRate?: number;
   validUntil?: string;
   items: QuoteItemInput[];

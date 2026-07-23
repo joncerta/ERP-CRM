@@ -24,7 +24,12 @@ export class CreateQuoteDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  taxRate?: number; // percentage, e.g. 19 for 19%
+  taxRate?: number; // percentage, e.g. 19 for 19% — ignored when taxId is set
+
+  @IsOptional()
+  @EmptyToUndefined()
+  @IsUUID()
+  taxId?: string;
 
   @IsOptional()
   @EmptyToUndefined()
