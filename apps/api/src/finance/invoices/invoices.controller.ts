@@ -82,7 +82,7 @@ export class InvoicesController {
   @Patch(':id/issue')
   @RequirePermissions('finance.invoices.write')
   issue(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
-    return this.invoicesService.issue(user.tenantId, id);
+    return this.invoicesService.issue(user.tenantId, user.userId, id);
   }
 
   @Patch(':id/cancel')

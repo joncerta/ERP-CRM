@@ -48,6 +48,8 @@ const PERMISSION_GROUPS: Array<{ labelKey: string; codes: string[] }> = [
       'finance.invoices.write',
       'finance.purchases.read',
       'finance.purchases.write',
+      'accounting.entries.read',
+      'accounting.entries.write',
     ],
   },
   {

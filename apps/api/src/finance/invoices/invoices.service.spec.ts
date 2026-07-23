@@ -9,6 +9,7 @@ import { DocumentSeriesService } from '../../core/org/document-series.service';
 import { NotificationEscalationService } from '../../core/users/notification-escalation.service';
 import { QuotesService } from '../../crm/quotes/quotes.service';
 import { QuoteStatus } from '../../crm/quotes/entities/quote.entity';
+import { AccountingService } from '../accounting/accounting.service';
 
 function buildDeps() {
   const repo = {
@@ -41,7 +42,11 @@ function buildDeps() {
   const quotesService = {
     findOneForTenant: jest.fn(),
   } as unknown as jest.Mocked<QuotesService>;
-  return { repo, adjustmentsRepo, paymentsRepo, templatesRepo, documentSeriesService, notificationEscalationService, quotesService };
+  const accountingService = {
+    postInvoiceIssued: jest.fn().mockResolvedValue(undefined),
+    postInvoicePayment: jest.fn().mockResolvedValue(undefined),
+  } as unknown as jest.Mocked<AccountingService>;
+  return { repo, adjustmentsRepo, paymentsRepo, templatesRepo, documentSeriesService, notificationEscalationService, quotesService, accountingService };
 }
 
 function buildService() {
@@ -54,6 +59,7 @@ function buildService() {
     deps.documentSeriesService,
     deps.notificationEscalationService,
     deps.quotesService,
+    deps.accountingService,
   );
   return { service, ...deps };
 }

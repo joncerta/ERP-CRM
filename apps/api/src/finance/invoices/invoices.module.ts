@@ -10,6 +10,7 @@ import { InvoicesController } from './invoices.controller';
 import { OrgModule } from '../../core/org/org.module';
 import { UsersModule } from '../../core/users/users.module';
 import { QuotesModule } from '../../crm/quotes/quotes.module';
+import { AccountingModule } from '../accounting/accounting.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { QuotesModule } from '../../crm/quotes/quotes.module';
     OrgModule,
     UsersModule,
     QuotesModule,
+    AccountingModule,
   ],
   providers: [InvoicesService],
   controllers: [InvoicesController],

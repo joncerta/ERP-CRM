@@ -9,6 +9,7 @@ import { ListSupplierInvoicesQueryDto } from './dto/list-supplier-invoices-query
 import { TenantScopedService } from '../../common/services/tenant-scoped.service';
 import { Paginated } from '../../common/pagination/pagination.types';
 import { NotificationEscalationService } from '../../core/users/notification-escalation.service';
+import { AccountingService } from '../accounting/accounting.service';
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
@@ -20,6 +21,7 @@ export class SupplierInvoicesService extends TenantScopedService<SupplierInvoice
     @InjectRepository(SupplierInvoice) repo: Repository<SupplierInvoice>,
     @InjectRepository(SupplierPayment) private readonly paymentsRepo: Repository<SupplierPayment>,
     private readonly notificationEscalationService: NotificationEscalationService,
+    private readonly accountingService: AccountingService,
   ) {
     super(repo);
   }
@@ -42,7 +44,7 @@ export class SupplierInvoicesService extends TenantScopedService<SupplierInvoice
     });
   }
 
-  create(tenantId: string, ownerUserId: string, dto: CreateSupplierInvoiceDto): Promise<SupplierInvoice> {
+  async create(tenantId: string, ownerUserId: string, dto: CreateSupplierInvoiceDto): Promise<SupplierInvoice> {
     const invoice = this.repository.create({
       tenantId,
       ownerUserId,
@@ -55,7 +57,16 @@ export class SupplierInvoicesService extends TenantScopedService<SupplierInvoice
       dueDate: dto.dueDate ?? null,
       status: SupplierInvoiceStatus.PENDING,
     });
-    return this.repository.save(invoice);
+    const saved = await this.repository.save(invoice);
+
+    await this.accountingService.postSupplierInvoice(tenantId, ownerUserId, {
+      supplierInvoiceId: saved.id,
+      supplierInvoiceNumber: saved.supplierInvoiceNumber,
+      date: saved.issueDate,
+      amount: Number(saved.amount),
+    });
+
+    return saved;
   }
 
   async addPayment(
@@ -85,6 +96,13 @@ export class SupplierInvoicesService extends TenantScopedService<SupplierInvoice
     const balance = this.balanceDue(invoice);
     invoice.status = balance <= 0 ? SupplierInvoiceStatus.PAID : SupplierInvoiceStatus.PARTIALLY_PAID;
     await this.repository.save(invoice);
+
+    await this.accountingService.postSupplierPayment(tenantId, actingUserId, {
+      supplierInvoiceId: invoice.id,
+      supplierInvoiceNumber: invoice.supplierInvoiceNumber,
+      date: (dto.paidAt ?? new Date().toISOString()).slice(0, 10),
+      amount: dto.amount,
+    });
 
     await this.notificationEscalationService.notifyWithEscalation(
       tenantId,

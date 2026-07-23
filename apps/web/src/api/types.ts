@@ -340,3 +340,84 @@ export interface SupplierPayment {
   note: string | null;
   createdByUserId: string;
 }
+
+export type AccountType = 'asset' | 'liability' | 'equity' | 'income' | 'expense';
+
+export interface Account {
+  id: string;
+  code: string;
+  name: string;
+  type: AccountType;
+  isActive: boolean;
+}
+
+export interface JournalEntryLine {
+  id: string;
+  accountId: string;
+  debit: number | string;
+  credit: number | string;
+  description: string | null;
+}
+
+export interface JournalEntry {
+  id: string;
+  entryNumber: string;
+  date: string;
+  description: string;
+  sourceType: string;
+  sourceId: string | null;
+  createdByUserId: string;
+  lines: JournalEntryLine[];
+  createdAt: string;
+}
+
+export type CashAccountType = 'cash' | 'bank';
+
+export interface CashAccount {
+  id: string;
+  name: string;
+  type: CashAccountType;
+  accountId: string;
+  currencyCode: string;
+  balance: number | string;
+  isActive: boolean;
+}
+
+export type CashTransactionType = 'deposit' | 'withdrawal' | 'transfer';
+
+export interface CashTransaction {
+  id: string;
+  cashAccountId: string;
+  type: CashTransactionType;
+  amount: number | string;
+  note: string | null;
+  transferGroupId: string | null;
+  createdByUserId: string;
+  occurredAt: string;
+}
+
+export interface TrialBalanceRow {
+  accountId: string;
+  code: string;
+  name: string;
+  type: AccountType;
+  debit: number | string;
+  credit: number | string;
+}
+
+export interface BalanceSheetReport {
+  assets: Array<{ code: string; name: string; balance: number }>;
+  liabilities: Array<{ code: string; name: string; balance: number }>;
+  equity: Array<{ code: string; name: string; balance: number }>;
+  totalAssets: number;
+  totalLiabilities: number;
+  totalEquity: number;
+}
+
+export interface IncomeStatementReport {
+  income: Array<{ code: string; name: string; amount: number }>;
+  expenses: Array<{ code: string; name: string; amount: number }>;
+  totalIncome: number;
+  totalExpenses: number;
+  netResult: number;
+}

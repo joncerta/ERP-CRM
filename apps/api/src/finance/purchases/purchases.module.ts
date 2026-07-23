@@ -14,6 +14,7 @@ import { SupplierInvoicesController } from './supplier-invoices.controller';
 import { OrgModule } from '../../core/org/org.module';
 import { UsersModule } from '../../core/users/users.module';
 import { InventoryModule } from '../../inventory/inventory.module';
+import { AccountingModule } from '../accounting/accounting.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { InventoryModule } from '../../inventory/inventory.module';
     OrgModule,
     UsersModule,
     InventoryModule,
+    AccountingModule,
   ],
   providers: [SuppliersService, PurchaseOrdersService, SupplierInvoicesService],
   controllers: [SuppliersController, PurchaseOrdersController, SupplierInvoicesController],

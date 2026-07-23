@@ -9,6 +9,8 @@ import { Role } from '../../core/roles/entities/role.entity';
 import { User } from '../../core/users/entities/user.entity';
 import { TenantModule } from '../../core/modules-catalog/entities/tenant-module.entity';
 import { DEFAULT_ROLE_TEMPLATES } from '../../core/roles/roles.service';
+import { Account } from '../../finance/accounting/entities/account.entity';
+import { DEFAULT_CHART_OF_ACCOUNTS } from '../../finance/accounting/accounting.service';
 
 const CURRENCIES = [
   { code: 'USD', name: 'Dólar estadounidense', symbol: '$', decimalPlaces: 2 },
@@ -22,6 +24,7 @@ const MODULES = [
   { code: 'inventory', name: 'Inventario', description: 'Productos, bodegas, movimientos y traslados de stock', isCore: false },
   { code: 'sales_invoicing', name: 'Facturación', description: 'Facturas, notas crédito/débito, pagos y facturación recurrente', isCore: false },
   { code: 'purchasing', name: 'Compras y proveedores', description: 'Proveedores, órdenes de compra, recepción de mercancía y facturas de proveedor', isCore: false },
+  { code: 'accounting', name: 'Contabilidad y tesorería', description: 'Plan de cuentas, asientos contables, caja y bancos, y reportes financieros básicos', isCore: false },
 ];
 
 const SALT_ROUNDS = 12;
@@ -38,6 +41,7 @@ interface SeedTenantOptions {
   enableInventory?: boolean;
   enableInvoicing?: boolean;
   enablePurchasing?: boolean;
+  enableAccounting?: boolean;
 }
 
 async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
@@ -100,6 +104,13 @@ async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
       tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'purchasing', isEnabled: true, enabledAt: new Date() }),
     );
   }
+  if (opts.enableAccounting) {
+    await tenantModuleRepo.save(
+      tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'accounting', isEnabled: true, enabledAt: new Date() }),
+    );
+    const accountRepo = ds.getRepository(Account);
+    await accountRepo.save(DEFAULT_CHART_OF_ACCOUNTS.map((a) => accountRepo.create({ tenantId: tenant.id, ...a })));
+  }
 
   console.log(`Tenant "${opts.slug}" creado:`);
   console.log(`  email:    ${opts.adminEmail}`);
@@ -146,6 +157,7 @@ async function run() {
     enableInventory: true,
     enableInvoicing: true,
     enablePurchasing: true,
+    enableAccounting: true,
   });
 
   console.log(`Seed completo: ${CURRENCIES.length} monedas, ${MODULES.length} módulos.`);

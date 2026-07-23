@@ -18,6 +18,7 @@ import { DocumentSeriesService } from '../../core/org/document-series.service';
 import { NotificationEscalationService } from '../../core/users/notification-escalation.service';
 import { QuotesService } from '../../crm/quotes/quotes.service';
 import { QuoteStatus } from '../../crm/quotes/entities/quote.entity';
+import { AccountingService } from '../accounting/accounting.service';
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
@@ -42,6 +43,7 @@ export class InvoicesService extends TenantScopedService<Invoice> {
     private readonly documentSeriesService: DocumentSeriesService,
     private readonly notificationEscalationService: NotificationEscalationService,
     private readonly quotesService: QuotesService,
+    private readonly accountingService: AccountingService,
   ) {
     super(repo);
   }
@@ -150,13 +152,23 @@ export class InvoicesService extends TenantScopedService<Invoice> {
     return this.repository.save(invoice);
   }
 
-  async issue(tenantId: string, id: string): Promise<Invoice> {
+  async issue(tenantId: string, userId: string, id: string): Promise<Invoice> {
     const invoice = await this.findOneForTenant(tenantId, id);
     if (invoice.status !== InvoiceStatus.DRAFT) {
       throw new BadRequestException('La factura ya fue emitida');
     }
     invoice.status = InvoiceStatus.ISSUED;
-    return this.repository.save(invoice);
+    const saved = await this.repository.save(invoice);
+
+    await this.accountingService.postInvoiceIssued(tenantId, userId, {
+      invoiceId: saved.id,
+      invoiceNumber: saved.invoiceNumber,
+      date: saved.issueDate,
+      subtotal: Number(saved.subtotal),
+      tax: Number(saved.tax),
+    });
+
+    return saved;
   }
 
   async cancel(tenantId: string, id: string): Promise<Invoice> {
@@ -224,6 +236,13 @@ export class InvoicesService extends TenantScopedService<Invoice> {
     const balance = this.balanceDue(invoice);
     invoice.status = balance <= 0 ? InvoiceStatus.PAID : InvoiceStatus.PARTIALLY_PAID;
     await this.repository.save(invoice);
+
+    await this.accountingService.postInvoicePayment(tenantId, actingUserId, {
+      invoiceId: invoice.id,
+      invoiceNumber: invoice.invoiceNumber,
+      date: (dto.paidAt ?? new Date().toISOString()).slice(0, 10),
+      amount: dto.amount,
+    });
 
     await this.notificationEscalationService.notifyWithEscalation(
       tenantId,

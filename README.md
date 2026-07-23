@@ -641,6 +641,62 @@ mercancía integrada a Inventario.
   proveedor y la orden de compra (comparar cantidades/montos) — queda a
   criterio de quien la registra.
 
+## Contabilidad y tesorería
+
+Módulo activable `accounting` (`GET/POST/PATCH /api/accounting/*`,
+permisos `accounting.entries.read` / `accounting.entries.write`) — un
+sistema de partida doble ligero, deliberadamente **no NIIF-completo**
+(plan de cuentas plano, sin jerarquía de cuentas padre/hija), la misma
+decisión de alcance manejable que ya se tomó para Facturación.
+
+- **`Account`** (plan de cuentas): código + nombre + tipo
+  (activo/pasivo/patrimonio/ingreso/gasto), único por `(tenantId, code)`.
+  `POST /accounting/accounts/seed-defaults` carga un plan básico de ~11
+  cuentas (idempotente — solo agrega los códigos que falten), y el tenant
+  demo ya lo trae cargado desde el seed.
+- **`JournalEntry`/`JournalEntryLine`**: todo asiento pasa por un único
+  primitivo interno (`postEntry()`) que exige que la suma de débitos sea
+  igual a la de créditos y que ninguna línea tenga débito y crédito a la
+  vez — ya sea un asiento manual (`POST /accounting/journal-entries`) o
+  uno automático. Numerados vía `DocumentSeriesService` (tipo
+  `journal_entry`, prefijo `AST`).
+- **Asientos automáticos desde Facturación y Compras**: `AccountingModule`
+  es una hoja del árbol de dependencias — no importa `InvoicesModule` ni
+  `PurchasesModule`, son ellos quienes lo importan a él, evitando una
+  dependencia circular. Se contabiliza automáticamente: emisión de
+  factura (`Dr` Clientes, `Cr` Ingresos por ventas + `Cr` Impuestos por
+  pagar), pago de factura (`Dr` Caja, `Cr` Clientes), factura de
+  proveedor (`Dr` Gastos/costo, `Cr` Proveedores) y pago a proveedor
+  (`Dr` Proveedores, `Cr` Caja). Busca las cuentas por su código conocido
+  (`1305`, `4135`, `2408`, `1105`, `2205`, `6135`); si el tenant no tiene
+  el plan de cuentas básico cargado, el asiento simplemente se omite con
+  una advertencia en el log — **Facturación y Compras nunca deben
+  romperse porque Contabilidad no esté configurada**. **Pendiente**:
+  deliberadamente no se contabiliza nada al recibir mercancía de una
+  orden de compra (solo al crear la factura del proveedor), para no
+  duplicar el reconocimiento del pasivo.
+- **Caja y bancos** (`CashAccount`/`CashTransaction`): cada cuenta de
+  caja/banco está enlazada a su cuenta contable de activo correspondiente
+  y mantiene un `balance` desnormalizado (mismo patrón que
+  `StockBalance` en Inventario). Depósitos y retiros piden una "cuenta
+  contrapartida" del plan de cuentas; una transferencia entre dos cuentas
+  de caja/banco genera dos filas de `CashTransaction` con el mismo
+  `transferGroupId` (mismo patrón que las transferencias de stock entre
+  bodegas) y un único asiento contable balanceado. Ninguna operación deja
+  el saldo en negativo.
+- **Reportes**: balance de comprobación (`GET
+  .../reports/trial-balance`, suma de débitos/créditos por cuenta),
+  balance general (`GET .../reports/balance-sheet`, activos vs.
+  pasivo+patrimonio) y estado de resultados por rango de fechas (`GET
+  .../reports/income-statement?from=&to=`, ingresos menos gastos).
+- **Cartera CxC/CxP**: deliberadamente **no** se duplicó como
+  subsistema aparte dentro de Contabilidad — las listas ya existentes de
+  Facturas (módulo 9) y Facturas de proveedor (módulo 10), filtradas por
+  saldo pendiente y ordenadas por fecha de vencimiento, ya cumplen ese
+  propósito sin acoplar `AccountingModule` a `InvoicesModule`/
+  `PurchasesModule` (lo que sí crearía una dependencia circular, dado que
+  esos módulos ya dependen de Contabilidad para contabilizar).
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia

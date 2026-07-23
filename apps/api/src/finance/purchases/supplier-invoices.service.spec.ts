@@ -4,6 +4,7 @@ import { SupplierInvoicesService } from './supplier-invoices.service';
 import { SupplierInvoice, SupplierInvoiceStatus } from './entities/supplier-invoice.entity';
 import { SupplierPayment } from './entities/supplier-payment.entity';
 import { NotificationEscalationService } from '../../core/users/notification-escalation.service';
+import { AccountingService } from '../accounting/accounting.service';
 
 function buildDeps() {
   const repo = {
@@ -19,12 +20,16 @@ function buildDeps() {
   const notificationEscalationService = {
     notifyWithEscalation: jest.fn().mockResolvedValue(undefined),
   } as unknown as jest.Mocked<NotificationEscalationService>;
-  return { repo, paymentsRepo, notificationEscalationService };
+  const accountingService = {
+    postSupplierInvoice: jest.fn().mockResolvedValue(undefined),
+    postSupplierPayment: jest.fn().mockResolvedValue(undefined),
+  } as unknown as jest.Mocked<AccountingService>;
+  return { repo, paymentsRepo, notificationEscalationService, accountingService };
 }
 
 function buildService() {
   const deps = buildDeps();
-  const service = new SupplierInvoicesService(deps.repo, deps.paymentsRepo, deps.notificationEscalationService);
+  const service = new SupplierInvoicesService(deps.repo, deps.paymentsRepo, deps.notificationEscalationService, deps.accountingService);
   return { service, ...deps };
 }
 
