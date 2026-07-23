@@ -31,7 +31,7 @@ export class Lead extends TenantScopedEntity {
   @Column({ nullable: true })
   source: string; // web, referido, feria, redes sociales...
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   campaign: string | null;
 
   @Column({ nullable: true })
