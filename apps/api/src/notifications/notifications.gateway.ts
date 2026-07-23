@@ -49,11 +49,17 @@ export class NotificationsGateway implements OnGatewayConnection {
     }
   }
 
+  /** `this.server` is only wired up once Nest bootstraps a real HTTP+WS
+   * server (`app.listen()`) — under `createApplicationContext` (scripts,
+   * seeds) there's no socket server at all. The notification itself is
+   * already persisted by the caller before this runs, so a missing server
+   * just means "no one is listening live right now", not a failure. */
   pushToUser(tenantId: string, userId: string, notification: Notification): void {
-    this.server.to(userRoom(tenantId, userId)).emit('notification:new', notification);
+    this.server?.to(userRoom(tenantId, userId)).emit('notification:new', notification);
   }
 
   disconnectSessions(sessionIds: string[], reason: string): void {
+    if (!this.server) return;
     for (const sessionId of sessionIds) {
       const room = sessionRoom(sessionId);
       this.server.to(room).emit('session:revoked', { reason });

@@ -123,6 +123,35 @@ define antes de sembrar las variables `SEED_TENANT_*` / `SEED_ADMIN_*`
 (admin de plataforma) y `SEED_CLIENT_*` (cliente demo) — ver
 `apps/api/.env.example`.
 
+### Datos mock para demo (`npm run seed:demo`)
+
+`npm run seed` solo crea infraestructura (tenants, monedas, catálogo de
+módulos) — el tenant `cliente` queda con todos sus módulos activos pero
+sin ningún registro de negocio. `npm run seed:demo` (correrlo *después* de
+`npm run seed`) llena ese tenant con un set de datos mock coherente y
+enlazado entre sí, tocando los 14 módulos: 6 empresas y 12 contactos, 6
+leads (uno de ellos capturado a través de un formulario público de
+Marketing), 6 oportunidades repartidas en el pipeline (una ganada, una
+perdida), 4 cotizaciones en distintos estados (borrador/enviada/aceptada/
+rechazada), 2 bodegas con 8 productos y su stock inicial, 3 proveedores y
+3 órdenes de compra (borrador/enviada/recibida — la recepción sí mueve
+stock), una cuenta bancaria con un depósito y un asiento manual, 3
+facturas (una con abono parcial, una nacida de la cotización aceptada), 3
+activos fijos, 2 artículos de base de conocimiento y 4 tickets, y 2
+campañas de marketing (una enviada) más una secuencia de nutrición con un
+contacto inscrito.
+
+Es **idempotente por conteo**: si el tenant ya tiene alguna empresa
+registrada, no hace nada (no duplica ni sobreescribe). Bootstrapea el
+contexto completo de Nest (`NestFactory.createApplicationContext`) y crea
+todo a través de los mismos servicios que usa la API — no inserta filas a
+mano — así que numeración de documentos, totales, saldos de stock y
+asientos contables quedan tan consistentes como si un usuario real los
+hubiera creado uno por uno. También crea dos usuarios adicionales con rol
+Vendedor (`laura.gomez@cliente.com` / `carlos.ramirez@cliente.com`,
+clave `Vendedor123!`) para que los registros no queden todos a nombre del
+Administrador.
+
 ## Alta de un tenant adicional (onboarding manual)
 
 Para crear más clientes además del tenant admin del seed, usa la clave de
