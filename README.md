@@ -391,6 +391,40 @@ por su cuenta.
   usuario, tipo de entidad y rango de fechas, paginado. Pantalla
   `Auditoría` en el nav (visible solo con ese permiso).
 
+## Paginación, búsqueda y orden server-side
+
+Los 11 listados del sistema (Empresas, Contactos, Leads, Cotizaciones,
+Productos, Bodegas, Categorías, Unidades, Roles, Usuarios, Stock
+—balances y movimientos—) usan paginación real en el servidor en vez de
+traer todas las filas y filtrar en el navegador.
+
+- **Backend**: `TenantScopedService.findPaginatedForTenant(tenantId,
+  query, options)` (`src/common/services/tenant-scoped.service.ts`) es el
+  método compartido — arma un `SelectQueryBuilder` con scoping por
+  tenant, búsqueda `ILIKE` opcional sobre columnas configurables, un
+  callback opcional de filtros extra, y orden con **lista blanca de
+  columnas permitidas** (nunca se confía en el nombre de columna que
+  llega por query param, para evitar inyección SQL vía `ORDER BY`).
+  `UsersService` y `StockService` no heredan de `TenantScopedService`
+  (tienen su propio repo), así que implementan la misma lógica a mano.
+  Cada endpoint de listado acepta un parámetro `page` **opcional**: si no
+  viene, responde igual que antes (un array plano), así que los
+  selectores de formularios (`listCompanies()`, `listUsers()`, etc.) que
+  ya llamaban a estos mismos endpoints sin paginar siguen funcionando sin
+  cambios. Solo cuando la pantalla pide `page` explícitamente, la
+  respuesta cambia a `{ items, total, page, pageSize }`.
+- **DTOs de query** (`ListQueryDto` en `src/common/dto/list-query.dto.ts`
+  y subclases por entidad) son obligatorios porque el `ValidationPipe`
+  global tiene `forbidNonWhitelisted: true` — cualquier filtro extra
+  (`companyId`, `status`, `categoryId`...) tiene que declararse como
+  propiedad real del DTO o la petición se rechaza con 400.
+- **Frontend**: `usePaginatedList()` (`src/composables/usePaginatedList.ts`)
+  es el estado compartido de página/búsqueda/orden/filtros/loading/error
+  detrás de cada grilla — la vista solo aporta la función de fetch. El
+  componente `Pagination.vue` renderiza el control "‹ Página X de Y ›" y
+  solo aparece si hay más de una página. La búsqueda tiene debounce de
+  300ms para no disparar una petición por cada tecla.
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia

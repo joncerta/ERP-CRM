@@ -1,5 +1,6 @@
 import { apiClient } from './client';
 import type { Quote, QuoteFollowUp, PendingFollowUp } from './types';
+import type { Paginated, PageParams } from './pagination';
 
 function triggerDownload(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
@@ -28,6 +29,13 @@ export interface CreateQuotePayload {
 
 export async function listQuotes(): Promise<Quote[]> {
   const { data } = await apiClient.get('/crm/quotes');
+  return data;
+}
+
+export async function listQuotesPaginated(
+  params: PageParams & { status?: string; ownerUserId?: string; companyId?: string },
+): Promise<Paginated<Quote>> {
+  const { data } = await apiClient.get('/crm/quotes', { params });
   return data;
 }
 

@@ -1,18 +1,26 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { listWarehouses, createWarehouse, updateWarehouse, deleteWarehouse } from '@/api/warehouses'
+import { listWarehousesPaginated, createWarehouse, updateWarehouse, deleteWarehouse } from '@/api/warehouses'
 import { getErrorMessage } from '@/api/error'
 import { compact } from '@/utils/compact'
 import { useToastStore } from '@/stores/toast'
+import { usePaginatedList } from '@/composables/usePaginatedList'
+import Pagination from '@/components/Pagination.vue'
 import type { Warehouse } from '@/api/types'
 
 const { t } = useI18n()
 const toast = useToastStore()
 
-const warehouses = ref<Warehouse[]>([])
-const loading = ref(true)
-const error = ref('')
+const { items: warehouses, total, page, totalPages, loading, error, search, load, applyAndReload, goToPage } =
+  usePaginatedList(listWarehousesPaginated, { defaultSortBy: 'name' })
+
+let searchDebounce: ReturnType<typeof setTimeout> | undefined
+function onSearchInput() {
+  clearTimeout(searchDebounce)
+  searchDebounce = setTimeout(applyAndReload, 300)
+}
+
 const showModal = ref(false)
 const saving = ref(false)
 const formError = ref('')
@@ -20,18 +28,6 @@ const editingId = ref<string | null>(null)
 const deletingId = ref<string | null>(null)
 
 const form = ref({ name: '', address: '' })
-
-async function load() {
-  loading.value = true
-  error.value = ''
-  try {
-    warehouses.value = await listWarehouses()
-  } catch (err) {
-    error.value = getErrorMessage(err)
-  } finally {
-    loading.value = false
-  }
-}
 
 function openCreateModal() {
   editingId.value = null
@@ -90,32 +86,39 @@ onMounted(load)
       <button class="btn" @click="openCreateModal">+ {{ t('warehouses.newWarehouse') }}</button>
     </div>
 
+    <div class="list-filters">
+      <input v-model="search" type="text" class="search-input" :placeholder="t('common.search')" @input="onSearchInput" />
+    </div>
+
     <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
     <p v-else-if="error" class="error-text">{{ error }}</p>
-    <table v-else>
-      <thead>
-        <tr>
-          <th>{{ t('common.name') }}</th>
-          <th>{{ t('warehouses.address') }}</th>
-          <th>{{ t('common.actions') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="w in warehouses" :key="w.id">
-          <td>{{ w.name }}</td>
-          <td>{{ w.address || '—' }}</td>
-          <td class="actions-cell">
-            <button class="btn secondary" @click="openEditModal(w)">{{ t('common.edit') }}</button>
-            <button class="btn secondary" :disabled="deletingId === w.id" @click="remove(w)">
-              {{ t('common.delete') }}
-            </button>
-          </td>
-        </tr>
-        <tr v-if="!warehouses.length">
-          <td colspan="3" class="muted">—</td>
-        </tr>
-      </tbody>
-    </table>
+    <template v-else>
+      <table>
+        <thead>
+          <tr>
+            <th>{{ t('common.name') }}</th>
+            <th>{{ t('warehouses.address') }}</th>
+            <th>{{ t('common.actions') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="w in warehouses" :key="w.id">
+            <td>{{ w.name }}</td>
+            <td>{{ w.address || '—' }}</td>
+            <td class="actions-cell">
+              <button class="btn secondary" @click="openEditModal(w)">{{ t('common.edit') }}</button>
+              <button class="btn secondary" :disabled="deletingId === w.id" @click="remove(w)">
+                {{ t('common.delete') }}
+              </button>
+            </td>
+          </tr>
+          <tr v-if="!warehouses.length">
+            <td colspan="3" class="muted">—</td>
+          </tr>
+        </tbody>
+      </table>
+      <Pagination :page="page" :total-pages="totalPages" :total="total" @go="goToPage" />
+    </template>
 
     <div v-if="showModal" class="modal-backdrop" @click.self="showModal = false">
       <form class="modal" @submit.prevent="submit">

@@ -1,5 +1,6 @@
 import { apiClient } from './client';
 import type { StockBalance, StockMovement, StockMovementType } from './types';
+import type { Paginated, PageParams } from './pagination';
 
 export async function listStockBalances(): Promise<StockBalance[]> {
   const { data } = await apiClient.get('/inventory/stock/balances');
@@ -8,6 +9,20 @@ export async function listStockBalances(): Promise<StockBalance[]> {
 
 export async function listStockMovements(): Promise<StockMovement[]> {
   const { data } = await apiClient.get('/inventory/stock/movements');
+  return data;
+}
+
+export async function listStockBalancesPaginated(
+  params: PageParams & { productId?: string; warehouseId?: string },
+): Promise<Paginated<StockBalance>> {
+  const { data } = await apiClient.get('/inventory/stock/balances', { params });
+  return data;
+}
+
+export async function listStockMovementsPaginated(
+  params: PageParams & { productId?: string; warehouseId?: string },
+): Promise<Paginated<StockMovement>> {
+  const { data } = await apiClient.get('/inventory/stock/movements', { params });
   return data;
 }
 

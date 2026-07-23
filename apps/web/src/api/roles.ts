@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import type { Paginated, PageParams } from './pagination'
 
 export interface Role {
   id: string
@@ -9,6 +10,11 @@ export interface Role {
 
 export async function listRoles(): Promise<Role[]> {
   const { data } = await apiClient.get('/roles')
+  return data
+}
+
+export async function listRolesPaginated(params: PageParams): Promise<Paginated<Role>> {
+  const { data } = await apiClient.get('/roles', { params })
   return data
 }
 

@@ -1,8 +1,16 @@
 import { apiClient } from './client';
 import type { Product } from './types';
+import type { Paginated, PageParams } from './pagination';
 
 export async function listProducts(): Promise<Product[]> {
   const { data } = await apiClient.get('/inventory/products');
+  return data;
+}
+
+export async function listProductsPaginated(
+  params: PageParams & { categoryId?: string; warehouseId?: string },
+): Promise<Paginated<Product>> {
+  const { data } = await apiClient.get('/inventory/products', { params });
   return data;
 }
 

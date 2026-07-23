@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import type { Paginated, PageParams } from './pagination'
 
 export interface TenantUser {
   id: string
@@ -19,6 +20,11 @@ export interface CreateUserPayload {
 
 export async function listUsers(): Promise<TenantUser[]> {
   const { data } = await apiClient.get('/users')
+  return data
+}
+
+export async function listUsersPaginated(params: PageParams): Promise<Paginated<TenantUser>> {
+  const { data } = await apiClient.get('/users', { params })
   return data
 }
 

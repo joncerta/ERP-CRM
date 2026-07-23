@@ -1,29 +1,36 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { listProducts, createProduct, updateProduct, deleteProduct } from '@/api/products'
+import { listProductsPaginated, createProduct, updateProduct, deleteProduct } from '@/api/products'
 import { listCategories, listUnits } from '@/api/product-catalog'
 import { listWarehouses } from '@/api/warehouses'
 import { getErrorMessage } from '@/api/error'
 import { compact } from '@/utils/compact'
 import { useToastStore } from '@/stores/toast'
+import { usePaginatedList } from '@/composables/usePaginatedList'
+import Pagination from '@/components/Pagination.vue'
 import type { Product, ProductCategory, ProductUnit, Warehouse } from '@/api/types'
 
 const { t } = useI18n()
 const toast = useToastStore()
 
-const products = ref<Product[]>([])
+const { items: products, total, page, totalPages, loading, error, search, load, applyAndReload, goToPage } =
+  usePaginatedList(listProductsPaginated, { defaultSortBy: 'name' })
+
+let searchDebounce: ReturnType<typeof setTimeout> | undefined
+function onSearchInput() {
+  clearTimeout(searchDebounce)
+  searchDebounce = setTimeout(applyAndReload, 300)
+}
+
 const categories = ref<ProductCategory[]>([])
 const units = ref<ProductUnit[]>([])
 const warehouses = ref<Warehouse[]>([])
-const loading = ref(true)
-const error = ref('')
 const showModal = ref(false)
 const saving = ref(false)
 const formError = ref('')
 const editingId = ref<string | null>(null)
 const deletingId = ref<string | null>(null)
-const searchQuery = ref('')
 
 const form = ref({
   sku: '',
@@ -36,12 +43,6 @@ const form = ref({
   minStock: undefined as number | undefined,
 })
 
-const visibleProducts = computed(() => {
-  const query = searchQuery.value.trim().toLowerCase()
-  if (!query) return products.value
-  return products.value.filter((p) => `${p.sku} ${p.name}`.toLowerCase().includes(query))
-})
-
 function unitName(id: string) {
   return units.value.find((u) => u.id === id)?.name ?? '—'
 }
@@ -50,24 +51,15 @@ function warehouseName(id: string) {
   return warehouses.value.find((w) => w.id === id)?.name ?? '—'
 }
 
-async function load() {
-  loading.value = true
-  error.value = ''
+async function loadPickers() {
   try {
-    const [productsData, categoriesData, unitsData, warehousesData] = await Promise.all([
-      listProducts(),
-      listCategories(),
-      listUnits(),
-      listWarehouses(),
-    ])
-    products.value = productsData
+    const [categoriesData, unitsData, warehousesData] = await Promise.all([listCategories(), listUnits(), listWarehouses()])
     categories.value = categoriesData
     units.value = unitsData
     warehouses.value = warehousesData
-  } catch (err) {
-    error.value = getErrorMessage(err)
-  } finally {
-    loading.value = false
+  } catch {
+    // Pickers are a convenience for the create/edit form — a failure here
+    // shouldn't block the products list itself.
   }
 }
 
@@ -136,7 +128,10 @@ async function remove(product: Product) {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  loadPickers()
+})
 </script>
 
 <template>
@@ -147,43 +142,46 @@ onMounted(load)
     </div>
 
     <div class="list-filters">
-      <input v-model="searchQuery" type="text" class="search-input" :placeholder="t('common.search')" />
+      <input v-model="search" type="text" class="search-input" :placeholder="t('common.search')" @input="onSearchInput" />
     </div>
 
     <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
     <p v-else-if="error" class="error-text">{{ error }}</p>
-    <table v-else>
-      <thead>
-        <tr>
-          <th>SKU</th>
-          <th>{{ t('common.name') }}</th>
-          <th>{{ t('products.unit') }}</th>
-          <th>{{ t('warehouses.title') }}</th>
-          <th>{{ t('products.costPrice') }}</th>
-          <th>{{ t('products.salePrice') }}</th>
-          <th>{{ t('common.actions') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="p in visibleProducts" :key="p.id">
-          <td><code>{{ p.sku }}</code></td>
-          <td>{{ p.name }}</td>
-          <td>{{ unitName(p.unitId) }}</td>
-          <td>{{ warehouseName(p.warehouseId) }}</td>
-          <td>{{ Number(p.costPrice).toLocaleString() }}</td>
-          <td>{{ Number(p.salePrice).toLocaleString() }}</td>
-          <td class="actions-cell">
-            <button class="btn secondary" @click="openEditModal(p)">{{ t('common.edit') }}</button>
-            <button class="btn secondary" :disabled="deletingId === p.id" @click="remove(p)">
-              {{ t('common.delete') }}
-            </button>
-          </td>
-        </tr>
-        <tr v-if="!visibleProducts.length">
-          <td colspan="7" class="muted">—</td>
-        </tr>
-      </tbody>
-    </table>
+    <template v-else>
+      <table>
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>{{ t('common.name') }}</th>
+            <th>{{ t('products.unit') }}</th>
+            <th>{{ t('warehouses.title') }}</th>
+            <th>{{ t('products.costPrice') }}</th>
+            <th>{{ t('products.salePrice') }}</th>
+            <th>{{ t('common.actions') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="p in products" :key="p.id">
+            <td><code>{{ p.sku }}</code></td>
+            <td>{{ p.name }}</td>
+            <td>{{ unitName(p.unitId) }}</td>
+            <td>{{ warehouseName(p.warehouseId) }}</td>
+            <td>{{ Number(p.costPrice).toLocaleString() }}</td>
+            <td>{{ Number(p.salePrice).toLocaleString() }}</td>
+            <td class="actions-cell">
+              <button class="btn secondary" @click="openEditModal(p)">{{ t('common.edit') }}</button>
+              <button class="btn secondary" :disabled="deletingId === p.id" @click="remove(p)">
+                {{ t('common.delete') }}
+              </button>
+            </td>
+          </tr>
+          <tr v-if="!products.length">
+            <td colspan="7" class="muted">—</td>
+          </tr>
+        </tbody>
+      </table>
+      <Pagination :page="page" :total-pages="totalPages" :total="total" @go="goToPage" />
+    </template>
 
     <div v-if="showModal" class="modal-backdrop" @click.self="showModal = false">
       <form class="modal" @submit.prevent="submit">

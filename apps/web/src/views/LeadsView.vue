@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { listLeads, createLead, updateLead, deleteLead } from '@/api/leads'
+import { listLeadsPaginated, createLead, updateLead, deleteLead } from '@/api/leads'
 import { createOpportunityFromLead } from '@/api/opportunities'
 import { listCompanies } from '@/api/companies'
 import { listContacts } from '@/api/contacts'
@@ -10,6 +10,8 @@ import { listUsers } from '@/api/users'
 import { useAuthStore } from '@/stores/auth'
 import { getErrorMessage } from '@/api/error'
 import { useToastStore } from '@/stores/toast'
+import { usePaginatedList } from '@/composables/usePaginatedList'
+import Pagination from '@/components/Pagination.vue'
 import type { Lead, Company, Contact } from '@/api/types'
 import type { TenantUser } from '@/api/users'
 
@@ -18,12 +20,18 @@ const router = useRouter()
 const auth = useAuthStore()
 const toast = useToastStore()
 
-const leads = ref<Lead[]>([])
+const { items: leads, total, page, totalPages, loading, error, search, filters, load, applyAndReload, goToPage } =
+  usePaginatedList<Lead, { ownerUserId?: string }>(listLeadsPaginated, { defaultSortBy: 'createdAt' })
+
+let searchDebounce: ReturnType<typeof setTimeout> | undefined
+function onSearchInput() {
+  clearTimeout(searchDebounce)
+  searchDebounce = setTimeout(applyAndReload, 300)
+}
+
 const companies = ref<Company[]>([])
 const contacts = ref<Contact[]>([])
 const users = ref<TenantUser[]>([])
-const loading = ref(true)
-const error = ref('')
 const showModal = ref(false)
 const saving = ref(false)
 const formError = ref('')
@@ -31,7 +39,11 @@ const convertingId = ref<string | null>(null)
 const editingId = ref<string | null>(null)
 const deletingId = ref<string | null>(null)
 const onlyMine = ref(false)
-const searchQuery = ref('')
+
+watch(onlyMine, (value) => {
+  filters.ownerUserId = value ? auth.user?.sub : undefined
+  applyAndReload()
+})
 
 const form = ref({
   name: '',
@@ -46,29 +58,17 @@ const contactsForSelectedCompany = computed(() =>
   form.value.companyId ? contacts.value.filter((c) => c.companyId === form.value.companyId) : contacts.value,
 )
 
-const visibleLeads = computed(() => {
-  let result = leads.value
-  if (onlyMine.value) result = result.filter((l) => l.ownerUserId === auth.user?.sub)
-  const query = searchQuery.value.trim().toLowerCase()
-  if (query) result = result.filter((l) => l.name.toLowerCase().includes(query))
-  return result
-})
-
-async function load() {
-  loading.value = true
-  error.value = ''
+async function loadPickers() {
   try {
-    const [leadsData, companiesData, contactsData] = await Promise.all([listLeads(), listCompanies(), listContacts()])
-    leads.value = leadsData
+    const [companiesData, contactsData] = await Promise.all([listCompanies(), listContacts()])
     companies.value = companiesData
     contacts.value = contactsData
     // Only Administrador-type roles can list the team — sales reps get a
     // 403 here, which just means the owner picker stays limited to "—".
     users.value = await listUsers().catch(() => [])
-  } catch (err) {
-    error.value = getErrorMessage(err)
-  } finally {
-    loading.value = false
+  } catch {
+    // Pickers are a convenience for the create/edit form — a failure here
+    // shouldn't block the leads list itself.
   }
 }
 
@@ -163,7 +163,10 @@ const statusBadge: Record<string, string> = {
   converted: 'green',
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  loadPickers()
+})
 </script>
 
 <template>
@@ -174,7 +177,7 @@ onMounted(load)
     </div>
 
     <div class="list-filters">
-      <input v-model="searchQuery" type="text" class="search-input" :placeholder="t('common.search')" />
+      <input v-model="search" type="text" class="search-input" :placeholder="t('common.search')" @input="onSearchInput" />
       <label class="checkbox-field">
         <input v-model="onlyMine" type="checkbox" />
         {{ t('common.onlyMine') }}
@@ -183,46 +186,49 @@ onMounted(load)
 
     <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
     <p v-else-if="error" class="error-text">{{ error }}</p>
-    <table v-else>
-      <thead>
-        <tr>
-          <th>{{ t('common.name') }}</th>
-          <th>{{ t('companies.title') }}</th>
-          <th>{{ t('leads.source') }}</th>
-          <th>{{ t('leads.budget') }}</th>
-          <th>{{ t('common.owner') }}</th>
-          <th>Estado</th>
-          <th>{{ t('common.actions') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="lead in visibleLeads" :key="lead.id">
-          <td>{{ lead.name }}</td>
-          <td>{{ companyName(lead.companyId) }}</td>
-          <td>{{ lead.source || '—' }}</td>
-          <td>{{ lead.estimatedBudget ?? '—' }}</td>
-          <td>{{ ownerName(lead.ownerUserId) }}</td>
-          <td><span class="badge" :class="statusBadge[lead.status]">{{ t(`leads.status.${lead.status}`) }}</span></td>
-          <td class="actions-cell">
-            <button
-              v-if="lead.status !== 'converted'"
-              class="btn secondary"
-              :disabled="convertingId === lead.id"
-              @click="convert(lead)"
-            >
-              {{ t('leads.convert') }}
-            </button>
-            <button class="btn secondary" @click="openEditModal(lead)">{{ t('common.edit') }}</button>
-            <button class="btn secondary" :disabled="deletingId === lead.id" @click="remove(lead)">
-              {{ t('common.delete') }}
-            </button>
-          </td>
-        </tr>
-        <tr v-if="!visibleLeads.length">
-          <td colspan="7" class="muted">—</td>
-        </tr>
-      </tbody>
-    </table>
+    <template v-else>
+      <table>
+        <thead>
+          <tr>
+            <th>{{ t('common.name') }}</th>
+            <th>{{ t('companies.title') }}</th>
+            <th>{{ t('leads.source') }}</th>
+            <th>{{ t('leads.budget') }}</th>
+            <th>{{ t('common.owner') }}</th>
+            <th>Estado</th>
+            <th>{{ t('common.actions') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="lead in leads" :key="lead.id">
+            <td>{{ lead.name }}</td>
+            <td>{{ companyName(lead.companyId) }}</td>
+            <td>{{ lead.source || '—' }}</td>
+            <td>{{ lead.estimatedBudget ?? '—' }}</td>
+            <td>{{ ownerName(lead.ownerUserId) }}</td>
+            <td><span class="badge" :class="statusBadge[lead.status]">{{ t(`leads.status.${lead.status}`) }}</span></td>
+            <td class="actions-cell">
+              <button
+                v-if="lead.status !== 'converted'"
+                class="btn secondary"
+                :disabled="convertingId === lead.id"
+                @click="convert(lead)"
+              >
+                {{ t('leads.convert') }}
+              </button>
+              <button class="btn secondary" @click="openEditModal(lead)">{{ t('common.edit') }}</button>
+              <button class="btn secondary" :disabled="deletingId === lead.id" @click="remove(lead)">
+                {{ t('common.delete') }}
+              </button>
+            </td>
+          </tr>
+          <tr v-if="!leads.length">
+            <td colspan="7" class="muted">—</td>
+          </tr>
+        </tbody>
+      </table>
+      <Pagination :page="page" :total-pages="totalPages" :total="total" @go="goToPage" />
+    </template>
 
     <div v-if="showModal" class="modal-backdrop" @click.self="showModal = false">
       <form class="modal" @submit.prevent="submit">

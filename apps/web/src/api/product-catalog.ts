@@ -1,8 +1,14 @@
 import { apiClient } from './client'
 import type { ProductCategory, ProductUnit } from './types'
+import type { Paginated, PageParams } from './pagination'
 
 export async function listCategories(): Promise<ProductCategory[]> {
   const { data } = await apiClient.get('/inventory/categories')
+  return data
+}
+
+export async function listCategoriesPaginated(params: PageParams): Promise<Paginated<ProductCategory>> {
+  const { data } = await apiClient.get('/inventory/categories', { params })
   return data
 }
 
@@ -22,6 +28,11 @@ export async function deleteCategory(id: string): Promise<void> {
 
 export async function listUnits(): Promise<ProductUnit[]> {
   const { data } = await apiClient.get('/inventory/units')
+  return data
+}
+
+export async function listUnitsPaginated(params: PageParams): Promise<Paginated<ProductUnit>> {
+  const { data } = await apiClient.get('/inventory/units', { params })
   return data
 }
 

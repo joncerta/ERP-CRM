@@ -1,8 +1,16 @@
 import { apiClient } from './client';
 import type { Lead } from './types';
+import type { Paginated, PageParams } from './pagination';
 
 export async function listLeads(): Promise<Lead[]> {
   const { data } = await apiClient.get('/crm/leads');
+  return data;
+}
+
+export async function listLeadsPaginated(
+  params: PageParams & { status?: string; ownerUserId?: string },
+): Promise<Paginated<Lead>> {
+  const { data } = await apiClient.get('/crm/leads', { params });
   return data;
 }
 

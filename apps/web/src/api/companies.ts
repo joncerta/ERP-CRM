@@ -1,8 +1,14 @@
 import { apiClient } from './client';
 import type { Company } from './types';
+import type { Paginated, PageParams } from './pagination';
 
 export async function listCompanies(): Promise<Company[]> {
   const { data } = await apiClient.get('/crm/companies');
+  return data;
+}
+
+export async function listCompaniesPaginated(params: PageParams): Promise<Paginated<Company>> {
+  const { data } = await apiClient.get('/crm/companies', { params });
   return data;
 }
 

@@ -1,22 +1,42 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { listStockBalances, listStockMovements, recordMovement, transferStock } from '@/api/stock'
+import { listStockBalancesPaginated, listStockMovementsPaginated, recordMovement, transferStock } from '@/api/stock'
 import { listProducts } from '@/api/products'
 import { listWarehouses } from '@/api/warehouses'
 import { getErrorMessage } from '@/api/error'
 import { useToastStore } from '@/stores/toast'
-import type { StockBalance, StockMovement, Product, Warehouse } from '@/api/types'
+import { usePaginatedList } from '@/composables/usePaginatedList'
+import Pagination from '@/components/Pagination.vue'
+import type { Product, Warehouse } from '@/api/types'
 
 const { t } = useI18n()
 const toast = useToastStore()
 
-const balances = ref<StockBalance[]>([])
-const movements = ref<StockMovement[]>([])
+const {
+  items: balances,
+  total: balancesTotal,
+  page: balancesPage,
+  totalPages: balancesTotalPages,
+  loading: balancesLoading,
+  error: balancesError,
+  load: loadBalances,
+  goToPage: goToBalancesPage,
+} = usePaginatedList(listStockBalancesPaginated, { defaultSortBy: 'quantity' })
+
+const {
+  items: movements,
+  total: movementsTotal,
+  page: movementsPage,
+  totalPages: movementsTotalPages,
+  loading: movementsLoading,
+  error: movementsError,
+  load: loadMovements,
+  goToPage: goToMovementsPage,
+} = usePaginatedList(listStockMovementsPaginated, { defaultSortBy: 'createdAt' })
+
 const products = ref<Product[]>([])
 const warehouses = ref<Warehouse[]>([])
-const loading = ref(true)
-const error = ref('')
 
 const showMovementModal = ref(false)
 const movementForm = ref({
@@ -35,24 +55,18 @@ const transferForm = ref({ productId: '', fromWarehouseId: '', toWarehouseId: ''
 const transferSaving = ref(false)
 const transferError = ref('')
 
-async function load() {
-  loading.value = true
-  error.value = ''
+async function loadAll() {
+  await Promise.all([loadBalances(), loadMovements()])
+}
+
+async function loadPickers() {
   try {
-    const [balancesData, movementsData, productsData, warehousesData] = await Promise.all([
-      listStockBalances(),
-      listStockMovements(),
-      listProducts(),
-      listWarehouses(),
-    ])
-    balances.value = balancesData
-    movements.value = movementsData
+    const [productsData, warehousesData] = await Promise.all([listProducts(), listWarehouses()])
     products.value = productsData
     warehouses.value = warehousesData
-  } catch (err) {
-    error.value = getErrorMessage(err)
-  } finally {
-    loading.value = false
+  } catch {
+    // Pickers are a convenience for the movement/transfer forms — a
+    // failure here shouldn't block the stock lists themselves.
   }
 }
 
@@ -62,8 +76,6 @@ function productName(id: string) {
 function warehouseName(id: string) {
   return warehouses.value.find((w) => w.id === id)?.name ?? '—'
 }
-
-const visibleBalances = computed(() => balances.value.filter((b) => Number(b.quantity) !== 0))
 
 function openMovementModal() {
   movementForm.value = { productId: '', warehouseId: '', type: 'purchase', direction: 'in', quantity: 1, note: '' }
@@ -85,7 +97,7 @@ async function submitMovement() {
     })
     showMovementModal.value = false
     toast.success(t('common.savedOk'))
-    await load()
+    await loadAll()
   } catch (err) {
     movementError.value = getErrorMessage(err)
   } finally {
@@ -112,7 +124,7 @@ async function submitTransfer() {
     })
     showTransferModal.value = false
     toast.success(t('common.savedOk'))
-    await load()
+    await loadAll()
   } catch (err) {
     transferError.value = getErrorMessage(err)
   } finally {
@@ -124,7 +136,10 @@ function formatDate(value: string) {
   return new Date(value).toLocaleString()
 }
 
-onMounted(load)
+onMounted(() => {
+  loadAll()
+  loadPickers()
+})
 </script>
 
 <template>
@@ -137,10 +152,10 @@ onMounted(load)
       </div>
     </div>
 
-    <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
-    <p v-else-if="error" class="error-text">{{ error }}</p>
+    <h2 class="section-title">{{ t('stock.balances') }}</h2>
+    <p v-if="balancesLoading" class="muted">{{ t('common.loading') }}</p>
+    <p v-else-if="balancesError" class="error-text">{{ balancesError }}</p>
     <template v-else>
-      <h2 class="section-title">{{ t('stock.balances') }}</h2>
       <table>
         <thead>
           <tr>
@@ -150,18 +165,23 @@ onMounted(load)
           </tr>
         </thead>
         <tbody>
-          <tr v-for="b in visibleBalances" :key="b.id">
+          <tr v-for="b in balances" :key="b.id">
             <td>{{ productName(b.productId) }}</td>
             <td>{{ warehouseName(b.warehouseId) }}</td>
             <td>{{ Number(b.quantity).toLocaleString() }}</td>
           </tr>
-          <tr v-if="!visibleBalances.length">
+          <tr v-if="!balances.length">
             <td colspan="3" class="muted">—</td>
           </tr>
         </tbody>
       </table>
+      <Pagination :page="balancesPage" :total-pages="balancesTotalPages" :total="balancesTotal" @go="goToBalancesPage" />
+    </template>
 
-      <h2 class="section-title">{{ t('stock.history') }}</h2>
+    <h2 class="section-title">{{ t('stock.history') }}</h2>
+    <p v-if="movementsLoading" class="muted">{{ t('common.loading') }}</p>
+    <p v-else-if="movementsError" class="error-text">{{ movementsError }}</p>
+    <template v-else>
       <table>
         <thead>
           <tr>
@@ -189,6 +209,7 @@ onMounted(load)
           </tr>
         </tbody>
       </table>
+      <Pagination :page="movementsPage" :total-pages="movementsTotalPages" :total="movementsTotal" @go="goToMovementsPage" />
     </template>
 
     <!-- Record movement modal -->

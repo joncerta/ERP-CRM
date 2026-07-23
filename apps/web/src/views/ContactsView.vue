@@ -1,48 +1,41 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { listContacts, createContact, updateContact, deleteContact } from '@/api/contacts'
+import { listContactsPaginated, createContact, updateContact, deleteContact } from '@/api/contacts'
 import { listCompanies } from '@/api/companies'
 import { getErrorMessage } from '@/api/error'
 import { compact } from '@/utils/compact'
 import { useToastStore } from '@/stores/toast'
+import { usePaginatedList } from '@/composables/usePaginatedList'
+import Pagination from '@/components/Pagination.vue'
 import type { Contact, Company } from '@/api/types'
 
 const { t } = useI18n()
 const toast = useToastStore()
 
-const contacts = ref<Contact[]>([])
+const { items: contacts, total, page, totalPages, loading, error, search, load, applyAndReload, goToPage } =
+  usePaginatedList(listContactsPaginated, { defaultSortBy: 'firstName' })
+
+let searchDebounce: ReturnType<typeof setTimeout> | undefined
+function onSearchInput() {
+  clearTimeout(searchDebounce)
+  searchDebounce = setTimeout(applyAndReload, 300)
+}
+
 const companies = ref<Company[]>([])
-const loading = ref(true)
-const error = ref('')
 const showModal = ref(false)
 const saving = ref(false)
 const formError = ref('')
 const editingId = ref<string | null>(null)
 const deletingId = ref<string | null>(null)
-const searchQuery = ref('')
-
-const visibleContacts = computed(() => {
-  const query = searchQuery.value.trim().toLowerCase()
-  if (!query) return contacts.value
-  return contacts.value.filter((c) =>
-    `${c.firstName} ${c.lastName ?? ''} ${c.email ?? ''}`.toLowerCase().includes(query),
-  )
-})
 
 const form = ref({ firstName: '', lastName: '', companyId: '', email: '', phone: '', whatsapp: '', position: '' })
 
-async function load() {
-  loading.value = true
-  error.value = ''
+async function loadCompanies() {
   try {
-    const [contactsData, companiesData] = await Promise.all([listContacts(), listCompanies()])
-    contacts.value = contactsData
-    companies.value = companiesData
-  } catch (err) {
-    error.value = getErrorMessage(err)
-  } finally {
-    loading.value = false
+    companies.value = await listCompanies()
+  } catch {
+    // The company picker is a convenience — a failure here shouldn't block the contacts list itself.
   }
 }
 
@@ -105,7 +98,10 @@ async function remove(contact: Contact) {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  loadCompanies()
+})
 </script>
 
 <template>
@@ -116,43 +112,46 @@ onMounted(load)
     </div>
 
     <div class="list-filters">
-      <input v-model="searchQuery" type="text" class="search-input" :placeholder="t('common.search')" />
+      <input v-model="search" type="text" class="search-input" :placeholder="t('common.search')" @input="onSearchInput" />
     </div>
 
     <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
     <p v-else-if="error" class="error-text">{{ error }}</p>
-    <table v-else>
-      <thead>
-        <tr>
-          <th>{{ t('common.name') }}</th>
-          <th>{{ t('companies.title') }}</th>
-          <th>{{ t('contacts.position') }}</th>
-          <th>{{ t('common.email') }}</th>
-          <th>{{ t('common.phone') }}</th>
-          <th>WhatsApp</th>
-          <th>{{ t('common.actions') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="contact in visibleContacts" :key="contact.id">
-          <td>{{ contact.firstName }} {{ contact.lastName || '' }}</td>
-          <td>{{ companyName(contact.companyId) }}</td>
-          <td>{{ contact.position || '—' }}</td>
-          <td>{{ contact.email || '—' }}</td>
-          <td>{{ contact.phone || '—' }}</td>
-          <td>{{ contact.whatsapp || '—' }}</td>
-          <td class="actions-cell">
-            <button class="btn secondary" @click="openEditModal(contact)">{{ t('common.edit') }}</button>
-            <button class="btn secondary" :disabled="deletingId === contact.id" @click="remove(contact)">
-              {{ t('common.delete') }}
-            </button>
-          </td>
-        </tr>
-        <tr v-if="!visibleContacts.length">
-          <td colspan="7" class="muted">—</td>
-        </tr>
-      </tbody>
-    </table>
+    <template v-else>
+      <table>
+        <thead>
+          <tr>
+            <th>{{ t('common.name') }}</th>
+            <th>{{ t('companies.title') }}</th>
+            <th>{{ t('contacts.position') }}</th>
+            <th>{{ t('common.email') }}</th>
+            <th>{{ t('common.phone') }}</th>
+            <th>WhatsApp</th>
+            <th>{{ t('common.actions') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="contact in contacts" :key="contact.id">
+            <td>{{ contact.firstName }} {{ contact.lastName || '' }}</td>
+            <td>{{ companyName(contact.companyId) }}</td>
+            <td>{{ contact.position || '—' }}</td>
+            <td>{{ contact.email || '—' }}</td>
+            <td>{{ contact.phone || '—' }}</td>
+            <td>{{ contact.whatsapp || '—' }}</td>
+            <td class="actions-cell">
+              <button class="btn secondary" @click="openEditModal(contact)">{{ t('common.edit') }}</button>
+              <button class="btn secondary" :disabled="deletingId === contact.id" @click="remove(contact)">
+                {{ t('common.delete') }}
+              </button>
+            </td>
+          </tr>
+          <tr v-if="!contacts.length">
+            <td colspan="7" class="muted">—</td>
+          </tr>
+        </tbody>
+      </table>
+      <Pagination :page="page" :total-pages="totalPages" :total="total" @go="goToPage" />
+    </template>
 
     <div v-if="showModal" class="modal-backdrop" @click.self="showModal = false">
       <form class="modal" @submit.prevent="submit">

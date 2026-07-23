@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import type { Paginated } from './pagination'
 
 export type AuditAction = 'create' | 'update' | 'delete'
 
@@ -24,13 +25,6 @@ export interface AuditLogFilters {
   to?: string
   page?: number
   pageSize?: number
-}
-
-export interface Paginated<T> {
-  items: T[]
-  total: number
-  page: number
-  pageSize: number
 }
 
 export async function listAuditLogs(filters: AuditLogFilters = {}): Promise<Paginated<AuditLog>> {

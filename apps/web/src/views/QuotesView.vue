@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { listQuotes, createQuote, updateQuote, sendQuote, createFollowUp, downloadQuotePdf } from '@/api/quotes'
+import { listQuotesPaginated, createQuote, updateQuote, sendQuote, createFollowUp, downloadQuotePdf } from '@/api/quotes'
 import { listCompanies } from '@/api/companies'
 import { listContacts } from '@/api/contacts'
 import { listCurrencies } from '@/api/currencies'
@@ -9,6 +9,8 @@ import { useAuthStore } from '@/stores/auth'
 import { getErrorMessage } from '@/api/error'
 import { compact } from '@/utils/compact'
 import { useToastStore } from '@/stores/toast'
+import { usePaginatedList } from '@/composables/usePaginatedList'
+import Pagination from '@/components/Pagination.vue'
 import type { Quote, Company, Contact } from '@/api/types'
 import type { QuoteItemInput } from '@/api/quotes'
 import type { Currency } from '@/api/currencies'
@@ -17,12 +19,18 @@ const { t } = useI18n()
 const auth = useAuthStore()
 const toast = useToastStore()
 
-const quotes = ref<Quote[]>([])
+const { items: quotes, total, page, totalPages, loading, error, search, filters, load, applyAndReload, goToPage } =
+  usePaginatedList<Quote, { ownerUserId?: string }>(listQuotesPaginated, { defaultSortBy: 'createdAt' })
+
+let searchDebounce: ReturnType<typeof setTimeout> | undefined
+function onSearchInput() {
+  clearTimeout(searchDebounce)
+  searchDebounce = setTimeout(applyAndReload, 300)
+}
+
 const companies = ref<Company[]>([])
 const contacts = ref<Contact[]>([])
 const currencies = ref<Currency[]>([])
-const loading = ref(true)
-const error = ref('')
 const showModal = ref(false)
 const saving = ref(false)
 const formError = ref('')
@@ -33,7 +41,11 @@ const followUpDate = ref('')
 const followUpNote = ref('')
 const followUpError = ref('')
 const onlyMine = ref(false)
-const searchQuery = ref('')
+
+watch(onlyMine, (value) => {
+  filters.ownerUserId = value ? auth.user?.sub : undefined
+  applyAndReload()
+})
 
 const form = ref({
   companyId: '',
@@ -47,36 +59,19 @@ const contactsForSelectedCompany = computed(() =>
   form.value.companyId ? contacts.value.filter((c) => c.companyId === form.value.companyId) : contacts.value,
 )
 
-const visibleQuotes = computed(() => {
-  let result = quotes.value
-  if (onlyMine.value) result = result.filter((q) => q.ownerUserId === auth.user?.sub)
-  const query = searchQuery.value.trim().toLowerCase()
-  if (query) {
-    result = result.filter(
-      (q) => q.quoteNumber.toLowerCase().includes(query) || companyName(q.companyId).toLowerCase().includes(query),
-    )
-  }
-  return result
-})
-
-async function load() {
-  loading.value = true
-  error.value = ''
+async function loadPickers() {
   try {
-    const [quotesData, companiesData, contactsData, currenciesData] = await Promise.all([
-      listQuotes(),
+    const [companiesData, contactsData, currenciesData] = await Promise.all([
       listCompanies(),
       listContacts(),
       listCurrencies(),
     ])
-    quotes.value = quotesData
     companies.value = companiesData
     contacts.value = contactsData
     currencies.value = currenciesData
-  } catch (err) {
-    error.value = getErrorMessage(err)
-  } finally {
-    loading.value = false
+  } catch {
+    // Pickers are a convenience for the create/edit form — a failure here
+    // shouldn't block the quotes list itself.
   }
 }
 
@@ -203,7 +198,10 @@ const statusBadge: Record<string, string> = {
   expired: 'red',
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  loadPickers()
+})
 </script>
 
 <template>
@@ -214,7 +212,7 @@ onMounted(load)
     </div>
 
     <div class="list-filters">
-      <input v-model="searchQuery" type="text" class="search-input" :placeholder="t('common.search')" />
+      <input v-model="search" type="text" class="search-input" :placeholder="t('common.search')" @input="onSearchInput" />
       <label class="checkbox-field">
         <input v-model="onlyMine" type="checkbox" />
         {{ t('common.onlyMine') }}
@@ -223,41 +221,44 @@ onMounted(load)
 
     <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
     <p v-else-if="error" class="error-text">{{ error }}</p>
-    <table v-else>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>{{ t('companies.title') }}</th>
-          <th>{{ t('quotes.total') }}</th>
-          <th>Estado</th>
-          <th>{{ t('quotes.views') }}</th>
-          <th>{{ t('common.actions') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="q in visibleQuotes" :key="q.id">
-          <td>{{ q.quoteNumber }}</td>
-          <td>{{ companyName(q.companyId) }}</td>
-          <td>{{ q.currencyCode }} {{ Number(q.total).toLocaleString() }}</td>
-          <td><span class="badge" :class="statusBadge[q.status]">{{ t(`quotes.status.${q.status}`) }}</span></td>
-          <td>{{ q.viewCount }}</td>
-          <td class="actions-cell">
-            <button v-if="q.status === 'draft'" class="btn secondary" @click="openEditModal(q)">
-              {{ t('common.edit') }}
-            </button>
-            <button v-if="q.status === 'draft'" class="btn secondary" :disabled="sendingId === q.id" @click="handleSend(q)">
-              {{ t('quotes.send') }}
-            </button>
-            <a v-if="q.status !== 'draft'" :href="publicUrl(q)" target="_blank" class="muted">{{ t('publicQuote.title') }} ↗</a>
-            <button class="btn secondary" @click="handleDownloadPdf(q)">{{ t('quotes.downloadPdf') }}</button>
-            <button class="btn secondary" @click="openFollowUp(q)">{{ t('quotes.scheduleFollowUp') }}</button>
-          </td>
-        </tr>
-        <tr v-if="!visibleQuotes.length">
-          <td colspan="6" class="muted">—</td>
-        </tr>
-      </tbody>
-    </table>
+    <template v-else>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>{{ t('companies.title') }}</th>
+            <th>{{ t('quotes.total') }}</th>
+            <th>Estado</th>
+            <th>{{ t('quotes.views') }}</th>
+            <th>{{ t('common.actions') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="q in quotes" :key="q.id">
+            <td>{{ q.quoteNumber }}</td>
+            <td>{{ companyName(q.companyId) }}</td>
+            <td>{{ q.currencyCode }} {{ Number(q.total).toLocaleString() }}</td>
+            <td><span class="badge" :class="statusBadge[q.status]">{{ t(`quotes.status.${q.status}`) }}</span></td>
+            <td>{{ q.viewCount }}</td>
+            <td class="actions-cell">
+              <button v-if="q.status === 'draft'" class="btn secondary" @click="openEditModal(q)">
+                {{ t('common.edit') }}
+              </button>
+              <button v-if="q.status === 'draft'" class="btn secondary" :disabled="sendingId === q.id" @click="handleSend(q)">
+                {{ t('quotes.send') }}
+              </button>
+              <a v-if="q.status !== 'draft'" :href="publicUrl(q)" target="_blank" class="muted">{{ t('publicQuote.title') }} ↗</a>
+              <button class="btn secondary" @click="handleDownloadPdf(q)">{{ t('quotes.downloadPdf') }}</button>
+              <button class="btn secondary" @click="openFollowUp(q)">{{ t('quotes.scheduleFollowUp') }}</button>
+            </td>
+          </tr>
+          <tr v-if="!quotes.length">
+            <td colspan="6" class="muted">—</td>
+          </tr>
+        </tbody>
+      </table>
+      <Pagination :page="page" :total-pages="totalPages" :total="total" @go="goToPage" />
+    </template>
 
     <!-- Create quote modal -->
     <div v-if="showModal" class="modal-backdrop" @click.self="showModal = false">

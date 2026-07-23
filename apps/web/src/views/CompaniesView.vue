@@ -1,45 +1,33 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { listCompanies, createCompany, updateCompany, deleteCompany } from '@/api/companies'
+import { listCompaniesPaginated, createCompany, updateCompany, deleteCompany } from '@/api/companies'
 import { getErrorMessage } from '@/api/error'
 import { compact } from '@/utils/compact'
 import { useToastStore } from '@/stores/toast'
+import { usePaginatedList } from '@/composables/usePaginatedList'
+import Pagination from '@/components/Pagination.vue'
 import type { Company } from '@/api/types'
 
 const { t } = useI18n()
 const toast = useToastStore()
-const companies = ref<Company[]>([])
-const loading = ref(true)
-const error = ref('')
+
+const { items: companies, total, page, totalPages, loading, error, search, load, applyAndReload, goToPage } =
+  usePaginatedList(listCompaniesPaginated, { defaultSortBy: 'name' })
+
+let searchDebounce: ReturnType<typeof setTimeout> | undefined
+function onSearchInput() {
+  clearTimeout(searchDebounce)
+  searchDebounce = setTimeout(applyAndReload, 300)
+}
+
 const showModal = ref(false)
 const saving = ref(false)
 const formError = ref('')
 const editingId = ref<string | null>(null)
 const deletingId = ref<string | null>(null)
-const searchQuery = ref('')
-
-const visibleCompanies = computed(() => {
-  const query = searchQuery.value.trim().toLowerCase()
-  if (!query) return companies.value
-  return companies.value.filter(
-    (c) => c.name.toLowerCase().includes(query) || (c.email ?? '').toLowerCase().includes(query),
-  )
-})
 
 const form = ref({ name: '', email: '', phone: '', city: '', country: '' })
-
-async function load() {
-  loading.value = true
-  error.value = ''
-  try {
-    companies.value = await listCompanies()
-  } catch (err) {
-    error.value = getErrorMessage(err)
-  } finally {
-    loading.value = false
-  }
-}
 
 function openCreateModal() {
   editingId.value = null
@@ -105,41 +93,44 @@ onMounted(load)
     </div>
 
     <div class="list-filters">
-      <input v-model="searchQuery" type="text" class="search-input" :placeholder="t('common.search')" />
+      <input v-model="search" type="text" class="search-input" :placeholder="t('common.search')" @input="onSearchInput" />
     </div>
 
     <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
     <p v-else-if="error" class="error-text">{{ error }}</p>
-    <table v-else>
-      <thead>
-        <tr>
-          <th>{{ t('common.name') }}</th>
-          <th>{{ t('common.email') }}</th>
-          <th>{{ t('common.phone') }}</th>
-          <th>{{ t('companies.city') }}</th>
-          <th>{{ t('companies.country') }}</th>
-          <th>{{ t('common.actions') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="c in visibleCompanies" :key="c.id">
-          <td>{{ c.name }}</td>
-          <td>{{ c.email || '—' }}</td>
-          <td>{{ c.phone || '—' }}</td>
-          <td>{{ c.city || '—' }}</td>
-          <td>{{ c.country || '—' }}</td>
-          <td class="actions-cell">
-            <button class="btn secondary" @click="openEditModal(c)">{{ t('common.edit') }}</button>
-            <button class="btn secondary" :disabled="deletingId === c.id" @click="remove(c)">
-              {{ t('common.delete') }}
-            </button>
-          </td>
-        </tr>
-        <tr v-if="!visibleCompanies.length">
-          <td colspan="6" class="muted">—</td>
-        </tr>
-      </tbody>
-    </table>
+    <template v-else>
+      <table>
+        <thead>
+          <tr>
+            <th>{{ t('common.name') }}</th>
+            <th>{{ t('common.email') }}</th>
+            <th>{{ t('common.phone') }}</th>
+            <th>{{ t('companies.city') }}</th>
+            <th>{{ t('companies.country') }}</th>
+            <th>{{ t('common.actions') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="c in companies" :key="c.id">
+            <td>{{ c.name }}</td>
+            <td>{{ c.email || '—' }}</td>
+            <td>{{ c.phone || '—' }}</td>
+            <td>{{ c.city || '—' }}</td>
+            <td>{{ c.country || '—' }}</td>
+            <td class="actions-cell">
+              <button class="btn secondary" @click="openEditModal(c)">{{ t('common.edit') }}</button>
+              <button class="btn secondary" :disabled="deletingId === c.id" @click="remove(c)">
+                {{ t('common.delete') }}
+              </button>
+            </td>
+          </tr>
+          <tr v-if="!companies.length">
+            <td colspan="6" class="muted">—</td>
+          </tr>
+        </tbody>
+      </table>
+      <Pagination :page="page" :total-pages="totalPages" :total="total" @go="goToPage" />
+    </template>
 
     <div v-if="showModal" class="modal-backdrop" @click.self="showModal = false">
       <form class="modal" @submit.prevent="submit">

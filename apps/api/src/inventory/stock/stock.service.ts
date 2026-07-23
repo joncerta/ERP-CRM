@@ -40,6 +40,7 @@ export class StockService {
     const qb = this.balancesRepo.createQueryBuilder('balance').where('balance.tenantId = :tenantId', { tenantId });
     if (query.productId) qb.andWhere('balance.productId = :productId', { productId: query.productId });
     if (query.warehouseId) qb.andWhere('balance.warehouseId = :warehouseId', { warehouseId: query.warehouseId });
+    qb.andWhere('balance.quantity != 0');
     qb.orderBy('balance.quantity', 'DESC').skip((page - 1) * pageSize).take(pageSize);
     const [items, total] = await qb.getManyAndCount();
     return { items, total, page, pageSize };

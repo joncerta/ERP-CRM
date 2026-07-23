@@ -1,8 +1,14 @@
 import { apiClient } from './client';
 import type { Contact } from './types';
+import type { Paginated, PageParams } from './pagination';
 
 export async function listContacts(companyId?: string): Promise<Contact[]> {
   const { data } = await apiClient.get('/crm/contacts', { params: companyId ? { companyId } : {} });
+  return data;
+}
+
+export async function listContactsPaginated(params: PageParams & { companyId?: string }): Promise<Paginated<Contact>> {
+  const { data } = await apiClient.get('/crm/contacts', { params });
   return data;
 }
 

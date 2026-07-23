@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { listRoles, createRole, updateRole, deleteRole } from '@/api/roles'
+import { listRolesPaginated, createRole, updateRole, deleteRole } from '@/api/roles'
 import { getErrorMessage } from '@/api/error'
 import { useToastStore } from '@/stores/toast'
+import { usePaginatedList } from '@/composables/usePaginatedList'
+import Pagination from '@/components/Pagination.vue'
 import type { Role } from '@/api/roles'
 
 const { t } = useI18n()
@@ -58,9 +60,15 @@ function permissionDescriptionKey(code: string): string {
   return `roles.permDesc.${code.replace(/\./g, '_')}`
 }
 
-const roles = ref<Role[]>([])
-const loading = ref(true)
-const error = ref('')
+const { items: roles, total, page, totalPages, loading, error, search, load, applyAndReload, goToPage } =
+  usePaginatedList(listRolesPaginated, { defaultSortBy: 'name' })
+
+let searchDebounce: ReturnType<typeof setTimeout> | undefined
+function onSearchInput() {
+  clearTimeout(searchDebounce)
+  searchDebounce = setTimeout(applyAndReload, 300)
+}
+
 const showModal = ref(false)
 const saving = ref(false)
 const formError = ref('')
@@ -68,18 +76,6 @@ const editingId = ref<string | null>(null)
 const deletingId = ref<string | null>(null)
 
 const form = ref({ name: '', permissions: [] as string[] })
-
-async function load() {
-  loading.value = true
-  error.value = ''
-  try {
-    roles.value = await listRoles()
-  } catch (err) {
-    error.value = getErrorMessage(err)
-  } finally {
-    loading.value = false
-  }
-}
 
 function openCreateModal() {
   editingId.value = null
@@ -139,37 +135,44 @@ onMounted(load)
     </div>
     <p class="muted" style="margin-bottom: 1rem">{{ t('roles.subtitle') }}</p>
 
+    <div class="list-filters">
+      <input v-model="search" type="text" class="search-input" :placeholder="t('common.search')" @input="onSearchInput" />
+    </div>
+
     <p v-if="loading" class="muted">{{ t('common.loading') }}</p>
     <p v-else-if="error" class="error-text">{{ error }}</p>
-    <table v-else>
-      <thead>
-        <tr>
-          <th>{{ t('common.name') }}</th>
-          <th>{{ t('roles.permissionCount') }}</th>
-          <th>{{ t('common.actions') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="role in roles" :key="role.id">
-          <td>
-            {{ role.name }}
-            <span v-if="role.isSystem" class="badge blue" style="margin-left: 0.5rem">{{ t('roles.system') }}</span>
-          </td>
-          <td>{{ role.permissions.includes('*') ? t('roles.allPermissions') : role.permissions.length }}</td>
-          <td class="actions-cell">
-            <template v-if="!role.isSystem">
-              <button class="btn secondary" @click="openEditModal(role)">{{ t('common.edit') }}</button>
-              <button class="btn secondary" :disabled="deletingId === role.id" @click="remove(role)">
-                {{ t('common.delete') }}
-              </button>
-            </template>
-          </td>
-        </tr>
-        <tr v-if="!roles.length">
-          <td colspan="3" class="muted">—</td>
-        </tr>
-      </tbody>
-    </table>
+    <template v-else>
+      <table>
+        <thead>
+          <tr>
+            <th>{{ t('common.name') }}</th>
+            <th>{{ t('roles.permissionCount') }}</th>
+            <th>{{ t('common.actions') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="role in roles" :key="role.id">
+            <td>
+              {{ role.name }}
+              <span v-if="role.isSystem" class="badge blue" style="margin-left: 0.5rem">{{ t('roles.system') }}</span>
+            </td>
+            <td>{{ role.permissions.includes('*') ? t('roles.allPermissions') : role.permissions.length }}</td>
+            <td class="actions-cell">
+              <template v-if="!role.isSystem">
+                <button class="btn secondary" @click="openEditModal(role)">{{ t('common.edit') }}</button>
+                <button class="btn secondary" :disabled="deletingId === role.id" @click="remove(role)">
+                  {{ t('common.delete') }}
+                </button>
+              </template>
+            </td>
+          </tr>
+          <tr v-if="!roles.length">
+            <td colspan="3" class="muted">—</td>
+          </tr>
+        </tbody>
+      </table>
+      <Pagination :page="page" :total-pages="totalPages" :total="total" @go="goToPage" />
+    </template>
 
     <div v-if="showModal" class="modal-backdrop" @click.self="showModal = false">
       <form class="modal" @submit.prevent="submit">
