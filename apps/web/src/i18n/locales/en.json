@@ -464,6 +464,7 @@
     "accept": "Accept quote",
     "reject": "Reject",
     "thanksAccepted": "Thank you! Quote accepted.",
-    "thanksRejected": "Quote rejected."
+    "thanksRejected": "Quote rejected.",
+    "expiredMsg": "This quote has expired. Contact whoever sent it to request a new one."
   }
 }

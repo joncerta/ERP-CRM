@@ -157,6 +157,9 @@ export class QuotesService extends TenantScopedService<Quote> {
     if (![QuoteStatus.SENT, QuoteStatus.VIEWED].includes(quote.status)) {
       throw new BadRequestException('Esta cotización ya no admite respuesta');
     }
+    if (quote.validUntil && new Date(quote.validUntil).getTime() < Date.now()) {
+      throw new BadRequestException('Esta cotización ya expiró');
+    }
     quote.status = accepted ? QuoteStatus.ACCEPTED : QuoteStatus.REJECTED;
     quote.respondedAt = new Date();
     const saved = await this.repository.save(quote);

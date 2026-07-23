@@ -464,6 +464,7 @@
     "accept": "Aceptar cotización",
     "reject": "Rechazar",
     "thanksAccepted": "¡Gracias! Cotización aceptada.",
-    "thanksRejected": "Cotización rechazada."
+    "thanksRejected": "Cotización rechazada.",
+    "expiredMsg": "Esta cotización ya expiró. Contacta a quien te la envió para solicitar una nueva."
   }
 }

@@ -84,6 +84,39 @@ describe('QuotesService', () => {
     });
   });
 
+  describe('respond', () => {
+    it('refuses to accept a quote past its validUntil date, even if still "sent"', async () => {
+      const { service, repo } = buildService();
+      repo.findOne.mockResolvedValue({
+        id: 'quote-1',
+        tenantId: 'tenant-a',
+        accessToken: 'token-1',
+        status: QuoteStatus.SENT,
+        validUntil: '2020-01-01',
+      } as unknown as Quote);
+
+      await expect(service.respond('token-1', true)).rejects.toThrow(BadRequestException);
+    });
+
+    it('accepts a response while still within validUntil', async () => {
+      const { service, repo, notificationEscalationService } = buildService();
+      repo.findOne.mockResolvedValue({
+        id: 'quote-1',
+        tenantId: 'tenant-a',
+        accessToken: 'token-1',
+        status: QuoteStatus.SENT,
+        ownerUserId: 'user-1',
+        quoteNumber: 'COT-000001',
+        validUntil: '2099-01-01',
+      } as unknown as Quote);
+
+      const updated = await service.respond('token-1', true);
+
+      expect(updated).toMatchObject({ status: QuoteStatus.ACCEPTED });
+      expect(notificationEscalationService.notifyWithEscalation).toHaveBeenCalled();
+    });
+  });
+
   describe('findVersions', () => {
     it('returns just the quote itself when it has no prior or later versions', async () => {
       const { service, repo } = buildService();

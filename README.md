@@ -525,6 +525,13 @@ Sube de nivel lo que ya existía: de un estado plano a un embudo medible.
   más antigua a la más nueva. Botón "Nueva versión" en `QuotesView` para
   cotizaciones que ya salieron. **Pendiente**: flujo de aprobación interna
   antes de reenviar una versión renegociada.
+- **Estado "expirada"**: `QuoteStatus` incluye `expired`, pero como no hay
+  scheduler, nada lo persiste en la base de datos — se calcula al vuelo
+  comparando `validUntil` contra hoy (mismo patrón que "vencida" en
+  Facturas), tanto en `QuotesView` como en la página pública. El backend
+  además refuerza la regla en `QuotesService.respond()`: aunque el estado
+  siga siendo `sent`/`viewed`, rechaza aceptar o rechazar una cotización
+  cuyo `validUntil` ya pasó.
 
 ## Actividades, visitas y agenda
 

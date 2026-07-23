@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getPublicQuote, respondPublicQuote, downloadPublicQuotePdf } from '@/api/quotes'
@@ -38,6 +38,14 @@ async function downloadPdf() {
   }
 }
 
+/** Same on-the-fly rule as QuotesView.effectiveStatus — the backend never
+ * persists 'expired', it only refuses to accept/reject past validUntil. */
+const isExpired = computed(() => {
+  if (!quote.value) return false
+  if (!['sent', 'viewed'].includes(quote.value.status)) return false
+  return !!quote.value.validUntil && new Date(quote.value.validUntil).getTime() < Date.now()
+})
+
 async function respond(accepted: boolean) {
   responding.value = true
   try {
@@ -59,8 +67,8 @@ onMounted(load)
     <div v-else-if="quote" class="card quote-card">
       <div class="quote-header">
         <h1>{{ t('publicQuote.title') }} {{ quote.quoteNumber }}</h1>
-        <span class="badge" :class="{ green: quote.status === 'accepted', red: quote.status === 'rejected' }">
-          {{ t(`quotes.status.${quote.status}`) }}
+        <span class="badge" :class="{ green: quote.status === 'accepted', red: quote.status === 'rejected' || isExpired }">
+          {{ t(`quotes.status.${isExpired ? 'expired' : quote.status}`) }}
         </span>
       </div>
 
@@ -98,6 +106,9 @@ onMounted(load)
       </div>
       <div v-else-if="quote.status === 'rejected'" class="response-msg">
         {{ t('publicQuote.thanksRejected') }}
+      </div>
+      <div v-else-if="isExpired" class="response-msg">
+        {{ t('publicQuote.expiredMsg') }}
       </div>
       <div v-else class="modal-actions" style="justify-content: flex-start; margin-top: 1.5rem">
         <button class="btn" :disabled="responding" @click="respond(true)">{{ t('publicQuote.accept') }}</button>

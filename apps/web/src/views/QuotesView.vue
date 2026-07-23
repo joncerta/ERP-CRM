@@ -250,6 +250,17 @@ const statusBadge: Record<string, string> = {
   expired: 'red',
 }
 
+/** `expired` exists as a status but nothing ever persists it — the backend
+ * has no scheduler to flip it automatically. Same approach as Invoice's
+ * "overdue": compute it here from validUntil vs. today, only for quotes
+ * still awaiting a response. */
+function effectiveStatus(quote: Quote): string {
+  if (['sent', 'viewed'].includes(quote.status) && quote.validUntil && new Date(quote.validUntil).getTime() < Date.now()) {
+    return 'expired'
+  }
+  return quote.status
+}
+
 onMounted(() => {
   load()
   loadPickers()
@@ -290,7 +301,7 @@ onMounted(() => {
             <td>{{ q.quoteNumber }} <span v-if="q.version > 1" class="muted">(v{{ q.version }})</span></td>
             <td>{{ companyName(q.companyId) }}</td>
             <td>{{ q.currencyCode }} {{ Number(q.total).toLocaleString() }}</td>
-            <td><span class="badge" :class="statusBadge[q.status]">{{ t(`quotes.status.${q.status}`) }}</span></td>
+            <td><span class="badge" :class="statusBadge[effectiveStatus(q)]">{{ t(`quotes.status.${effectiveStatus(q)}`) }}</span></td>
             <td>{{ q.viewCount }}</td>
             <td class="actions-cell">
               <button
