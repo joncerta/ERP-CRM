@@ -6,9 +6,10 @@ import { OpportunitiesController } from './opportunities.controller';
 import { PipelineStagesModule } from '../pipeline-stages/pipeline-stages.module';
 import { LeadsModule } from '../leads/leads.module';
 import { UsersModule } from '../../core/users/users.module';
+import { AutomationsModule } from '../../automations/automations.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Opportunity]), PipelineStagesModule, LeadsModule, UsersModule],
+  imports: [TypeOrmModule.forFeature([Opportunity]), PipelineStagesModule, LeadsModule, UsersModule, AutomationsModule],
   providers: [OpportunitiesService],
   controllers: [OpportunitiesController],
   exports: [OpportunitiesService],

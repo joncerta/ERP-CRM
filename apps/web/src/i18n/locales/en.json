@@ -18,6 +18,7 @@
     "fixedAssets": "Fixed assets",
     "support": "Customer service",
     "marketing": "Marketing",
+    "automations": "Automations",
     "platform": "Platform",
     "settings": "Settings",
     "users": "Users",
@@ -517,6 +518,43 @@
     "employeeCount": "Employees",
     "segmentTotal": "{total} contacts found"
   },
+  "automations": {
+    "title": "Automations and reports",
+    "rules": "Rules",
+    "webhooks": "Webhooks",
+    "reports": "Reports",
+    "newRule": "New rule",
+    "newWebhook": "New webhook",
+    "name": "Name",
+    "type": "Type",
+    "event": "Event",
+    "lastStatus": "Last status",
+    "ruleType": {
+      "lead_stale_reminder": "Stale lead reminder",
+      "auto_assign_lead": "Lead auto-assignment"
+    },
+    "staleDays": "Days without activity",
+    "autoAssignHint": "Assigns every new lead (with no explicit owner) to whichever active rep currently has the fewest leads assigned.",
+    "webhooksHint": "Every active webhook receives a real POST with the event as JSON, signed with HMAC-SHA256 (X-Webhook-Signature header) using a secret generated when it was created.",
+    "processNow": "Process pending",
+    "processHint": "This project has no scheduled tasks — check overdue invoices and stale leads whenever you need to.",
+    "processResult": "{overdue} invoices flagged overdue, {stale} lead reminders sent",
+    "reportByRep": "By rep",
+    "reportByClient": "By client",
+    "reportByCampaign": "By campaign",
+    "reportForecast": "Forecast",
+    "downloadCsv": "Download CSV",
+    "rep": "Rep",
+    "wonOpportunities": "Won opportunities",
+    "wonValue": "Won value",
+    "invoicedTotal": "Total invoiced",
+    "invoiceCount": "Invoice count",
+    "leadCount": "Lead count",
+    "convertedCount": "Converted",
+    "month": "Month",
+    "openCount": "Open opportunities",
+    "weightedValue": "Weighted value"
+  },
   "publicLandingForm": {
     "title": "Leave us your details",
     "name": "Name",
@@ -581,6 +619,7 @@
     "groupFinance": "Finance",
     "groupSupport": "Customer service",
     "groupMarketing": "Marketing",
+    "groupAutomation": "Automations",
     "groupCore": "Core",
     "permDesc": {
       "crm_contacts_read": "View contacts and companies",
@@ -628,7 +667,12 @@
       "marketing_landing_forms_write": "Create and edit lead-capture forms",
       "marketing_nurture_read": "View nurture sequences and enrollments",
       "marketing_nurture_write": "Create sequences, enroll contacts, and process pending steps",
-      "marketing_segments_read": "Query contact segments by industry, city, company size, and position"
+      "marketing_segments_read": "Query contact segments by industry, city, company size, and position",
+      "automation_rules_read": "View configured automation rules",
+      "automation_rules_write": "Create and enable/disable automation rules, and trigger manual processing",
+      "automation_webhooks_read": "View configured outgoing webhooks",
+      "automation_webhooks_write": "Create and enable/disable outgoing webhooks",
+      "automation_reports_read": "View reports by rep, client, and campaign, and the pipeline forecast"
     }
   },
   "audit": {

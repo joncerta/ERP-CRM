@@ -43,6 +43,7 @@ export const DEFAULT_ROLE_TEMPLATES: Array<{ name: string; permissions: string[]
       'marketing.nurture.read',
       'marketing.nurture.write',
       'marketing.segments.read',
+      'automation.reports.read',
     ],
   },
 ];

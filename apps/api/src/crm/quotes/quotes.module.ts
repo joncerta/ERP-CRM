@@ -14,6 +14,7 @@ import { ContactsModule } from '../contacts/contacts.module';
 import { EmailModule } from '../../common/email/email.module';
 import { OrgModule } from '../../core/org/org.module';
 import { TaxesModule } from '../../core/taxes/taxes.module';
+import { AutomationsModule } from '../../automations/automations.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { TaxesModule } from '../../core/taxes/taxes.module';
     EmailModule,
     OrgModule,
     TaxesModule,
+    AutomationsModule,
   ],
   providers: [QuotesService, QuoteFollowUpsService, QuotePdfService],
   controllers: [QuotesController, QuotesPublicController],

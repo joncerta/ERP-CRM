@@ -5,6 +5,7 @@ import { PipelineStagesService } from '../pipeline-stages/pipeline-stages.servic
 import { LeadsService } from '../leads/leads.service';
 import { LeadStatus } from '../leads/entities/lead.entity';
 import { NotificationEscalationService } from '../../core/users/notification-escalation.service';
+import { WebhooksService } from '../../automations/webhooks.service';
 
 function buildDeps() {
   const lostReasonsQb = {
@@ -36,7 +37,10 @@ function buildDeps() {
   const notificationEscalationService = {
     notifyWithEscalation: jest.fn().mockResolvedValue(undefined),
   } as unknown as jest.Mocked<NotificationEscalationService>;
-  return { repo, pipelineStagesService, leadsService, notificationEscalationService, lostReasonsQb };
+  const webhooksService = {
+    dispatch: jest.fn().mockResolvedValue(undefined),
+  } as unknown as jest.Mocked<WebhooksService>;
+  return { repo, pipelineStagesService, leadsService, notificationEscalationService, webhooksService, lostReasonsQb };
 }
 
 describe('OpportunitiesService', () => {
@@ -44,12 +48,13 @@ describe('OpportunitiesService', () => {
   let pipelineStagesService: ReturnType<typeof buildDeps>['pipelineStagesService'];
   let leadsService: ReturnType<typeof buildDeps>['leadsService'];
   let notificationEscalationService: ReturnType<typeof buildDeps>['notificationEscalationService'];
+  let webhooksService: ReturnType<typeof buildDeps>['webhooksService'];
   let lostReasonsQb: ReturnType<typeof buildDeps>['lostReasonsQb'];
   let service: OpportunitiesService;
 
   beforeEach(() => {
-    ({ repo, pipelineStagesService, leadsService, notificationEscalationService, lostReasonsQb } = buildDeps());
-    service = new OpportunitiesService(repo, pipelineStagesService, leadsService, notificationEscalationService);
+    ({ repo, pipelineStagesService, leadsService, notificationEscalationService, webhooksService, lostReasonsQb } = buildDeps());
+    service = new OpportunitiesService(repo, pipelineStagesService, leadsService, notificationEscalationService, webhooksService);
   });
 
   describe('create', () => {

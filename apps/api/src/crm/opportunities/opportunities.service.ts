@@ -8,6 +8,8 @@ import { TenantScopedService } from '../../common/services/tenant-scoped.service
 import { PipelineStagesService } from '../pipeline-stages/pipeline-stages.service';
 import { LeadsService } from '../leads/leads.service';
 import { NotificationEscalationService } from '../../core/users/notification-escalation.service';
+import { WebhooksService } from '../../automations/webhooks.service';
+import { WebhookEventType } from '../../automations/entities/webhook-subscription.entity';
 
 @Injectable()
 export class OpportunitiesService extends TenantScopedService<Opportunity> {
@@ -16,6 +18,7 @@ export class OpportunitiesService extends TenantScopedService<Opportunity> {
     private readonly pipelineStagesService: PipelineStagesService,
     private readonly leadsService: LeadsService,
     private readonly notificationEscalationService: NotificationEscalationService,
+    private readonly webhooksService: WebhooksService,
   ) {
     super(repo);
   }
@@ -91,17 +94,27 @@ export class OpportunitiesService extends TenantScopedService<Opportunity> {
    * coordinator wants to hear about even if their rep doesn't mention it —
    * escalates to the owner's direct manager, per the org hierarchy. */
   private async notifyOutcome(opportunity: Opportunity, won: boolean): Promise<void> {
-    if (!opportunity.ownerUserId) return;
-    await this.notificationEscalationService.notifyWithEscalation(
-      opportunity.tenantId,
-      opportunity.ownerUserId,
-      won ? 'opportunity.won' : 'opportunity.lost',
-      won ? 'Oportunidad ganada' : 'Oportunidad perdida',
-      won
-        ? `La oportunidad "${opportunity.name}" se cerró como ganada.`
-        : `La oportunidad "${opportunity.name}" se cerró como perdida.`,
-      '/pipeline',
-    );
+    if (opportunity.ownerUserId) {
+      await this.notificationEscalationService.notifyWithEscalation(
+        opportunity.tenantId,
+        opportunity.ownerUserId,
+        won ? 'opportunity.won' : 'opportunity.lost',
+        won ? 'Oportunidad ganada' : 'Oportunidad perdida',
+        won
+          ? `La oportunidad "${opportunity.name}" se cerró como ganada.`
+          : `La oportunidad "${opportunity.name}" se cerró como perdida.`,
+        '/pipeline',
+      );
+    }
+    if (won) {
+      await this.webhooksService.dispatch(opportunity.tenantId, WebhookEventType.OPPORTUNITY_WON, {
+        opportunityId: opportunity.id,
+        name: opportunity.name,
+        companyId: opportunity.companyId,
+        value: opportunity.value,
+        ownerUserId: opportunity.ownerUserId,
+      });
+    }
   }
 
   findByStage(tenantId: string, stageId: string): Promise<Opportunity[]> {

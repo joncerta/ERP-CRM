@@ -15,6 +15,8 @@ import { ListQuotesQueryDto } from './dto/list-quotes-query.dto';
 import { Paginated } from '../../common/pagination/pagination.types';
 import { DocumentSeriesService } from '../../core/org/document-series.service';
 import { TaxesService } from '../../core/taxes/taxes.service';
+import { WebhooksService } from '../../automations/webhooks.service';
+import { WebhookEventType } from '../../automations/entities/webhook-subscription.entity';
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
@@ -32,6 +34,7 @@ export class QuotesService extends TenantScopedService<Quote> {
     private readonly config: ConfigService,
     private readonly documentSeriesService: DocumentSeriesService,
     private readonly taxesService: TaxesService,
+    private readonly webhooksService: WebhooksService,
   ) {
     super(repo);
   }
@@ -193,6 +196,15 @@ export class QuotesService extends TenantScopedService<Quote> {
         : `El cliente rechazó la cotización ${saved.quoteNumber}.`,
       `/quotes`,
     );
+
+    if (accepted) {
+      await this.webhooksService.dispatch(saved.tenantId, WebhookEventType.QUOTE_ACCEPTED, {
+        quoteId: saved.id,
+        quoteNumber: saved.quoteNumber,
+        companyId: saved.companyId,
+        total: saved.total,
+      });
+    }
 
     return saved;
   }

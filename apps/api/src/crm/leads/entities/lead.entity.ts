@@ -49,4 +49,10 @@ export class Lead extends TenantScopedEntity {
   @Index()
   @Column({ name: 'owner_user_id', type: 'uuid', nullable: true })
   ownerUserId: string | null;
+
+  /** Set by the "lead sin movimiento" automation rule when it last
+   * notified the owner — lets Automations.process() avoid re-notifying
+   * on every run, only once the stale window has elapsed again. */
+  @Column({ name: 'last_stale_reminder_at', type: 'timestamptz', nullable: true })
+  lastStaleReminderAt: Date | null;
 }

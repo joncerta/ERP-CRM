@@ -588,3 +588,55 @@ export interface SegmentContact {
   phone: string | null;
   company: { id: string; name: string; industry: string | null; city: string | null; employeeCount: number | null } | null;
 }
+
+export type AutomationRuleType = 'lead_stale_reminder' | 'auto_assign_lead';
+
+export interface AutomationRule {
+  id: string;
+  name: string;
+  type: AutomationRuleType;
+  isActive: boolean;
+  config: Record<string, unknown>;
+  createdAt: string;
+}
+
+export type WebhookEventType = 'lead.created' | 'quote.accepted' | 'opportunity.won' | 'invoice.overdue';
+
+export interface WebhookSubscription {
+  id: string;
+  name: string;
+  eventType: WebhookEventType;
+  url: string;
+  secret: string;
+  isActive: boolean;
+  lastTriggeredAt: string | null;
+  lastStatus: string | null;
+  createdAt: string;
+}
+
+export interface RepReportRow {
+  ownerUserId: string;
+  ownerName: string;
+  wonOpportunities: number;
+  wonValue: number;
+  invoicedTotal: number;
+}
+
+export interface ClientReportRow {
+  companyId: string;
+  companyName: string;
+  invoiceCount: number;
+  invoicedTotal: number;
+}
+
+export interface CampaignReportRow {
+  campaign: string;
+  leadCount: number;
+  convertedCount: number;
+}
+
+export interface ForecastRow {
+  month: string;
+  weightedValue: number;
+  openCount: number;
+}

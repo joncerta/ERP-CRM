@@ -76,6 +76,16 @@ const PERMISSION_GROUPS: Array<{ labelKey: string; codes: string[] }> = [
     ],
   },
   {
+    labelKey: 'roles.groupAutomation',
+    codes: [
+      'automation.rules.read',
+      'automation.rules.write',
+      'automation.webhooks.read',
+      'automation.webhooks.write',
+      'automation.reports.read',
+    ],
+  },
+  {
     labelKey: 'roles.groupCore',
     codes: [
       'core.users.read',

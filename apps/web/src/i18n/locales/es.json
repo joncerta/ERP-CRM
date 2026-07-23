@@ -18,6 +18,7 @@
     "fixedAssets": "Activos fijos",
     "support": "Servicio al cliente",
     "marketing": "Marketing",
+    "automations": "Automatizaciones",
     "platform": "Plataforma",
     "settings": "Configuración",
     "users": "Usuarios",
@@ -517,6 +518,43 @@
     "employeeCount": "Empleados",
     "segmentTotal": "{total} contactos encontrados"
   },
+  "automations": {
+    "title": "Automatizaciones y reportes",
+    "rules": "Reglas",
+    "webhooks": "Webhooks",
+    "reports": "Reportes",
+    "newRule": "Nueva regla",
+    "newWebhook": "Nuevo webhook",
+    "name": "Nombre",
+    "type": "Tipo",
+    "event": "Evento",
+    "lastStatus": "Último estado",
+    "ruleType": {
+      "lead_stale_reminder": "Recordatorio de lead sin movimiento",
+      "auto_assign_lead": "Auto-asignación de leads"
+    },
+    "staleDays": "Días sin movimiento",
+    "autoAssignHint": "Asigna cada lead nuevo (sin dueño explícito) al vendedor activo con menos leads asignados en este momento.",
+    "webhooksHint": "Cada webhook activo recibe un POST real con el evento en formato JSON, firmado con HMAC-SHA256 (encabezado X-Webhook-Signature) usando un secreto generado al crearlo.",
+    "processNow": "Procesar pendientes",
+    "processHint": "No hay tareas programadas en este proyecto — revisa facturas vencidas y leads sin movimiento cuando lo necesites.",
+    "processResult": "{overdue} facturas marcadas vencidas, {stale} recordatorios de leads enviados",
+    "reportByRep": "Por vendedor",
+    "reportByClient": "Por cliente",
+    "reportByCampaign": "Por campaña",
+    "reportForecast": "Forecast",
+    "downloadCsv": "Descargar CSV",
+    "rep": "Vendedor",
+    "wonOpportunities": "Oportunidades ganadas",
+    "wonValue": "Valor ganado",
+    "invoicedTotal": "Total facturado",
+    "invoiceCount": "N.º de facturas",
+    "leadCount": "N.º de leads",
+    "convertedCount": "Convertidos",
+    "month": "Mes",
+    "openCount": "Oportunidades abiertas",
+    "weightedValue": "Valor ponderado"
+  },
   "publicLandingForm": {
     "title": "Déjanos tus datos",
     "name": "Nombre",
@@ -581,6 +619,7 @@
     "groupFinance": "Finanzas",
     "groupSupport": "Servicio al cliente",
     "groupMarketing": "Marketing",
+    "groupAutomation": "Automatizaciones",
     "groupCore": "Núcleo",
     "permDesc": {
       "crm_contacts_read": "Ver contactos y empresas",
@@ -628,7 +667,12 @@
       "marketing_landing_forms_write": "Crear y editar formularios de captura de leads",
       "marketing_nurture_read": "Ver secuencias de nutrición e inscripciones",
       "marketing_nurture_write": "Crear secuencias, inscribir contactos y procesar el envío de pasos pendientes",
-      "marketing_segments_read": "Consultar segmentos de contactos por industria, ciudad, tamaño de empresa y cargo"
+      "marketing_segments_read": "Consultar segmentos de contactos por industria, ciudad, tamaño de empresa y cargo",
+      "automation_rules_read": "Ver las reglas de automatización configuradas",
+      "automation_rules_write": "Crear y activar/desactivar reglas de automatización, y disparar el procesamiento manual",
+      "automation_webhooks_read": "Ver los webhooks salientes configurados",
+      "automation_webhooks_write": "Crear y activar/desactivar webhooks salientes",
+      "automation_reports_read": "Ver reportes por vendedor, cliente y campaña, y el forecast del pipeline"
     }
   },
   "audit": {

@@ -8,6 +8,7 @@ import { EmailService } from '../../common/email/email.service';
 import { ConfigService } from '@nestjs/config';
 import { DocumentSeriesService } from '../../core/org/document-series.service';
 import { TaxesService } from '../../core/taxes/taxes.service';
+import { WebhooksService } from '../../automations/webhooks.service';
 
 function buildDeps() {
   const repo = {
@@ -27,7 +28,10 @@ function buildDeps() {
   const taxesService = {
     findOneForTenant: jest.fn().mockRejectedValue(new Error('not found')),
   } as unknown as jest.Mocked<TaxesService>;
-  return { repo, notificationEscalationService, contactsService, emailService, config, documentSeriesService, taxesService };
+  const webhooksService = {
+    dispatch: jest.fn().mockResolvedValue(undefined),
+  } as unknown as jest.Mocked<WebhooksService>;
+  return { repo, notificationEscalationService, contactsService, emailService, config, documentSeriesService, taxesService, webhooksService };
 }
 
 function buildService() {
@@ -40,6 +44,7 @@ function buildService() {
     deps.config,
     deps.documentSeriesService,
     deps.taxesService,
+    deps.webhooksService,
   );
   return { service, ...deps };
 }

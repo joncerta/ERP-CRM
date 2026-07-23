@@ -873,6 +873,51 @@ proyecto: cada simplificación queda documentada aquí en vez de fingirse.
   ese ciclo y se reintenta en la próxima corrida (nunca se marca `failed`
   ni se pierde).
 
+## Automatizaciones y reportes
+
+Módulo activable `automation` (`automations/*`, permisos
+`automation.rules.read/write`, `automation.webhooks.read/write`,
+`automation.reports.read`) — reglas on/off sobre lo que ya existe,
+webhooks salientes reales, y reportes calculados al vuelo con
+exportación CSV.
+
+- **Reglas** (`AutomationRule`): catálogo fijo de dos tipos, no un
+  constructor genérico de condiciones/acciones.
+  - `auto_assign_lead` — event-driven: cuando `LeadsService.create()`
+    recibe un lead sin `ownerUserId` y la regla está activa, lo asigna al
+    vendedor activo con **menos leads asignados en ese momento**
+    (balanceo de carga, no un puntero de rotación que se desincroniza si
+    alguien se ausenta).
+  - `lead_stale_reminder` (`config: { staleDays }`) — basado en tiempo:
+    solo se evalúa cuando se llama `POST /automations/process`, ya que
+    **no hay scheduler en este proyecto** (mismo límite que depreciación,
+    facturación recurrente y nutrición de Marketing). Notifica al dueño
+    del lead y guarda `Lead.lastStaleReminderAt` para no re-notificar
+    hasta que vuelva a cumplirse la ventana.
+- **Webhooks salientes** (`WebhookSubscription`): a diferencia de SMS/
+  WhatsApp en Marketing, un webhook es **un POST HTTP real** — no necesita
+  credenciales de un tercero que este proyecto no tiene, así que no está
+  simulado. Cada disparo firma el cuerpo con HMAC-SHA256 (encabezado
+  `X-Webhook-Signature`, usando un `secret` generado al crear la
+  suscripción) y registra `lastStatus`/`lastTriggeredAt` — un endpoint
+  caído del propio tenant no debe pasar desapercibido. Eventos
+  soportados: `lead.created` (al crear un lead), `quote.accepted` (al
+  aceptar una cotización desde el enlace público), `opportunity.won` (al
+  mover una oportunidad a una etapa marcada como ganada), e
+  `invoice.overdue` (calculado por `POST /automations/process`, que
+  también marca la factura como `overdue` — antes nada transicionaba a
+  ese estado). Que un endpoint del tenant esté caído nunca rompe el flujo
+  que disparó el evento (crear el lead, aceptar la cotización...): el
+  fallo solo queda registrado en la suscripción.
+- **Reportes** (por vendedor, por cliente, por campaña, y forecast
+  ponderado del pipeline abierto): no son entidades nuevas, se calculan
+  al vuelo sobre `Opportunity`/`Invoice`/`Lead` existentes. Cada uno
+  soporta `?format=csv` para descargarlo — **no hay generación de Excel
+  real (.xlsx) ni integración con Power BI / Looker Studio**, que
+  requerirían una librería o un conector que este proyecto no tiene; CSV
+  es la respuesta honesta a "quiero abrir esto en Excel" sin fingir una
+  integración que no existe.
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia

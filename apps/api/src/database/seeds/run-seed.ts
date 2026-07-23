@@ -35,6 +35,7 @@ const MODULES = [
   { code: 'fixed_assets', name: 'Activos fijos', description: 'Registro de activos, depreciación, mantenimiento, traslado y baja', isCore: false },
   { code: 'customer_service', name: 'Servicio al cliente', description: 'Tickets y PQRS con SLA, base de conocimiento y sugerencias automáticas de artículos', isCore: false },
   { code: 'marketing', name: 'Marketing', description: 'Campañas de email/SMS/WhatsApp, formularios de captura de leads, segmentación y secuencias de nutrición', isCore: false },
+  { code: 'automation', name: 'Automatizaciones y reportes', description: 'Reglas on/off, webhooks salientes y reportes por vendedor/cliente/campaña con forecast', isCore: false },
 ];
 
 const SALT_ROUNDS = 12;
@@ -56,6 +57,7 @@ interface SeedTenantOptions {
   seedTaxes?: boolean;
   enableCustomerService?: boolean;
   enableMarketing?: boolean;
+  enableAutomation?: boolean;
 }
 
 async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
@@ -144,6 +146,11 @@ async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
       tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'marketing', isEnabled: true, enabledAt: new Date() }),
     );
   }
+  if (opts.enableAutomation) {
+    await tenantModuleRepo.save(
+      tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'automation', isEnabled: true, enabledAt: new Date() }),
+    );
+  }
 
   console.log(`Tenant "${opts.slug}" creado:`);
   console.log(`  email:    ${opts.adminEmail}`);
@@ -195,6 +202,7 @@ async function run() {
     seedTaxes: true,
     enableCustomerService: true,
     enableMarketing: true,
+    enableAutomation: true,
   });
 
   console.log(`Seed completo: ${CURRENCIES.length} monedas, ${MODULES.length} módulos.`);
