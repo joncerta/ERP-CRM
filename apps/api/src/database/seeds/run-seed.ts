@@ -20,6 +20,7 @@ const CURRENCIES = [
 const MODULES = [
   { code: 'crm', name: 'CRM Comercial', description: 'Contactos, leads, oportunidades y cotizaciones', isCore: false },
   { code: 'inventory', name: 'Inventario', description: 'Productos, bodegas, movimientos y traslados de stock', isCore: false },
+  { code: 'sales_invoicing', name: 'Facturación', description: 'Facturas, notas crédito/débito, pagos y facturación recurrente', isCore: false },
 ];
 
 const SALT_ROUNDS = 12;
@@ -34,6 +35,7 @@ interface SeedTenantOptions {
   extraAdminPermissions?: string[];
   enableCrm?: boolean;
   enableInventory?: boolean;
+  enableInvoicing?: boolean;
 }
 
 async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
@@ -86,6 +88,11 @@ async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
       tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'inventory', isEnabled: true, enabledAt: new Date() }),
     );
   }
+  if (opts.enableInvoicing) {
+    await tenantModuleRepo.save(
+      tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'sales_invoicing', isEnabled: true, enabledAt: new Date() }),
+    );
+  }
 
   console.log(`Tenant "${opts.slug}" creado:`);
   console.log(`  email:    ${opts.adminEmail}`);
@@ -130,6 +137,7 @@ async function run() {
     adminFullName: process.env.SEED_CLIENT_ADMIN_NAME ?? 'Admin Cliente',
     enableCrm: true,
     enableInventory: true,
+    enableInvoicing: true,
   });
 
   console.log(`Seed completo: ${CURRENCIES.length} monedas, ${MODULES.length} módulos.`);

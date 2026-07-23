@@ -12,6 +12,7 @@
     "warehouses": "Bodegas",
     "stock": "Stock",
     "categoriesUnits": "Categorías y unidades",
+    "invoices": "Facturación",
     "platform": "Plataforma",
     "settings": "Configuración",
     "users": "Usuarios",
@@ -208,6 +209,8 @@
     "sentOk": "Cotización enviada correctamente.",
     "revise": "Nueva versión",
     "revisedOk": "Se creó la versión {number} en borrador.",
+    "invoice": "Facturar",
+    "invoicedOk": "Se generó la factura {number} en borrador.",
     "status": {
       "draft": "Borrador",
       "sent": "Enviada",
@@ -215,6 +218,50 @@
       "accepted": "Aceptada",
       "rejected": "Rechazada",
       "expired": "Expirada"
+    }
+  },
+  "invoices": {
+    "title": "Facturación",
+    "newInvoice": "Nueva factura",
+    "recurring": "Facturas recurrentes",
+    "newTemplate": "Nueva plantilla",
+    "total": "Total",
+    "balanceDue": "Saldo pendiente",
+    "issueDate": "Fecha de emisión",
+    "dueDate": "Fecha de vencimiento",
+    "overdue": "Vencida",
+    "viewDetail": "Ver detalle",
+    "issue": "Emitir",
+    "confirmCancel": "¿Seguro que quieres cancelar esta factura?",
+    "sendReminder": "Enviar recordatorio de cobro",
+    "reminderSentOk": "Recordatorio enviado.",
+    "payments": "Pagos",
+    "amount": "Monto",
+    "method": "Método",
+    "registerPayment": "Registrar pago",
+    "adjustments": "Notas crédito/débito",
+    "reason": "Motivo",
+    "adjustmentType": {
+      "credit": "Nota crédito",
+      "debit": "Nota débito"
+    },
+    "frequencyLabel": "Frecuencia",
+    "frequency": {
+      "weekly": "Semanal",
+      "monthly": "Mensual",
+      "quarterly": "Trimestral",
+      "yearly": "Anual"
+    },
+    "lastGenerated": "Última generada",
+    "generateNow": "Generar factura ahora",
+    "generatedOk": "Se generó la factura {number}.",
+    "status": {
+      "draft": "Borrador",
+      "issued": "Emitida",
+      "partially_paid": "Pago parcial",
+      "paid": "Pagada",
+      "overdue": "Vencida",
+      "cancelled": "Cancelada"
     }
   },
   "contacts": {
@@ -268,6 +315,7 @@
     "system": "Sistema",
     "groupCrm": "CRM",
     "groupInventory": "Inventario",
+    "groupFinance": "Finanzas",
     "groupCore": "Núcleo",
     "permDesc": {
       "crm_contacts_read": "Ver contactos y empresas",
@@ -286,6 +334,8 @@
       "inventory_warehouses_write": "Crear y editar bodegas",
       "inventory_stock_read": "Ver saldos e historial de movimientos de stock",
       "inventory_stock_write": "Registrar movimientos y traslados de stock",
+      "finance_invoices_read": "Ver facturas, pagos y facturación recurrente",
+      "finance_invoices_write": "Crear y emitir facturas, registrar pagos y notas crédito/débito",
       "core_users_read": "Ver la lista de usuarios del equipo",
       "core_users_write": "Invitar usuarios y activar/desactivar su acceso",
       "core_roles_read": "Ver los roles disponibles",

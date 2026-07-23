@@ -12,6 +12,7 @@
     "warehouses": "Warehouses",
     "stock": "Stock",
     "categoriesUnits": "Categories & units",
+    "invoices": "Invoicing",
     "platform": "Platform",
     "settings": "Settings",
     "users": "Users",
@@ -208,6 +209,8 @@
     "sentOk": "Quote sent successfully.",
     "revise": "New version",
     "revisedOk": "Draft version {number} was created.",
+    "invoice": "Invoice",
+    "invoicedOk": "Draft invoice {number} was created.",
     "status": {
       "draft": "Draft",
       "sent": "Sent",
@@ -215,6 +218,50 @@
       "accepted": "Accepted",
       "rejected": "Rejected",
       "expired": "Expired"
+    }
+  },
+  "invoices": {
+    "title": "Invoicing",
+    "newInvoice": "New invoice",
+    "recurring": "Recurring invoices",
+    "newTemplate": "New template",
+    "total": "Total",
+    "balanceDue": "Balance due",
+    "issueDate": "Issue date",
+    "dueDate": "Due date",
+    "overdue": "Overdue",
+    "viewDetail": "View detail",
+    "issue": "Issue",
+    "confirmCancel": "Are you sure you want to cancel this invoice?",
+    "sendReminder": "Send collection reminder",
+    "reminderSentOk": "Reminder sent.",
+    "payments": "Payments",
+    "amount": "Amount",
+    "method": "Method",
+    "registerPayment": "Register payment",
+    "adjustments": "Credit/debit notes",
+    "reason": "Reason",
+    "adjustmentType": {
+      "credit": "Credit note",
+      "debit": "Debit note"
+    },
+    "frequencyLabel": "Frequency",
+    "frequency": {
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "yearly": "Yearly"
+    },
+    "lastGenerated": "Last generated",
+    "generateNow": "Generate invoice now",
+    "generatedOk": "Invoice {number} was generated.",
+    "status": {
+      "draft": "Draft",
+      "issued": "Issued",
+      "partially_paid": "Partially paid",
+      "paid": "Paid",
+      "overdue": "Overdue",
+      "cancelled": "Cancelled"
     }
   },
   "contacts": {
@@ -268,6 +315,7 @@
     "system": "System",
     "groupCrm": "CRM",
     "groupInventory": "Inventory",
+    "groupFinance": "Finance",
     "groupCore": "Core",
     "permDesc": {
       "crm_contacts_read": "View contacts and companies",
@@ -286,6 +334,8 @@
       "inventory_warehouses_write": "Create and edit warehouses",
       "inventory_stock_read": "View stock balances and movement history",
       "inventory_stock_write": "Record stock movements and transfers",
+      "finance_invoices_read": "View invoices, payments, and recurring invoicing",
+      "finance_invoices_write": "Create and issue invoices, register payments and credit/debit notes",
       "core_users_read": "View the team's user list",
       "core_users_write": "Invite users and activate/deactivate their access",
       "core_roles_read": "View available roles",

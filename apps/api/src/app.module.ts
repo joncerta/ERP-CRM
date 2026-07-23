@@ -10,6 +10,7 @@ import { typeOrmDataSourceOptions } from './config/typeorm.config';
 import { CoreModule } from './core/core.module';
 import { CrmModule } from './crm/crm.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { FinanceModule } from './finance/finance.module';
 import { AuditModule } from './audit/audit.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
@@ -28,6 +29,7 @@ import { RequestContextInterceptor } from './common/interceptors/request-context
     CoreModule,
     CrmModule,
     InventoryModule,
+    FinanceModule,
     AuditModule,
   ],
   controllers: [AppController],

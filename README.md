@@ -553,6 +553,47 @@ fuera de una cotización, ni calendario.
   contacto, no una actividad) — quedan fuera de este alcance porque
   requieren integraciones con APIs externas.
 
+## Facturación
+
+Módulo activable `sales_invoicing` (`GET/POST/PATCH /api/finance/invoices/*`,
+permisos `finance.invoices.read` / `finance.invoices.write`) — facturación
+ligera, deliberadamente **no electrónica ni compatible con DIAN**, para
+mantener el alcance manejable.
+
+- **`Invoice`** sigue el mismo patrón que `Quote` (ítems eager,
+  numeración vía `DocumentSeriesService` con el tipo de documento
+  `'invoice'` y prefijo `FAC`). Se puede crear a mano o convertir desde
+  una cotización **aceptada** (`POST /finance/invoices/from-quote/:quoteId`,
+  botón "Facturar" en `QuotesView`) — recalcula la tasa de impuesto
+  implícita de la cotización en vez de copiar subtotal/impuesto tal cual,
+  por si ha cambiado algo desde entonces.
+- **Ciclo de estados**: `draft → issued → partially_paid/paid`, o
+  `cancelled` en cualquier punto antes de estar pagada. Solo se edita en
+  `draft`; solo se cancela si no está pagada.
+- **Notas crédito/débito** (`InvoiceAdjustment`) no tocan los ítems de la
+  factura — se acumulan en `adjustmentsTotal` (crédito resta, débito
+  suma), y el saldo pendiente real es `total + adjustmentsTotal -
+  amountPaid`.
+- **Pagos y abonos** (`InvoicePayment`): cada pago registrado recalcula el
+  saldo y el estado (`partially_paid` si queda saldo, `paid` si llega a
+  cero), y escala una notificación al dueño de la factura y a su líder
+  (módulo 8) vía `NotificationEscalationService`.
+- **Recordatorios de cobro con tono escalante**: `POST
+  /finance/invoices/:id/send-reminder` usa una plantilla más firme cada
+  vez según `reminderCount` (amable la primera vez, directa después),
+  como notificación in-app al dueño — no hay envío de correo real todavía,
+  a diferencia de `QuotesService.emailQuoteToCustomer()`.
+- **Facturas recurrentes** (`RecurringInvoiceTemplate`): una "receta"
+  reutilizable (empresa, ítems, frecuencia) que genera una nueva factura
+  en borrador con `POST .../recurring-templates/:id/generate` — es una
+  acción **manual** que la persona dispara cada ciclo, no una tarea
+  programada automática, porque este backend no tiene un scheduler
+  instalado (`@nestjs/schedule` no es una dependencia del proyecto).
+- **Pendiente**: "vencida" se calcula al vuelo en el frontend comparando
+  `dueDate` contra hoy — no hay un job que marque `status = 'overdue'` en
+  la base de datos ni que notifique automáticamente al vencer, por la
+  misma razón de no tener scheduler.
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia

@@ -89,6 +89,9 @@ onUnmounted(() => {
             <RouterLink to="/inventory/stock">{{ t('nav.stock') }}</RouterLink>
             <RouterLink to="/inventory/categories-units">{{ t('nav.categoriesUnits') }}</RouterLink>
           </template>
+          <template v-if="enabledModuleCodes.includes('sales_invoicing')">
+            <RouterLink to="/invoices">{{ t('nav.invoices') }}</RouterLink>
+          </template>
         </template>
       </nav>
       <div class="sidebar-footer">

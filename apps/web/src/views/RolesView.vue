@@ -42,6 +42,10 @@ const PERMISSION_GROUPS: Array<{ labelKey: string; codes: string[] }> = [
     ],
   },
   {
+    labelKey: 'roles.groupFinance',
+    codes: ['finance.invoices.read', 'finance.invoices.write'],
+  },
+  {
     labelKey: 'roles.groupCore',
     codes: [
       'core.users.read',

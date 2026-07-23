@@ -10,6 +10,7 @@ import { Paginated } from '../../common/pagination/pagination.types';
 
 const DEFAULT_PREFIXES: Record<string, string> = {
   quote: 'COT',
+  invoice: 'FAC',
 };
 
 @Injectable()

@@ -201,3 +201,78 @@ export interface Activity {
   nextAction: string | null;
   createdAt: string;
 }
+
+export type InvoiceStatus = 'draft' | 'issued' | 'partially_paid' | 'paid' | 'overdue' | 'cancelled';
+
+export interface InvoiceItem {
+  id: string;
+  description: string;
+  quantity: number | string;
+  unitPrice: number | string;
+  total: number | string;
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  companyId: string;
+  contactId: string | null;
+  quoteId: string | null;
+  status: InvoiceStatus;
+  currencyCode: string;
+  subtotal: number | string;
+  tax: number | string;
+  total: number | string;
+  adjustmentsTotal: number | string;
+  amountPaid: number | string;
+  issueDate: string;
+  dueDate: string | null;
+  reminderCount: number;
+  ownerUserId: string;
+  items: InvoiceItem[];
+  createdAt: string;
+}
+
+export type InvoiceAdjustmentType = 'credit' | 'debit';
+
+export interface InvoiceAdjustment {
+  id: string;
+  invoiceId: string;
+  type: InvoiceAdjustmentType;
+  amount: number | string;
+  reason: string | null;
+  createdByUserId: string;
+  createdAt: string;
+}
+
+export interface InvoicePayment {
+  id: string;
+  invoiceId: string;
+  amount: number | string;
+  method: string | null;
+  paidAt: string;
+  note: string | null;
+  createdByUserId: string;
+}
+
+export type RecurrenceFrequency = 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+
+export interface RecurringInvoiceItemTemplate {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface RecurringInvoiceTemplate {
+  id: string;
+  name: string;
+  companyId: string;
+  contactId: string | null;
+  currencyCode: string;
+  frequency: RecurrenceFrequency;
+  items: RecurringInvoiceItemTemplate[];
+  taxRate: number | string;
+  ownerUserId: string;
+  isActive: boolean;
+  lastGeneratedAt: string | null;
+}

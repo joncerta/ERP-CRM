@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import {
   listQuotesPaginated,
   getQuote,
@@ -11,6 +12,7 @@ import {
   downloadQuotePdf,
   createQuoteRevision,
 } from '@/api/quotes'
+import { createInvoiceFromQuote } from '@/api/invoices'
 import { listCompanies } from '@/api/companies'
 import { listContacts } from '@/api/contacts'
 import { listCurrencies } from '@/api/currencies'
@@ -25,6 +27,7 @@ import type { QuoteItemInput } from '@/api/quotes'
 import type { Currency } from '@/api/currencies'
 
 const { t } = useI18n()
+const router = useRouter()
 const auth = useAuthStore()
 const toast = useToastStore()
 
@@ -212,6 +215,20 @@ async function handleRevise(quote: Quote) {
   }
 }
 
+const invoicingId = ref<string | null>(null)
+async function handleInvoice(quote: Quote) {
+  invoicingId.value = quote.id
+  try {
+    const invoice = await createInvoiceFromQuote(quote.id, new Date().toISOString().slice(0, 10))
+    toast.success(t('quotes.invoicedOk', { number: invoice.invoiceNumber }))
+    router.push({ name: 'invoices' })
+  } catch (err) {
+    toast.error(getErrorMessage(err))
+  } finally {
+    invoicingId.value = null
+  }
+}
+
 function publicUrl(quote: Quote) {
   return `${window.location.origin}/q/${quote.accessToken}`
 }
@@ -295,6 +312,14 @@ onMounted(() => {
                 @click="handleRevise(q)"
               >
                 {{ t('quotes.revise') }}
+              </button>
+              <button
+                v-if="q.status === 'accepted'"
+                class="btn secondary"
+                :disabled="invoicingId === q.id"
+                @click="handleInvoice(q)"
+              >
+                {{ t('quotes.invoice') }}
               </button>
               <button class="btn secondary" @click="handleDownloadPdf(q)">{{ t('quotes.downloadPdf') }}</button>
               <button class="btn secondary" @click="openFollowUp(q)">{{ t('quotes.scheduleFollowUp') }}</button>
