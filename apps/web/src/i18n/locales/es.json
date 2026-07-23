@@ -16,6 +16,7 @@
     "users": "Usuarios",
     "roles": "Roles",
     "auditLogs": "Auditoría",
+    "orgStructure": "Estructura organizacional",
     "logout": "Cerrar sesión"
   },
   "notifications": {
@@ -66,7 +67,8 @@
     "search": "Buscar...",
     "savedOk": "Guardado correctamente.",
     "deletedOk": "Eliminado correctamente.",
-    "pageOf": "Página {page} de {totalPages}"
+    "pageOf": "Página {page} de {totalPages}",
+    "yes": "Sí"
   },
   "leads": {
     "title": "Leads",
@@ -246,7 +248,9 @@
       "core_roles_write": "Crear, editar y eliminar roles personalizados",
       "core_modules_write": "Activar o desactivar módulos (CRM, Inventario) para la empresa",
       "core_tenant_settings_write": "Cambiar la configuración de sesión de la empresa",
-      "core_audit_read": "Ver el registro de auditoría: quién cambió qué y cuándo"
+      "core_audit_read": "Ver el registro de auditoría: quién cambió qué y cuándo",
+      "core_org_read": "Ver sucursales, centros de costo, departamentos, cargos y el organigrama",
+      "core_org_write": "Crear y editar la estructura organizacional, y asignar líder/sucursal/departamento a cada usuario"
     }
   },
   "audit": {
@@ -278,7 +282,47 @@
     "currentPassword": "Contraseña actual",
     "changePassword": "Cambiar contraseña",
     "saved": "Guardado.",
-    "passwordChangedOk": "Contraseña actualizada. Vuelve a iniciar sesión."
+    "passwordChangedOk": "Contraseña actualizada. Vuelve a iniciar sesión.",
+    "orgTitle": "Zona horaria e impuestos",
+    "orgSubtitle": "Valores por defecto de la empresa: se usan como referencia y para prellenar documentos nuevos.",
+    "timezone": "Zona horaria",
+    "taxLabel": "Nombre del impuesto",
+    "taxRatePercent": "Tasa del impuesto (%)"
+  },
+  "orgStructure": {
+    "title": "Estructura organizacional",
+    "branches": "Sucursales",
+    "branchesSubtitle": "Sedes físicas o de operación de la empresa.",
+    "newBranch": "Nueva sucursal",
+    "costCenters": "Centros de costo",
+    "costCentersSubtitle": "Agrupaciones contables/administrativas independientes de la sucursal.",
+    "newCostCenter": "Nuevo centro de costo",
+    "departments": "Departamentos",
+    "departmentsSubtitle": "Áreas funcionales de la empresa (Ventas, Finanzas, Operaciones...).",
+    "newDepartment": "Nuevo departamento",
+    "positions": "Cargos",
+    "positionsSubtitle": "Puestos dentro de un departamento.",
+    "newPosition": "Nuevo cargo",
+    "documentSeries": "Numeración de documentos",
+    "documentSeriesSubtitle": "Series de numeración por tipo de documento, con o sin sucursal.",
+    "newSeries": "Nueva serie",
+    "documentType": "Tipo de documento",
+    "prefix": "Prefijo",
+    "nextNumber": "Próximo número",
+    "padding": "Dígitos",
+    "tenantWide": "Toda la empresa (sin sucursal)",
+    "orgChart": "Organigrama",
+    "orgChartSubtitle": "Asigna el líder, sucursal, departamento y cargo de cada usuario.",
+    "reportsTo": "Reporta a",
+    "noManager": "Sin líder",
+    "noBranch": "Sin sucursal",
+    "noDepartment": "Sin departamento",
+    "noPosition": "Sin cargo",
+    "tree": "Jerarquía de reporte",
+    "code": "Código",
+    "address": "Dirección",
+    "timezone": "Zona horaria",
+    "default": "Por defecto"
   },
   "publicQuote": {
     "title": "Cotización",

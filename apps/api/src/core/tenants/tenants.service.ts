@@ -64,6 +64,19 @@ export class TenantsService {
     return this.repo.save(tenant);
   }
 
+  async updateOrgSettings(
+    tenantId: string,
+    dto: { timezone?: string; taxLabel?: string; taxRatePercent?: number | null },
+  ): Promise<Tenant> {
+    const tenant = await this.findOne(tenantId);
+    if (dto.timezone !== undefined) tenant.timezone = dto.timezone;
+    if (dto.taxLabel !== undefined) tenant.taxLabel = dto.taxLabel;
+    if (dto.taxRatePercent !== undefined) {
+      tenant.taxRatePercent = dto.taxRatePercent === null ? null : String(dto.taxRatePercent);
+    }
+    return this.repo.save(tenant);
+  }
+
   async updateBranding(
     tenantId: string,
     primaryColor: string | null,

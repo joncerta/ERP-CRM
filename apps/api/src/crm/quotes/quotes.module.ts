@@ -12,6 +12,7 @@ import { QuotesPublicController } from './quotes-public.controller';
 import { NotificationsModule } from '../../notifications/notifications.module';
 import { ContactsModule } from '../contacts/contacts.module';
 import { EmailModule } from '../../common/email/email.module';
+import { OrgModule } from '../../core/org/org.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { EmailModule } from '../../common/email/email.module';
     NotificationsModule,
     ContactsModule,
     EmailModule,
+    OrgModule,
   ],
   providers: [QuotesService, QuoteFollowUpsService, QuotePdfService],
   controllers: [QuotesController, QuotesPublicController],

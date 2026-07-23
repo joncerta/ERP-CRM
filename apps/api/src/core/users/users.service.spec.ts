@@ -77,6 +77,57 @@ describe('UsersService', () => {
     });
   });
 
+  describe('assignOrg', () => {
+    it('throws when the user does not exist in this tenant', async () => {
+      repo.findOne.mockResolvedValue(null);
+      await expect(service.assignOrg('tenant-a', 'missing', { branchId: 'branch-1' })).rejects.toThrow(NotFoundException);
+    });
+
+    it('rejects a user being assigned as their own manager', async () => {
+      repo.findOne.mockResolvedValue({ id: 'user-1', tenantId: 'tenant-a' } as User);
+      await expect(service.assignOrg('tenant-a', 'user-1', { managerId: 'user-1' })).rejects.toThrow(BadRequestException);
+    });
+
+    it('rejects a manager that does not exist in this tenant', async () => {
+      repo.findOne
+        .mockResolvedValueOnce({ id: 'user-1', tenantId: 'tenant-a' } as User) // the user being assigned
+        .mockResolvedValueOnce(null); // the manager lookup
+      await expect(service.assignOrg('tenant-a', 'user-1', { managerId: 'ghost' })).rejects.toThrow(BadRequestException);
+    });
+
+    it('rejects a manager assignment that would create a reporting cycle', async () => {
+      // user-1 reports to user-2, which would make user-2 -> user-1 a loop.
+      repo.findOne.mockImplementation(({ where }: any) => {
+        const id = where.id;
+        if (id === 'user-2') return Promise.resolve({ id: 'user-2', tenantId: 'tenant-a', managerId: 'user-1' } as User);
+        if (id === 'user-1') return Promise.resolve({ id: 'user-1', tenantId: 'tenant-a', managerId: null } as User);
+        return Promise.resolve(null);
+      });
+      await expect(service.assignOrg('tenant-a', 'user-1', { managerId: 'user-2' })).rejects.toThrow(BadRequestException);
+    });
+
+    it('assigns manager, branch, department and position', async () => {
+      repo.findOne.mockImplementation(({ where }: any) => {
+        const id = where.id;
+        if (id === 'user-1') return Promise.resolve({ id: 'user-1', tenantId: 'tenant-a', managerId: null } as User);
+        if (id === 'user-2') return Promise.resolve({ id: 'user-2', tenantId: 'tenant-a', managerId: null } as User);
+        return Promise.resolve(null);
+      });
+
+      const result = await service.assignOrg('tenant-a', 'user-1', {
+        managerId: 'user-2',
+        branchId: 'branch-1',
+        departmentId: 'dept-1',
+        positionId: 'pos-1',
+      });
+
+      expect(result.managerId).toBe('user-2');
+      expect(result.branchId).toBe('branch-1');
+      expect(result.departmentId).toBe('dept-1');
+      expect(result.positionId).toBe('pos-1');
+    });
+  });
+
   describe('changeOwnPassword', () => {
     it('throws when the current password does not match', async () => {
       const hash = await bcrypt.hash('CorrectPassword1!', 4);

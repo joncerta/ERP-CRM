@@ -130,6 +130,12 @@ const router = createRouter({
       meta: { requiresPermission: 'core.audit.read' },
     },
     {
+      path: '/org-structure',
+      name: 'org-structure',
+      component: () => import('@/views/OrgStructureView.vue'),
+      meta: { requiresPermission: 'core.org.read' },
+    },
+    {
       path: '/platform/tenants',
       name: 'platform-tenants',
       component: () => import('@/views/PlatformTenantsView.vue'),

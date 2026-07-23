@@ -16,6 +16,7 @@
     "users": "Users",
     "roles": "Roles",
     "auditLogs": "Audit log",
+    "orgStructure": "Org structure",
     "logout": "Log out"
   },
   "notifications": {
@@ -66,7 +67,8 @@
     "search": "Search...",
     "savedOk": "Saved successfully.",
     "deletedOk": "Deleted successfully.",
-    "pageOf": "Page {page} of {totalPages}"
+    "pageOf": "Page {page} of {totalPages}",
+    "yes": "Yes"
   },
   "leads": {
     "title": "Leads",
@@ -246,7 +248,9 @@
       "core_roles_write": "Create, edit, and delete custom roles",
       "core_modules_write": "Enable or disable modules (CRM, Inventory) for the company",
       "core_tenant_settings_write": "Change the company's session settings",
-      "core_audit_read": "View the audit log: who changed what, and when"
+      "core_audit_read": "View the audit log: who changed what, and when",
+      "core_org_read": "View branches, cost centers, departments, positions, and the org chart",
+      "core_org_write": "Create and edit the org structure, and assign each user's manager/branch/department"
     }
   },
   "audit": {
@@ -278,7 +282,47 @@
     "currentPassword": "Current password",
     "changePassword": "Change password",
     "saved": "Saved.",
-    "passwordChangedOk": "Password updated. Please sign in again."
+    "passwordChangedOk": "Password updated. Please sign in again.",
+    "orgTitle": "Timezone & taxes",
+    "orgSubtitle": "Company-wide defaults: used as a reference and to pre-fill new documents.",
+    "timezone": "Timezone",
+    "taxLabel": "Tax name",
+    "taxRatePercent": "Tax rate (%)"
+  },
+  "orgStructure": {
+    "title": "Org structure",
+    "branches": "Branches",
+    "branchesSubtitle": "Physical or operational sites of the company.",
+    "newBranch": "New branch",
+    "costCenters": "Cost centers",
+    "costCentersSubtitle": "Accounting/admin groupings independent of branch.",
+    "newCostCenter": "New cost center",
+    "departments": "Departments",
+    "departmentsSubtitle": "Functional areas of the company (Sales, Finance, Operations...).",
+    "newDepartment": "New department",
+    "positions": "Positions",
+    "positionsSubtitle": "Job titles within a department.",
+    "newPosition": "New position",
+    "documentSeries": "Document numbering",
+    "documentSeriesSubtitle": "Numbering series per document type, with or without a branch.",
+    "newSeries": "New series",
+    "documentType": "Document type",
+    "prefix": "Prefix",
+    "nextNumber": "Next number",
+    "padding": "Digits",
+    "tenantWide": "Company-wide (no branch)",
+    "orgChart": "Org chart",
+    "orgChartSubtitle": "Assign each user's manager, branch, department, and position.",
+    "reportsTo": "Reports to",
+    "noManager": "No manager",
+    "noBranch": "No branch",
+    "noDepartment": "No department",
+    "noPosition": "No position",
+    "tree": "Reporting hierarchy",
+    "code": "Code",
+    "address": "Address",
+    "timezone": "Timezone",
+    "default": "Default"
   },
   "publicQuote": {
     "title": "Quote",

@@ -38,6 +38,19 @@ export class Tenant extends BaseEntity {
   @Column({ name: 'branding_logo_data', type: 'text', nullable: true })
   brandingLogoData: string | null;
 
+  /** IANA timezone (e.g. "America/Bogota") used as the default for
+   * branches that don't set their own. */
+  @Column({ default: 'America/Bogota' })
+  timezone: string;
+
+  /** Default tax shown on new quotes/invoices — a label ("IVA") and a
+   * percentage. Null rate means no default tax is pre-filled. */
+  @Column({ name: 'tax_label', type: 'varchar', nullable: true })
+  taxLabel: string | null;
+
+  @Column({ name: 'tax_rate_percent', type: 'decimal', precision: 5, scale: 2, nullable: true })
+  taxRatePercent: string | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

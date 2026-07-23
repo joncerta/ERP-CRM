@@ -13,6 +13,7 @@ import { EmailService } from '../../common/email/email.service';
 import { ConfigService } from '@nestjs/config';
 import { ListQuotesQueryDto } from './dto/list-quotes-query.dto';
 import { Paginated } from '../../common/pagination/pagination.types';
+import { DocumentSeriesService } from '../../core/org/document-series.service';
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
@@ -28,6 +29,7 @@ export class QuotesService extends TenantScopedService<Quote> {
     private readonly contactsService: ContactsService,
     private readonly emailService: EmailService,
     private readonly config: ConfigService,
+    private readonly documentSeriesService: DocumentSeriesService,
   ) {
     super(repo);
   }
@@ -47,9 +49,12 @@ export class QuotesService extends TenantScopedService<Quote> {
     return { quoteItems, subtotal, tax, total };
   }
 
-  private async nextQuoteNumber(tenantId: string): Promise<string> {
-    const count = await this.repository.count({ where: { tenantId } });
-    return `COT-${String(count + 1).padStart(6, '0')}`;
+  /** Delegates to the org module's per-tenant document series (module 8),
+   * which auto-provisions a "COT-000001"-style series on first use — so
+   * tenants that predate this series table keep counting from wherever
+   * their existing quotes left off (backfilled in the migration). */
+  private nextQuoteNumber(tenantId: string): Promise<string> {
+    return this.documentSeriesService.consumeNext(tenantId, 'quote');
   }
 
   async create(tenantId: string, ownerUserId: string, dto: CreateQuoteDto): Promise<Quote> {

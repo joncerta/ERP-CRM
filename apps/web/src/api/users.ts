@@ -9,6 +9,10 @@ export interface TenantUser {
   role: { id: string; name: string }
   isActive: boolean
   preferredLocale: string
+  managerId: string | null
+  branchId: string | null
+  departmentId: string | null
+  positionId: string | null
 }
 
 export interface CreateUserPayload {

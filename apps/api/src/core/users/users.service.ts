@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { AssignUserOrgDto } from '../org/dto/assign-user-org.dto';
 import { ListQueryDto } from '../../common/dto/list-query.dto';
 import { Paginated } from '../../common/pagination/pagination.types';
 
@@ -66,6 +67,47 @@ export class UsersService {
     if (!user) throw new NotFoundException(`Usuario ${userId} no encontrado`);
     user.isActive = isActive;
     return this.repo.save(user);
+  }
+
+  /** Places a user in the org structure — manager, branch, department,
+   * position. Only the fields present in the DTO are touched. */
+  async assignOrg(tenantId: string, userId: string, dto: AssignUserOrgDto): Promise<User> {
+    const user = await this.repo.findOne({ where: { id: userId, tenantId } });
+    if (!user) throw new NotFoundException(`Usuario ${userId} no encontrado`);
+
+    if (dto.managerId !== undefined) {
+      if (dto.managerId === userId) {
+        throw new BadRequestException('Un usuario no puede ser su propio líder');
+      }
+      if (dto.managerId) {
+        const manager = await this.repo.findOne({ where: { id: dto.managerId, tenantId } });
+        if (!manager) throw new BadRequestException('El líder asignado no existe en esta empresa');
+        if (await this.wouldCreateCycle(tenantId, userId, dto.managerId)) {
+          throw new BadRequestException('Esa asignación crearía un ciclo en la jerarquía de reporte');
+        }
+      }
+      user.managerId = dto.managerId ?? null;
+    }
+    if (dto.branchId !== undefined) user.branchId = dto.branchId ?? null;
+    if (dto.departmentId !== undefined) user.departmentId = dto.departmentId ?? null;
+    if (dto.positionId !== undefined) user.positionId = dto.positionId ?? null;
+
+    return this.repo.save(user);
+  }
+
+  /** Walks up from the candidate manager's own chain — if it ever reaches
+   * `userId`, assigning that manager would close a loop. */
+  private async wouldCreateCycle(tenantId: string, userId: string, managerId: string): Promise<boolean> {
+    let currentId: string | null = managerId;
+    const visited = new Set<string>();
+    while (currentId) {
+      if (currentId === userId) return true;
+      if (visited.has(currentId)) return false;
+      visited.add(currentId);
+      const current: User | null = await this.repo.findOne({ where: { id: currentId, tenantId } });
+      currentId = current?.managerId ?? null;
+    }
+    return false;
   }
 
   static async verifyPassword(plain: string, hash: string): Promise<boolean> {

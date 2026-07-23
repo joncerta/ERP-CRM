@@ -33,4 +33,23 @@ export class User extends TenantScopedEntity {
 
   @Column({ name: 'password_reset_expires_at', type: 'timestamptz', nullable: true })
   passwordResetExpiresAt: Date | null;
+
+  /** Reporting hierarchy: who this user's manager/coordinator is, for
+   * hierarchy-aware notification escalation. Self-referencing, so it's a
+   * plain nullable column rather than a typed relation to avoid a circular
+   * eager-load. */
+  @Index()
+  @Column({ name: 'manager_id', type: 'uuid', nullable: true })
+  managerId: string | null;
+
+  @Index()
+  @Column({ name: 'branch_id', type: 'uuid', nullable: true })
+  branchId: string | null;
+
+  @Index()
+  @Column({ name: 'department_id', type: 'uuid', nullable: true })
+  departmentId: string | null;
+
+  @Column({ name: 'position_id', type: 'uuid', nullable: true })
+  positionId: string | null;
 }

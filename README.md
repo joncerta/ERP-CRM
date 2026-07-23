@@ -425,6 +425,48 @@ traer todas las filas y filtrar en el navegador.
   solo aparece si hay más de una página. La búsqueda tiene debounce de
   300ms para no disparar una petición por cada tecla.
 
+## Estructura organizacional
+
+Módulo `core/org` (`GET/POST/PATCH/DELETE /api/org/*`, permisos
+`core.org.read` / `core.org.write`): sucursales, centros de costo,
+departamentos, cargos, numeración de documentos y jerarquía de reporte
+entre usuarios. Pantalla `Estructura organizacional` en el nav.
+
+- **Sucursales, centros de costo, departamentos, cargos** son catálogos
+  tenant-scoped normales (`BranchesService`, `CostCentersService`, etc.,
+  todos sobre `TenantScopedService`), con el mismo patrón CRUD que
+  bodegas/categorías. Una sucursal solo puede eliminarse si no tiene
+  departamentos; un departamento si no tiene cargos ni usuarios; un cargo
+  si no tiene usuarios.
+- **Jerarquía de reporte**: `User` gana `managerId`, `branchId`,
+  `departmentId`, `positionId` (columnas nullable, sin relación tipada
+  para evitar un eager-load circular). Se asignan vía
+  `PATCH /api/users/:id/org`. `UsersService.assignOrg()` rechaza que un
+  usuario sea su propio líder y camina la cadena de `managerId` hacia
+  arriba para rechazar cualquier asignación que cerraría un ciclo. La
+  pantalla de Organigrama lista cada usuario con selectores para su líder,
+  sucursal, departamento y cargo, más un árbol simple de quién reporta a
+  quién — es la base sobre la que el módulo de notificaciones (próxima
+  fase) escala una notificación al líder de quien la disparó.
+- **Numeración de documentos** (`DocumentSeries`, tabla
+  `org_document_series`): una secuencia por tipo de documento
+  (`documentType`, hoy solo `'quote'`) opcionalmente por sucursal —
+  `branchId` nulo es la serie por defecto de todo el tenant.
+  `DocumentSeriesService.consumeNext()` reclama el siguiente número
+  dentro de una transacción (lee, incrementa, guarda) y **auto-provisiona**
+  la serie por defecto la primera vez que se usa, así que no hace falta
+  configurar nada para que un tenant nuevo empiece a numerar. La migración
+  `AddOrgStructure` hace el backfill de la serie de cotizaciones de cada
+  tenant existente a partir de su conteo actual, para que la numeración
+  siga donde iba en vez de reiniciar en `COT-000001`.
+  `QuotesService.nextQuoteNumber()` ahora delega aquí en vez de contar
+  filas de `crm_quotes`.
+- **Zona horaria e impuestos por tenant**: `Tenant` gana `timezone`,
+  `taxLabel` y `taxRatePercent` — valores de referencia que una sucursal
+  puede sobreescribir con su propio `timezone`. Se editan en
+  `Configuración` vía `PATCH /api/tenant-settings/org` (mismo permiso que
+  la configuración de sesión, `core.tenant.settings.write`).
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia

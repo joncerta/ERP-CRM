@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { getTenantSettings, updateTenantSettings } from '@/api/tenant-settings'
+import { getTenantSettings, updateTenantSettings, updateOrgSettings } from '@/api/tenant-settings'
 import { changeOwnPassword } from '@/api/users'
 import { useAuthStore } from '@/stores/auth'
 import { getErrorMessage } from '@/api/error'
@@ -17,6 +17,11 @@ const loading = ref(true)
 const saving = ref(false)
 const idleTimeoutEnabled = ref(false)
 const idleTimeoutMinutes = ref(30)
+
+const orgSaving = ref(false)
+const timezone = ref('America/Bogota')
+const taxLabel = ref('')
+const taxRatePercent = ref<number | undefined>(undefined)
 
 const currentPassword = ref('')
 const newPassword = ref('')
@@ -51,6 +56,9 @@ async function load() {
     const settings = await getTenantSettings()
     idleTimeoutEnabled.value = settings.sessionIdleTimeoutMinutes != null
     idleTimeoutMinutes.value = settings.sessionIdleTimeoutMinutes ?? 30
+    timezone.value = settings.timezone
+    taxLabel.value = settings.taxLabel ?? ''
+    taxRatePercent.value = settings.taxRatePercent != null ? Number(settings.taxRatePercent) : undefined
   } catch (err) {
     toast.error(getErrorMessage(err))
   } finally {
@@ -67,6 +75,22 @@ async function save() {
     toast.error(getErrorMessage(err))
   } finally {
     saving.value = false
+  }
+}
+
+async function saveOrgSettings() {
+  orgSaving.value = true
+  try {
+    await updateOrgSettings({
+      timezone: timezone.value || undefined,
+      taxLabel: taxLabel.value || undefined,
+      taxRatePercent: taxRatePercent.value ?? null,
+    })
+    toast.success(t('settings.saved'))
+  } catch (err) {
+    toast.error(getErrorMessage(err))
+  } finally {
+    orgSaving.value = false
   }
 }
 
@@ -125,6 +149,28 @@ onMounted(load)
       </div>
 
       <button class="btn" style="margin-top: 1rem" :disabled="saving" @click="save">
+        {{ t('common.save') }}
+      </button>
+    </div>
+
+    <div v-if="!loading" class="card" style="max-width: 480px; margin-top: 1rem">
+      <h2 style="font-size: 1rem; margin-bottom: 0.25rem">{{ t('settings.orgTitle') }}</h2>
+      <p class="muted" style="margin-bottom: 1rem">{{ t('settings.orgSubtitle') }}</p>
+
+      <div class="field">
+        <label>{{ t('settings.timezone') }}</label>
+        <input v-model="timezone" placeholder="America/Bogota" />
+      </div>
+      <div class="field" style="margin-top: 0.75rem">
+        <label>{{ t('settings.taxLabel') }}</label>
+        <input v-model="taxLabel" placeholder="IVA" />
+      </div>
+      <div class="field" style="margin-top: 0.75rem">
+        <label>{{ t('settings.taxRatePercent') }}</label>
+        <input v-model.number="taxRatePercent" type="number" min="0" max="100" step="0.01" />
+      </div>
+
+      <button class="btn" style="margin-top: 1rem" :disabled="orgSaving" @click="saveOrgSettings">
         {{ t('common.save') }}
       </button>
     </div>

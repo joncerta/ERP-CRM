@@ -7,6 +7,7 @@ import { RequirePermissions } from '../../common/decorators/require-permissions.
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { SessionsService } from '../sessions/sessions.service';
 import { ListQueryDto } from '../../common/dto/list-query.dto';
+import { AssignUserOrgDto } from '../org/dto/assign-user-org.dto';
 import type { AuthenticatedUser } from '../auth/auth.types';
 
 @Controller('users')
@@ -36,6 +37,12 @@ export class UsersController {
       throw new BadRequestException('No puedes desactivar tu propio usuario');
     }
     return this.usersService.setActive(user.tenantId, id, dto.isActive);
+  }
+
+  @Patch(':id/org')
+  @RequirePermissions('core.org.write')
+  assignOrg(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: AssignUserOrgDto) {
+    return this.usersService.assignOrg(user.tenantId, id, dto);
   }
 
   @Patch('me/password')

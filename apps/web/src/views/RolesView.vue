@@ -49,6 +49,8 @@ const PERMISSION_GROUPS: Array<{ labelKey: string; codes: string[] }> = [
       'core.modules.write',
       'core.tenant.settings.write',
       'core.audit.read',
+      'core.org.read',
+      'core.org.write',
     ],
   },
 ]
