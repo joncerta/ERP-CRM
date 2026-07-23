@@ -495,6 +495,37 @@ notificación además.
   también por correo — el catálogo de eventos hoy es fijo por tipo de
   evento, no configurable por usuario.
 
+## Seguimiento avanzado de leads y cotizaciones
+
+Sube de nivel lo que ya existía: de un estado plano a un embudo medible.
+
+- **Historial de cambios de un lead**: `GET /api/crm/leads/:id/history`
+  reutiliza el motor de auditoría genérico (módulo 5) en vez de construir
+  un log paralelo — filtra `audit_logs` por `entityType='Lead'` y
+  `entityId`, así que cualquier cambio de estado, dueño o cualquier otro
+  campo ya queda ahí sin trabajo adicional. Pantalla "Historial" por lead
+  en `LeadsView`.
+- **Campaña de origen y prioridad**: `Lead` gana `campaign`; `priority`
+  ya existía en el backend pero no estaba expuesto en el formulario —
+  ahora se edita y se muestra como badge en la lista.
+- **Alerta de inactividad**: un lead abierto (`new`/`contacted`/`qualified`)
+  sin cambios en 5+ días se marca con un badge "Inactivo" en la lista —
+  calculado en el cliente a partir de `updatedAt`, sin necesidad de un job
+  en segundo plano. **Pendiente**: no dispara una notificación push real
+  todavía (necesitaría un scheduler, que el backend no tiene instalado).
+- **Embudo de conversión y motivos de pérdida**:
+  `GET /api/crm/opportunities/funnel` cuenta oportunidades abiertas por
+  etapa, total ganadas/perdidas, y agrupa `lostReason` para las perdidas.
+  Panel plegable "Ver embudo de conversión" en `PipelineView`.
+- **Versiones de cotización**: `POST /api/crm/quotes/:id/revise` clona una
+  cotización que ya no está en borrador (enviada, vista, aceptada,
+  rechazada) en un nuevo borrador — mismo cliente/ítems, número nuevo,
+  `version` incrementada y `previousVersionId` apuntando a la anterior.
+  `GET /api/crm/quotes/:id/versions` devuelve la cadena completa, de la
+  más antigua a la más nueva. Botón "Nueva versión" en `QuotesView` para
+  cotizaciones que ya salieron. **Pendiente**: flujo de aprobación interna
+  antes de reenviar una versión renegociada.
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia

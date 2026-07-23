@@ -74,7 +74,14 @@
     "title": "Leads",
     "newLead": "Nuevo lead",
     "source": "Fuente",
+    "campaign": "Campaña de origen",
     "budget": "Presupuesto estimado",
+    "priority": "Prioridad",
+    "priorityLevel": {
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta"
+    },
     "status": {
       "new": "Nuevo",
       "contacted": "Contactado",
@@ -82,7 +89,10 @@
       "disqualified": "Descartado",
       "converted": "Convertido"
     },
-    "convert": "Convertir a oportunidad"
+    "convert": "Convertir a oportunidad",
+    "history": "Historial",
+    "stale": "Inactivo",
+    "staleHint": "Sin cambios hace {days} días o más"
   },
   "companies": {
     "title": "Empresas",
@@ -148,7 +158,12 @@
     "editOpportunity": "Editar oportunidad",
     "expectedCloseDate": "Fecha estimada de cierre",
     "markLost": "Marcar como perdida",
-    "lostReasonPrompt": "Motivo (opcional)"
+    "lostReasonPrompt": "Motivo (opcional)",
+    "showFunnel": "Ver embudo de conversión",
+    "hideFunnel": "Ocultar embudo",
+    "won": "Ganadas",
+    "lost": "Perdidas",
+    "lostReasons": "Motivos de pérdida"
   },
   "quotes": {
     "title": "Cotizaciones",
@@ -166,6 +181,8 @@
     "scheduleFollowUp": "Programar recordatorio",
     "downloadPdf": "Descargar PDF",
     "sentOk": "Cotización enviada correctamente.",
+    "revise": "Nueva versión",
+    "revisedOk": "Se creó la versión {number} en borrador.",
     "status": {
       "draft": "Borrador",
       "sent": "Enviada",

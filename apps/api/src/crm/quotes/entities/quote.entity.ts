@@ -65,6 +65,17 @@ export class Quote extends TenantScopedEntity {
   @Column({ name: 'owner_user_id', type: 'uuid' })
   ownerUserId: string;
 
+  /** Renegotiation lineage: version 1 is the original quote; each
+   * "revise" action clones it into a new draft with version+1, pointing
+   * back at the quote it was revised from (not necessarily the original —
+   * a chain, not a star). */
+  @Column({ default: 1 })
+  version: number;
+
+  @Index()
+  @Column({ name: 'previous_version_id', type: 'uuid', nullable: true })
+  previousVersionId: string | null;
+
   @OneToMany(() => QuoteItem, (item) => item.quote, { cascade: true, eager: true })
   items: QuoteItem[];
 }

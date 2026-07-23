@@ -22,6 +22,10 @@ export class CreateLeadDto {
 
   @IsOptional()
   @IsString()
+  campaign?: string;
+
+  @IsOptional()
+  @IsString()
   interest?: string;
 
   @IsOptional()

@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { listQuotesPaginated, createQuote, updateQuote, sendQuote, createFollowUp, downloadQuotePdf } from '@/api/quotes'
+import {
+  listQuotesPaginated,
+  createQuote,
+  updateQuote,
+  sendQuote,
+  createFollowUp,
+  downloadQuotePdf,
+  createQuoteRevision,
+} from '@/api/quotes'
 import { listCompanies } from '@/api/companies'
 import { listContacts } from '@/api/contacts'
 import { listCurrencies } from '@/api/currencies'
@@ -41,6 +49,7 @@ const followUpDate = ref('')
 const followUpNote = ref('')
 const followUpError = ref('')
 const onlyMine = ref(false)
+const revisingId = ref<string | null>(null)
 
 watch(onlyMine, (value) => {
   filters.ownerUserId = value ? auth.user?.sub : undefined
@@ -177,6 +186,19 @@ async function submitFollowUp() {
   }
 }
 
+async function handleRevise(quote: Quote) {
+  revisingId.value = quote.id
+  try {
+    const revision = await createQuoteRevision(quote.id)
+    toast.success(t('quotes.revisedOk', { number: revision.quoteNumber }))
+    await load()
+  } catch (err) {
+    toast.error(getErrorMessage(err))
+  } finally {
+    revisingId.value = null
+  }
+}
+
 function publicUrl(quote: Quote) {
   return `${window.location.origin}/q/${quote.accessToken}`
 }
@@ -235,7 +257,7 @@ onMounted(() => {
         </thead>
         <tbody>
           <tr v-for="q in quotes" :key="q.id">
-            <td>{{ q.quoteNumber }}</td>
+            <td>{{ q.quoteNumber }} <span v-if="q.version > 1" class="muted">(v{{ q.version }})</span></td>
             <td>{{ companyName(q.companyId) }}</td>
             <td>{{ q.currencyCode }} {{ Number(q.total).toLocaleString() }}</td>
             <td><span class="badge" :class="statusBadge[q.status]">{{ t(`quotes.status.${q.status}`) }}</span></td>
@@ -248,6 +270,14 @@ onMounted(() => {
                 {{ t('quotes.send') }}
               </button>
               <a v-if="q.status !== 'draft'" :href="publicUrl(q)" target="_blank" class="muted">{{ t('publicQuote.title') }} ↗</a>
+              <button
+                v-if="q.status !== 'draft'"
+                class="btn secondary"
+                :disabled="revisingId === q.id"
+                @click="handleRevise(q)"
+              >
+                {{ t('quotes.revise') }}
+              </button>
               <button class="btn secondary" @click="handleDownloadPdf(q)">{{ t('quotes.downloadPdf') }}</button>
               <button class="btn secondary" @click="openFollowUp(q)">{{ t('quotes.scheduleFollowUp') }}</button>
             </td>

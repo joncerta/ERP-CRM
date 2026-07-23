@@ -6,12 +6,16 @@ import { ListLeadsQueryDto } from './dto/list-leads-query.dto';
 import { RequirePermissions } from '../../common/decorators/require-permissions.decorator';
 import { RequireModule } from '../../common/decorators/require-module.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { AuditLogsService } from '../../audit/audit-logs.service';
 import type { AuthenticatedUser } from '../../core/auth/auth.types';
 
 @Controller('crm/leads')
 @RequireModule('crm')
 export class LeadsController {
-  constructor(private readonly leadsService: LeadsService) {}
+  constructor(
+    private readonly leadsService: LeadsService,
+    private readonly auditLogsService: AuditLogsService,
+  ) {}
 
   @Post()
   @RequirePermissions('crm.leads.write')
@@ -30,6 +34,17 @@ export class LeadsController {
   @RequirePermissions('crm.leads.read')
   findOne(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.leadsService.findOneForTenant(user.tenantId, id);
+  }
+
+  @Get(':id/history')
+  @RequirePermissions('crm.leads.read')
+  async findHistory(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    const page = await this.auditLogsService.findAllForTenant(user.tenantId, {
+      entityType: 'Lead',
+      entityId: id,
+      pageSize: 100,
+    });
+    return page.items;
   }
 
   @Patch(':id')

@@ -74,7 +74,14 @@
     "title": "Leads",
     "newLead": "New lead",
     "source": "Source",
+    "campaign": "Source campaign",
     "budget": "Estimated budget",
+    "priority": "Priority",
+    "priorityLevel": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
     "status": {
       "new": "New",
       "contacted": "Contacted",
@@ -82,7 +89,10 @@
       "disqualified": "Disqualified",
       "converted": "Converted"
     },
-    "convert": "Convert to opportunity"
+    "convert": "Convert to opportunity",
+    "history": "History",
+    "stale": "Inactive",
+    "staleHint": "No changes in {days}+ days"
   },
   "companies": {
     "title": "Companies",
@@ -148,7 +158,12 @@
     "editOpportunity": "Edit opportunity",
     "expectedCloseDate": "Expected close date",
     "markLost": "Mark as lost",
-    "lostReasonPrompt": "Reason (optional)"
+    "lostReasonPrompt": "Reason (optional)",
+    "showFunnel": "View conversion funnel",
+    "hideFunnel": "Hide funnel",
+    "won": "Won",
+    "lost": "Lost",
+    "lostReasons": "Loss reasons"
   },
   "quotes": {
     "title": "Quotes",
@@ -166,6 +181,8 @@
     "scheduleFollowUp": "Schedule reminder",
     "downloadPdf": "Download PDF",
     "sentOk": "Quote sent successfully.",
+    "revise": "New version",
+    "revisedOk": "Draft version {number} was created.",
     "status": {
       "draft": "Draft",
       "sent": "Sent",

@@ -39,6 +39,16 @@ export async function listQuotesPaginated(
   return data;
 }
 
+export async function createQuoteRevision(id: string): Promise<Quote> {
+  const { data } = await apiClient.post(`/crm/quotes/${id}/revise`);
+  return data;
+}
+
+export async function getQuoteVersions(id: string): Promise<Quote[]> {
+  const { data } = await apiClient.get(`/crm/quotes/${id}/versions`);
+  return data;
+}
+
 export async function createQuote(payload: CreateQuotePayload): Promise<Quote> {
   const { data } = await apiClient.post('/crm/quotes', payload);
   return data;

@@ -179,6 +179,67 @@ export class QuotesService extends TenantScopedService<Quote> {
     return this.repository.find({ where: { tenantId, opportunityId } });
   }
 
+  /** Renegotiation: clones a quote that's already out the door (not a
+   * draft) into a fresh draft with its own number, carrying over
+   * company/contact/currency/items so the rep only has to change what's
+   * actually being renegotiated. Draft quotes can't be revised — they're
+   * already editable directly via update(). */
+  async createRevision(tenantId: string, id: string): Promise<Quote> {
+    const original = await this.findOneForTenant(tenantId, id);
+    if (original.status === QuoteStatus.DRAFT) {
+      throw new BadRequestException('Una cotización en borrador ya se puede editar directamente, no necesita una nueva versión');
+    }
+
+    const quoteItems = original.items.map((item) =>
+      Object.assign(new QuoteItem(), {
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        total: item.total,
+      }),
+    );
+
+    const revision = this.repository.create({
+      tenantId,
+      ownerUserId: original.ownerUserId,
+      opportunityId: original.opportunityId,
+      companyId: original.companyId,
+      contactId: original.contactId,
+      currencyCode: original.currencyCode,
+      status: QuoteStatus.DRAFT,
+      quoteNumber: await this.nextQuoteNumber(tenantId),
+      accessToken: randomBytes(24).toString('hex'),
+      items: quoteItems,
+      subtotal: original.subtotal,
+      tax: original.tax,
+      total: original.total,
+      version: original.version + 1,
+      previousVersionId: original.id,
+    });
+    return this.repository.save(revision);
+  }
+
+  /** The full lineage of a quote (all prior and later versions), oldest
+   * first — walked both directions from whichever version was requested. */
+  async findVersions(tenantId: string, id: string): Promise<Quote[]> {
+    const quote = await this.findOneForTenant(tenantId, id);
+    const chain: Quote[] = [quote];
+
+    let cursor = quote;
+    while (cursor.previousVersionId) {
+      cursor = await this.findOneForTenant(tenantId, cursor.previousVersionId);
+      chain.unshift(cursor);
+    }
+
+    let next = await this.repository.findOne({ where: { tenantId, previousVersionId: quote.id } });
+    while (next) {
+      chain.push(next);
+      next = await this.repository.findOne({ where: { tenantId, previousVersionId: next.id } });
+    }
+
+    return chain;
+  }
+
   findPaginated(tenantId: string, query: ListQuotesQueryDto): Promise<Paginated<Quote>> {
     return this.findPaginatedForTenant(tenantId, query, {
       alias: 'quote',

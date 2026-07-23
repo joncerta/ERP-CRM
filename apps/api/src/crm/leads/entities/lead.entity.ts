@@ -32,6 +32,9 @@ export class Lead extends TenantScopedEntity {
   source: string; // web, referido, feria, redes sociales...
 
   @Column({ nullable: true })
+  campaign: string | null;
+
+  @Column({ nullable: true })
   interest: string;
 
   @Column({ name: 'estimated_budget', type: 'numeric', precision: 14, scale: 2, nullable: true })

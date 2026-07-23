@@ -6,6 +6,7 @@ import { AuditLog } from './entities/audit-log.entity';
 export interface AuditLogFilters {
   actorUserId?: string;
   entityType?: string;
+  entityId?: string;
   from?: Date;
   to?: Date;
   page?: number;
@@ -36,6 +37,7 @@ export class AuditLogsService {
 
     if (filters.actorUserId) qb.andWhere('log.actorUserId = :actorUserId', { actorUserId: filters.actorUserId });
     if (filters.entityType) qb.andWhere('log.entityType = :entityType', { entityType: filters.entityType });
+    if (filters.entityId) qb.andWhere('log.entityId = :entityId', { entityId: filters.entityId });
     if (filters.from) qb.andWhere('log.createdAt >= :from', { from: filters.from });
     if (filters.to) qb.andWhere('log.createdAt <= :to', { to: filters.to });
 

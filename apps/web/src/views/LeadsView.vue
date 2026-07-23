@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { listLeadsPaginated, createLead, updateLead, deleteLead } from '@/api/leads'
+import { listLeadsPaginated, createLead, updateLead, deleteLead, getLeadHistory } from '@/api/leads'
 import { createOpportunityFromLead } from '@/api/opportunities'
 import { listCompanies } from '@/api/companies'
 import { listContacts } from '@/api/contacts'
@@ -14,6 +14,7 @@ import { usePaginatedList } from '@/composables/usePaginatedList'
 import Pagination from '@/components/Pagination.vue'
 import type { Lead, Company, Contact } from '@/api/types'
 import type { TenantUser } from '@/api/users'
+import type { AuditLog } from '@/api/audit-logs'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -50,9 +51,44 @@ const form = ref({
   companyId: '',
   contactId: '',
   source: '',
+  campaign: '',
   estimatedBudget: undefined as number | undefined,
+  priority: 'medium' as 'low' | 'medium' | 'high',
   ownerUserId: '',
 })
+
+const INACTIVITY_DAYS = 5
+const OPEN_STATUSES = new Set(['new', 'contacted', 'qualified'])
+function isStale(lead: Lead): boolean {
+  if (!OPEN_STATUSES.has(lead.status)) return false
+  const daysSinceUpdate = (Date.now() - new Date(lead.updatedAt).getTime()) / (1000 * 60 * 60 * 24)
+  return daysSinceUpdate >= INACTIVITY_DAYS
+}
+
+const historyLead = ref<Lead | null>(null)
+const history = ref<AuditLog[]>([])
+const historyLoading = ref(false)
+
+async function openHistory(lead: Lead) {
+  historyLead.value = lead
+  history.value = []
+  historyLoading.value = true
+  try {
+    history.value = await getLeadHistory(lead.id)
+  } catch (err) {
+    toast.error(getErrorMessage(err))
+  } finally {
+    historyLoading.value = false
+  }
+}
+
+function formatHistoryEntry(entry: AuditLog): string {
+  if (!entry.changes || typeof entry.changes !== 'object') return t(`audit.actions.${entry.action}`)
+  const parts = Object.entries(entry.changes as Record<string, { before: unknown; after: unknown }>)
+    .filter(([, change]) => change && typeof change === 'object' && 'after' in change)
+    .map(([field, change]) => `${field}: ${change.before ?? '—'} → ${change.after ?? '—'}`)
+  return parts.length ? parts.join(', ') : t(`audit.actions.${entry.action}`)
+}
 
 const contactsForSelectedCompany = computed(() =>
   form.value.companyId ? contacts.value.filter((c) => c.companyId === form.value.companyId) : contacts.value,
@@ -82,7 +118,16 @@ function ownerName(id: string | null) {
 
 function openCreateModal() {
   editingId.value = null
-  form.value = { name: '', companyId: '', contactId: '', source: '', estimatedBudget: undefined, ownerUserId: '' }
+  form.value = {
+    name: '',
+    companyId: '',
+    contactId: '',
+    source: '',
+    campaign: '',
+    estimatedBudget: undefined,
+    priority: 'medium',
+    ownerUserId: '',
+  }
   formError.value = ''
   showModal.value = true
 }
@@ -94,7 +139,9 @@ function openEditModal(lead: Lead) {
     companyId: lead.companyId ?? '',
     contactId: lead.contactId ?? '',
     source: lead.source ?? '',
+    campaign: lead.campaign ?? '',
     estimatedBudget: lead.estimatedBudget != null ? Number(lead.estimatedBudget) : undefined,
+    priority: lead.priority ?? 'medium',
     ownerUserId: lead.ownerUserId ?? '',
   }
   formError.value = ''
@@ -109,7 +156,9 @@ async function submit() {
     companyId: form.value.companyId || undefined,
     contactId: form.value.contactId || undefined,
     source: form.value.source || undefined,
+    campaign: form.value.campaign || undefined,
     estimatedBudget: form.value.estimatedBudget,
+    priority: form.value.priority,
     ownerUserId: form.value.ownerUserId || undefined,
   }
   try {
@@ -163,6 +212,12 @@ const statusBadge: Record<string, string> = {
   converted: 'green',
 }
 
+const priorityBadge: Record<string, string> = {
+  low: '',
+  medium: 'amber',
+  high: 'red',
+}
+
 onMounted(() => {
   load()
   loadPickers()
@@ -194,6 +249,7 @@ onMounted(() => {
             <th>{{ t('companies.title') }}</th>
             <th>{{ t('leads.source') }}</th>
             <th>{{ t('leads.budget') }}</th>
+            <th>{{ t('leads.priority') }}</th>
             <th>{{ t('common.owner') }}</th>
             <th>Estado</th>
             <th>{{ t('common.actions') }}</th>
@@ -205,8 +261,14 @@ onMounted(() => {
             <td>{{ companyName(lead.companyId) }}</td>
             <td>{{ lead.source || '—' }}</td>
             <td>{{ lead.estimatedBudget ?? '—' }}</td>
+            <td><span class="badge" :class="priorityBadge[lead.priority]">{{ t(`leads.priorityLevel.${lead.priority}`) }}</span></td>
             <td>{{ ownerName(lead.ownerUserId) }}</td>
-            <td><span class="badge" :class="statusBadge[lead.status]">{{ t(`leads.status.${lead.status}`) }}</span></td>
+            <td>
+              <span class="badge" :class="statusBadge[lead.status]">{{ t(`leads.status.${lead.status}`) }}</span>
+              <span v-if="isStale(lead)" class="badge red" :title="t('leads.staleHint', { days: INACTIVITY_DAYS })" style="margin-left: 0.35rem">
+                {{ t('leads.stale') }}
+              </span>
+            </td>
             <td class="actions-cell">
               <button
                 v-if="lead.status !== 'converted'"
@@ -216,6 +278,7 @@ onMounted(() => {
               >
                 {{ t('leads.convert') }}
               </button>
+              <button class="btn secondary" @click="openHistory(lead)">{{ t('leads.history') }}</button>
               <button class="btn secondary" @click="openEditModal(lead)">{{ t('common.edit') }}</button>
               <button class="btn secondary" :disabled="deletingId === lead.id" @click="remove(lead)">
                 {{ t('common.delete') }}
@@ -223,7 +286,7 @@ onMounted(() => {
             </td>
           </tr>
           <tr v-if="!leads.length">
-            <td colspan="7" class="muted">—</td>
+            <td colspan="8" class="muted">—</td>
           </tr>
         </tbody>
       </table>
@@ -258,8 +321,20 @@ onMounted(() => {
           <input v-model="form.source" placeholder="referido, web, feria..." />
         </div>
         <div class="field">
+          <label>{{ t('leads.campaign') }}</label>
+          <input v-model="form.campaign" />
+        </div>
+        <div class="field">
           <label>{{ t('leads.budget') }}</label>
           <input v-model.number="form.estimatedBudget" type="number" min="0" />
+        </div>
+        <div class="field">
+          <label>{{ t('leads.priority') }}</label>
+          <select v-model="form.priority">
+            <option value="low">{{ t('leads.priorityLevel.low') }}</option>
+            <option value="medium">{{ t('leads.priorityLevel.medium') }}</option>
+            <option value="high">{{ t('leads.priorityLevel.high') }}</option>
+          </select>
         </div>
         <div v-if="users.length" class="field">
           <label>{{ t('common.owner') }}</label>
@@ -277,6 +352,23 @@ onMounted(() => {
         </div>
       </form>
     </div>
+
+    <div v-if="historyLead" class="modal-backdrop" @click.self="historyLead = null">
+      <div class="modal">
+        <h2>{{ t('leads.history') }} — {{ historyLead.name }}</h2>
+        <p v-if="historyLoading" class="muted">{{ t('common.loading') }}</p>
+        <ul v-else class="history-list">
+          <li v-for="entry in history" :key="entry.id" class="history-item">
+            <div class="muted" style="font-size: 0.78rem">{{ new Date(entry.createdAt).toLocaleString() }}</div>
+            <div>{{ formatHistoryEntry(entry) }}</div>
+          </li>
+          <li v-if="!history.length" class="muted">—</li>
+        </ul>
+        <div class="modal-actions">
+          <button type="button" class="btn secondary" @click="historyLead = null">{{ t('common.cancel') }}</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -285,5 +377,20 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+}
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.history-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: 0.85rem;
+}
+.history-item:last-child {
+  border-bottom: none;
 }
 </style>

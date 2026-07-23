@@ -7,11 +7,23 @@ import { LeadStatus } from '../leads/entities/lead.entity';
 import { NotificationEscalationService } from '../../core/users/notification-escalation.service';
 
 function buildDeps() {
+  const lostReasonsQb = {
+    select: jest.fn().mockReturnThis(),
+    addSelect: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    setParameter: jest.fn().mockReturnThis(),
+    groupBy: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    getRawMany: jest.fn().mockResolvedValue([]),
+  };
   const repo = {
     create: jest.fn((data) => data),
     save: jest.fn(async (data) => ({ id: 'opp-1', ...data })),
     find: jest.fn(),
     findOne: jest.fn(),
+    count: jest.fn().mockResolvedValue(0),
+    createQueryBuilder: jest.fn().mockReturnValue(lostReasonsQb),
   } as unknown as jest.Mocked<Repository<Opportunity>>;
   const pipelineStagesService = {
     findOneForTenant: jest.fn(),
@@ -24,7 +36,7 @@ function buildDeps() {
   const notificationEscalationService = {
     notifyWithEscalation: jest.fn().mockResolvedValue(undefined),
   } as unknown as jest.Mocked<NotificationEscalationService>;
-  return { repo, pipelineStagesService, leadsService, notificationEscalationService };
+  return { repo, pipelineStagesService, leadsService, notificationEscalationService, lostReasonsQb };
 }
 
 describe('OpportunitiesService', () => {
@@ -32,10 +44,11 @@ describe('OpportunitiesService', () => {
   let pipelineStagesService: ReturnType<typeof buildDeps>['pipelineStagesService'];
   let leadsService: ReturnType<typeof buildDeps>['leadsService'];
   let notificationEscalationService: ReturnType<typeof buildDeps>['notificationEscalationService'];
+  let lostReasonsQb: ReturnType<typeof buildDeps>['lostReasonsQb'];
   let service: OpportunitiesService;
 
   beforeEach(() => {
-    ({ repo, pipelineStagesService, leadsService, notificationEscalationService } = buildDeps());
+    ({ repo, pipelineStagesService, leadsService, notificationEscalationService, lostReasonsQb } = buildDeps());
     service = new OpportunitiesService(repo, pipelineStagesService, leadsService, notificationEscalationService);
   });
 
@@ -174,6 +187,37 @@ describe('OpportunitiesService', () => {
         expect.any(String),
         '/pipeline',
       );
+    });
+  });
+
+  describe('getFunnel', () => {
+    it('counts open opportunities per stage and totals won/lost with a loss-reason breakdown', async () => {
+      pipelineStagesService.findAllOrdered.mockResolvedValue([
+        { id: 'stage-1', name: 'Nuevo' },
+        { id: 'stage-2', name: 'Negociación' },
+      ] as never);
+      repo.count
+        .mockResolvedValueOnce(5) // stage-1 open count
+        .mockResolvedValueOnce(2) // stage-2 open count
+        .mockResolvedValueOnce(8) // won
+        .mockResolvedValueOnce(3); // lost
+      lostReasonsQb.getRawMany.mockResolvedValue([
+        { reason: 'Precio', count: '2' },
+        { reason: 'Sin especificar', count: '1' },
+      ]);
+
+      const funnel = await service.getFunnel('tenant-a');
+
+      expect(funnel.stages).toEqual([
+        { stageId: 'stage-1', stageName: 'Nuevo', count: 5 },
+        { stageId: 'stage-2', stageName: 'Negociación', count: 2 },
+      ]);
+      expect(funnel.won).toBe(8);
+      expect(funnel.lost).toBe(3);
+      expect(funnel.lostReasons).toEqual([
+        { reason: 'Precio', count: 2 },
+        { reason: 'Sin especificar', count: 1 },
+      ]);
     });
   });
 });

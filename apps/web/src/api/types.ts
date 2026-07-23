@@ -30,12 +30,14 @@ export interface Lead {
   companyId: string | null;
   contactId: string | null;
   source?: string | null;
+  campaign?: string | null;
   interest?: string | null;
   estimatedBudget?: number | string | null;
   status: LeadStatus;
   priority: LeadPriority;
   ownerUserId: string | null;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface PipelineStage {
@@ -93,6 +95,8 @@ export interface Quote {
   respondedAt: string | null;
   accessToken: string;
   ownerUserId: string;
+  version: number;
+  previousVersionId: string | null;
   items: QuoteItem[];
 }
 

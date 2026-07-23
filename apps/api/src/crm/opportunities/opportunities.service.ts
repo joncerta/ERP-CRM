@@ -107,4 +107,49 @@ export class OpportunitiesService extends TenantScopedService<Opportunity> {
   findByStage(tenantId: string, stageId: string): Promise<Opportunity[]> {
     return this.repository.find({ where: { tenantId, stageId } });
   }
+
+  /** Real conversion funnel: how many open opportunities sit in each
+   * stage right now, plus how the closed ones actually resolved — split
+   * won vs. lost, with a breakdown of why deals were lost. */
+  async getFunnel(tenantId: string): Promise<{
+    stages: Array<{ stageId: string; stageName: string; count: number }>;
+    won: number;
+    lost: number;
+    lostReasons: Array<{ reason: string; count: number }>;
+  }> {
+    const stages = await this.pipelineStagesService.findAllOrdered(tenantId);
+
+    const stageCounts = await Promise.all(
+      stages.map(async (stage) => ({
+        stageId: stage.id,
+        stageName: stage.name,
+        count: await this.repository.count({
+          where: { tenantId, stageId: stage.id, status: OpportunityStatus.OPEN },
+        }),
+      })),
+    );
+
+    const [won, lost] = await Promise.all([
+      this.repository.count({ where: { tenantId, status: OpportunityStatus.WON } }),
+      this.repository.count({ where: { tenantId, status: OpportunityStatus.LOST } }),
+    ]);
+
+    const lostReasonRows = await this.repository
+      .createQueryBuilder('opportunity')
+      .select('COALESCE(opportunity.lostReason, :unspecified)', 'reason')
+      .addSelect('COUNT(*)', 'count')
+      .where('opportunity.tenantId = :tenantId', { tenantId })
+      .andWhere('opportunity.status = :status', { status: OpportunityStatus.LOST })
+      .setParameter('unspecified', 'Sin especificar')
+      .groupBy('reason')
+      .orderBy('count', 'DESC')
+      .getRawMany<{ reason: string; count: string }>();
+
+    return {
+      stages: stageCounts,
+      won,
+      lost,
+      lostReasons: lostReasonRows.map((row) => ({ reason: row.reason, count: Number(row.count) })),
+    };
+  }
 }

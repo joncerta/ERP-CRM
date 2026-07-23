@@ -7,6 +7,7 @@ import {
   moveOpportunityStage,
   updateOpportunity,
   closeOpportunityLost,
+  getPipelineFunnel,
 } from '@/api/opportunities'
 import { listCompanies } from '@/api/companies'
 import { listUsers } from '@/api/users'
@@ -16,6 +17,7 @@ import { compact } from '@/utils/compact'
 import { useToastStore } from '@/stores/toast'
 import type { PipelineStage, Opportunity, Company } from '@/api/types'
 import type { TenantUser } from '@/api/users'
+import type { PipelineFunnel } from '@/api/opportunities'
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -30,6 +32,9 @@ const error = ref('')
 const draggingId = ref<string | null>(null)
 const dragOverStageId = ref<string | null>(null)
 const onlyMine = ref(false)
+const showFunnel = ref(false)
+const funnel = ref<PipelineFunnel | null>(null)
+const funnelLoading = ref(false)
 
 const editingOpp = ref<Opportunity | null>(null)
 const editForm = ref({ name: '', value: 0, expectedCloseDate: '', ownerUserId: '' })
@@ -157,6 +162,30 @@ const totalsByStage = computed(() => {
   return totals
 })
 
+async function toggleFunnel() {
+  showFunnel.value = !showFunnel.value
+  if (showFunnel.value && !funnel.value) {
+    funnelLoading.value = true
+    try {
+      funnel.value = await getPipelineFunnel()
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    } finally {
+      funnelLoading.value = false
+    }
+  }
+}
+
+const funnelTotal = computed(() => {
+  if (!funnel.value) return 0
+  return funnel.value.stages.reduce((sum, s) => sum + s.count, 0) + funnel.value.won + funnel.value.lost
+})
+
+function conversionRate(count: number): string {
+  if (!funnelTotal.value) return '0%'
+  return `${Math.round((count / funnelTotal.value) * 100)}%`
+}
+
 onMounted(load)
 </script>
 
@@ -164,6 +193,35 @@ onMounted(load)
   <div>
     <div class="page-header">
       <h1>{{ t('pipeline.title') }}</h1>
+      <button class="btn secondary" @click="toggleFunnel">
+        {{ showFunnel ? t('pipeline.hideFunnel') : t('pipeline.showFunnel') }}
+      </button>
+    </div>
+
+    <div v-if="showFunnel" class="card funnel-panel">
+      <p v-if="funnelLoading" class="muted">{{ t('common.loading') }}</p>
+      <template v-else-if="funnel">
+        <div class="funnel-row">
+          <div v-for="s in funnel.stages" :key="s.stageId" class="funnel-stat">
+            <div class="funnel-stat-value">{{ s.count }}</div>
+            <div class="muted funnel-stat-label">{{ s.stageName }} ({{ conversionRate(s.count) }})</div>
+          </div>
+          <div class="funnel-stat">
+            <div class="funnel-stat-value" style="color: var(--color-success)">{{ funnel.won }}</div>
+            <div class="muted funnel-stat-label">{{ t('pipeline.won') }} ({{ conversionRate(funnel.won) }})</div>
+          </div>
+          <div class="funnel-stat">
+            <div class="funnel-stat-value" style="color: var(--color-danger)">{{ funnel.lost }}</div>
+            <div class="muted funnel-stat-label">{{ t('pipeline.lost') }} ({{ conversionRate(funnel.lost) }})</div>
+          </div>
+        </div>
+        <div v-if="funnel.lostReasons.length" class="funnel-lost-reasons">
+          <h3 class="funnel-subtitle">{{ t('pipeline.lostReasons') }}</h3>
+          <ul>
+            <li v-for="r in funnel.lostReasons" :key="r.reason">{{ r.reason }}: {{ r.count }}</li>
+          </ul>
+        </div>
+      </template>
     </div>
 
     <div class="list-filters">
@@ -253,6 +311,36 @@ onMounted(load)
 </template>
 
 <style scoped>
+.funnel-panel {
+  margin-bottom: 1rem;
+}
+.funnel-row {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.funnel-stat {
+  min-width: 90px;
+}
+.funnel-stat-value {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+.funnel-stat-label {
+  font-size: 0.78rem;
+}
+.funnel-subtitle {
+  font-size: 0.9rem;
+  margin: 1rem 0 0.4rem;
+}
+.funnel-lost-reasons ul {
+  list-style: none;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
 .board {
   display: flex;
   gap: 0.9rem;

@@ -37,6 +37,12 @@ export class OpportunitiesController {
     return this.opportunitiesService.findAllForTenant(user.tenantId);
   }
 
+  @Get('funnel')
+  @RequirePermissions('crm.opportunities.read')
+  getFunnel(@CurrentUser() user: AuthenticatedUser) {
+    return this.opportunitiesService.getFunnel(user.tenantId);
+  }
+
   @Get(':id')
   @RequirePermissions('crm.opportunities.read')
   findOne(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {

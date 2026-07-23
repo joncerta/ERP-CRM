@@ -1,6 +1,7 @@
 import { apiClient } from './client';
 import type { Lead } from './types';
 import type { Paginated, PageParams } from './pagination';
+import type { AuditLog } from './audit-logs';
 
 export async function listLeads(): Promise<Lead[]> {
   const { data } = await apiClient.get('/crm/leads');
@@ -26,4 +27,9 @@ export async function updateLead(id: string, payload: Partial<Lead>): Promise<Le
 
 export async function deleteLead(id: string): Promise<void> {
   await apiClient.delete(`/crm/leads/${id}`);
+}
+
+export async function getLeadHistory(id: string): Promise<AuditLog[]> {
+  const { data } = await apiClient.get(`/crm/leads/${id}/history`);
+  return data;
 }

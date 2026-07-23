@@ -38,3 +38,15 @@ export async function closeOpportunityLost(id: string, reason?: string): Promise
   const { data } = await apiClient.patch(`/crm/opportunities/${id}/close-lost`, { reason });
   return data;
 }
+
+export interface PipelineFunnel {
+  stages: Array<{ stageId: string; stageName: string; count: number }>;
+  won: number;
+  lost: number;
+  lostReasons: Array<{ reason: string; count: number }>;
+}
+
+export async function getPipelineFunnel(): Promise<PipelineFunnel> {
+  const { data } = await apiClient.get('/crm/opportunities/funnel');
+  return data;
+}

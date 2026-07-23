@@ -69,6 +69,18 @@ export class QuotesController {
     return this.quotesService.send(user.tenantId, id);
   }
 
+  @Post(':id/revise')
+  @RequirePermissions('crm.quotes.write')
+  createRevision(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.quotesService.createRevision(user.tenantId, id);
+  }
+
+  @Get(':id/versions')
+  @RequirePermissions('crm.quotes.read')
+  findVersions(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.quotesService.findVersions(user.tenantId, id);
+  }
+
   @Post(':id/follow-ups')
   @RequirePermissions('crm.quotes.write')
   createFollowUp(
