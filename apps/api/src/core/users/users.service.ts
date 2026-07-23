@@ -1,10 +1,12 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan } from 'typeorm';
+import { Repository, MoreThan, Brackets } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { ListQueryDto } from '../../common/dto/list-query.dto';
+import { Paginated } from '../../common/pagination/pagination.types';
 
 const SALT_ROUNDS = 12;
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
@@ -37,6 +39,26 @@ export class UsersService {
 
   findAllForTenant(tenantId: string): Promise<User[]> {
     return this.repo.find({ where: { tenantId } });
+  }
+
+  async findPaginated(tenantId: string, query: ListQueryDto): Promise<Paginated<User>> {
+    const page = Math.max(query.page ?? 1, 1);
+    const pageSize = Math.min(Math.max(query.pageSize ?? 25, 1), 200);
+    const sortable = ['fullName', 'email', 'isActive', 'createdAt'];
+    const sortBy = sortable.includes(query.sortBy ?? '') ? (query.sortBy as string) : 'fullName';
+
+    const qb = this.repo.createQueryBuilder('user').where('user.tenantId = :tenantId', { tenantId });
+    if (query.search) {
+      const search = `%${query.search}%`;
+      qb.andWhere(
+        new Brackets((sub) => sub.where('user.fullName ILIKE :search', { search }).orWhere('user.email ILIKE :search', { search })),
+      );
+    }
+    qb.orderBy(`user.${sortBy}`, query.sortDir === 'DESC' ? 'DESC' : 'ASC');
+    qb.skip((page - 1) * pageSize).take(pageSize);
+
+    const [items, total] = await qb.getManyAndCount();
+    return { items, total, page, pageSize };
   }
 
   async setActive(tenantId: string, userId: string, isActive: boolean): Promise<User> {

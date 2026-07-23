@@ -6,6 +6,8 @@ import { Product } from '../products/entities/product.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { TenantScopedService } from '../../common/services/tenant-scoped.service';
+import { ListQueryDto } from '../../common/dto/list-query.dto';
+import { Paginated } from '../../common/pagination/pagination.types';
 
 @Injectable()
 export class ProductCategoriesService extends TenantScopedService<ProductCategory> {
@@ -14,6 +16,15 @@ export class ProductCategoriesService extends TenantScopedService<ProductCategor
     @InjectRepository(Product) private readonly productsRepo: Repository<Product>,
   ) {
     super(repo);
+  }
+
+  findPaginated(tenantId: string, query: ListQueryDto): Promise<Paginated<ProductCategory>> {
+    return this.findPaginatedForTenant(tenantId, query, {
+      alias: 'category',
+      searchColumns: ['name'],
+      sortableColumns: ['name', 'createdAt'],
+      defaultSortBy: 'name',
+    });
   }
 
   async create(tenantId: string, dto: CreateCategoryDto): Promise<ProductCategory> {

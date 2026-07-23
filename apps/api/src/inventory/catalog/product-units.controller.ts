@@ -1,10 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ProductUnitsService } from './product-units.service';
 import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto';
 import { RequirePermissions } from '../../common/decorators/require-permissions.decorator';
 import { RequireModule } from '../../common/decorators/require-module.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { ListQueryDto } from '../../common/dto/list-query.dto';
 import type { AuthenticatedUser } from '../../core/auth/auth.types';
 
 @Controller('inventory/units')
@@ -20,7 +21,8 @@ export class ProductUnitsController {
 
   @Get()
   @RequirePermissions('inventory.products.read')
-  findAll(@CurrentUser() user: AuthenticatedUser) {
+  findAll(@CurrentUser() user: AuthenticatedUser, @Query() query: ListQueryDto) {
+    if (query.page) return this.unitsService.findPaginated(user.tenantId, query);
     return this.unitsService.findAllForTenant(user.tenantId);
   }
 

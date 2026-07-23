@@ -5,7 +5,9 @@ import { Product } from './entities/product.entity';
 import { StockMovement } from '../stock/entities/stock-movement.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { ListProductsQueryDto } from './dto/list-products-query.dto';
 import { TenantScopedService } from '../../common/services/tenant-scoped.service';
+import { Paginated } from '../../common/pagination/pagination.types';
 
 @Injectable()
 export class ProductsService extends TenantScopedService<Product> {
@@ -14,6 +16,19 @@ export class ProductsService extends TenantScopedService<Product> {
     @InjectRepository(StockMovement) private readonly movementsRepo: Repository<StockMovement>,
   ) {
     super(repo);
+  }
+
+  findPaginated(tenantId: string, query: ListProductsQueryDto): Promise<Paginated<Product>> {
+    return this.findPaginatedForTenant(tenantId, query, {
+      alias: 'product',
+      searchColumns: ['sku', 'name'],
+      sortableColumns: ['sku', 'name', 'costPrice', 'salePrice', 'createdAt'],
+      defaultSortBy: 'name',
+      applyFilters: (qb) => {
+        if (query.categoryId) qb.andWhere('product.categoryId = :categoryId', { categoryId: query.categoryId });
+        if (query.warehouseId) qb.andWhere('product.warehouseId = :warehouseId', { warehouseId: query.warehouseId });
+      },
+    });
   }
 
   async create(tenantId: string, dto: CreateProductDto): Promise<Product> {

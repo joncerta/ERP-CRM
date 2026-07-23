@@ -5,6 +5,7 @@ import { UpdateContactDto } from './dto/update-contact.dto';
 import { RequirePermissions } from '../../common/decorators/require-permissions.decorator';
 import { RequireModule } from '../../common/decorators/require-module.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { ListContactsQueryDto } from './dto/list-contacts-query.dto';
 import type { AuthenticatedUser } from '../../core/auth/auth.types';
 
 @Controller('crm/contacts')
@@ -20,8 +21,9 @@ export class ContactsController {
 
   @Get()
   @RequirePermissions('crm.contacts.read')
-  findAll(@CurrentUser() user: AuthenticatedUser, @Query('companyId') companyId?: string) {
-    if (companyId) return this.contactsService.findByCompany(user.tenantId, companyId);
+  findAll(@CurrentUser() user: AuthenticatedUser, @Query() query: ListContactsQueryDto) {
+    if (query.page) return this.contactsService.findPaginated(user.tenantId, query);
+    if (query.companyId) return this.contactsService.findByCompany(user.tenantId, query.companyId);
     return this.contactsService.findAllForTenant(user.tenantId);
   }
 

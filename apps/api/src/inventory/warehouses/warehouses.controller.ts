@@ -1,10 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { WarehousesService } from './warehouses.service';
 import { CreateWarehouseDto } from './dto/create-warehouse.dto';
 import { UpdateWarehouseDto } from './dto/update-warehouse.dto';
 import { RequirePermissions } from '../../common/decorators/require-permissions.decorator';
 import { RequireModule } from '../../common/decorators/require-module.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { ListQueryDto } from '../../common/dto/list-query.dto';
 import type { AuthenticatedUser } from '../../core/auth/auth.types';
 
 @Controller('inventory/warehouses')
@@ -20,7 +21,8 @@ export class WarehousesController {
 
   @Get()
   @RequirePermissions('inventory.warehouses.read')
-  findAll(@CurrentUser() user: AuthenticatedUser) {
+  findAll(@CurrentUser() user: AuthenticatedUser, @Query() query: ListQueryDto) {
+    if (query.page) return this.warehousesService.findPaginated(user.tenantId, query);
     return this.warehousesService.findAllForTenant(user.tenantId);
   }
 

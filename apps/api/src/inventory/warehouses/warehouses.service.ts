@@ -6,6 +6,8 @@ import { StockMovement } from '../stock/entities/stock-movement.entity';
 import { CreateWarehouseDto } from './dto/create-warehouse.dto';
 import { UpdateWarehouseDto } from './dto/update-warehouse.dto';
 import { TenantScopedService } from '../../common/services/tenant-scoped.service';
+import { ListQueryDto } from '../../common/dto/list-query.dto';
+import { Paginated } from '../../common/pagination/pagination.types';
 
 @Injectable()
 export class WarehousesService extends TenantScopedService<Warehouse> {
@@ -14,6 +16,15 @@ export class WarehousesService extends TenantScopedService<Warehouse> {
     @InjectRepository(StockMovement) private readonly movementsRepo: Repository<StockMovement>,
   ) {
     super(repo);
+  }
+
+  findPaginated(tenantId: string, query: ListQueryDto): Promise<Paginated<Warehouse>> {
+    return this.findPaginatedForTenant(tenantId, query, {
+      alias: 'warehouse',
+      searchColumns: ['name', 'address'],
+      sortableColumns: ['name', 'createdAt'],
+      defaultSortBy: 'name',
+    });
   }
 
   create(tenantId: string, dto: CreateWarehouseDto): Promise<Warehouse> {

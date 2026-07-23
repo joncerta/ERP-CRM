@@ -6,6 +6,8 @@ import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { TenantScopedService } from '../../common/services/tenant-scoped.service';
 import { UsersService } from '../users/users.service';
+import { ListQueryDto } from '../../common/dto/list-query.dto';
+import { Paginated } from '../../common/pagination/pagination.types';
 
 export const DEFAULT_ROLE_TEMPLATES: Array<{ name: string; permissions: string[] }> = [
   {
@@ -44,6 +46,15 @@ export class RolesService extends TenantScopedService<Role> {
     private readonly usersService: UsersService,
   ) {
     super(repo);
+  }
+
+  findPaginated(tenantId: string, query: ListQueryDto): Promise<Paginated<Role>> {
+    return this.findPaginatedForTenant(tenantId, query, {
+      alias: 'role',
+      searchColumns: ['name'],
+      sortableColumns: ['name', 'createdAt'],
+      defaultSortBy: 'name',
+    });
   }
 
   async create(tenantId: string, dto: CreateRoleDto): Promise<Role> {

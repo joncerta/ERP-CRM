@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { SetUserActiveDto } from './dto/set-user-active.dto';
@@ -6,6 +6,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { RequirePermissions } from '../../common/decorators/require-permissions.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { SessionsService } from '../sessions/sessions.service';
+import { ListQueryDto } from '../../common/dto/list-query.dto';
 import type { AuthenticatedUser } from '../auth/auth.types';
 
 @Controller('users')
@@ -23,7 +24,8 @@ export class UsersController {
 
   @Get()
   @RequirePermissions('core.users.read')
-  findAll(@CurrentUser() user: AuthenticatedUser) {
+  findAll(@CurrentUser() user: AuthenticatedUser, @Query() query: ListQueryDto) {
+    if (query.page) return this.usersService.findPaginated(user.tenantId, query);
     return this.usersService.findAllForTenant(user.tenantId);
   }
 

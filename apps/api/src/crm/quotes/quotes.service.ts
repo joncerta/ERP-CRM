@@ -11,6 +11,8 @@ import { NotificationsService } from '../../notifications/notifications.service'
 import { ContactsService } from '../contacts/contacts.service';
 import { EmailService } from '../../common/email/email.service';
 import { ConfigService } from '@nestjs/config';
+import { ListQuotesQueryDto } from './dto/list-quotes-query.dto';
+import { Paginated } from '../../common/pagination/pagination.types';
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
@@ -170,5 +172,19 @@ export class QuotesService extends TenantScopedService<Quote> {
 
   findByOpportunity(tenantId: string, opportunityId: string): Promise<Quote[]> {
     return this.repository.find({ where: { tenantId, opportunityId } });
+  }
+
+  findPaginated(tenantId: string, query: ListQuotesQueryDto): Promise<Paginated<Quote>> {
+    return this.findPaginatedForTenant(tenantId, query, {
+      alias: 'quote',
+      searchColumns: ['quoteNumber'],
+      sortableColumns: ['quoteNumber', 'status', 'total', 'createdAt'],
+      defaultSortBy: 'createdAt',
+      applyFilters: (qb) => {
+        if (query.status) qb.andWhere('quote.status = :status', { status: query.status });
+        if (query.ownerUserId) qb.andWhere('quote.ownerUserId = :ownerUserId', { ownerUserId: query.ownerUserId });
+        if (query.companyId) qb.andWhere('quote.companyId = :companyId', { companyId: query.companyId });
+      },
+    });
   }
 }

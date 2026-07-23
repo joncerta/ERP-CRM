@@ -6,6 +6,8 @@ import { Product } from '../products/entities/product.entity';
 import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto';
 import { TenantScopedService } from '../../common/services/tenant-scoped.service';
+import { ListQueryDto } from '../../common/dto/list-query.dto';
+import { Paginated } from '../../common/pagination/pagination.types';
 
 @Injectable()
 export class ProductUnitsService extends TenantScopedService<ProductUnit> {
@@ -14,6 +16,15 @@ export class ProductUnitsService extends TenantScopedService<ProductUnit> {
     @InjectRepository(Product) private readonly productsRepo: Repository<Product>,
   ) {
     super(repo);
+  }
+
+  findPaginated(tenantId: string, query: ListQueryDto): Promise<Paginated<ProductUnit>> {
+    return this.findPaginatedForTenant(tenantId, query, {
+      alias: 'unit',
+      searchColumns: ['name'],
+      sortableColumns: ['name', 'createdAt'],
+      defaultSortBy: 'name',
+    });
   }
 
   async create(tenantId: string, dto: CreateUnitDto): Promise<ProductUnit> {

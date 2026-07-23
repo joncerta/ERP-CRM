@@ -1,9 +1,10 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { RequirePermissions } from '../../common/decorators/require-permissions.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { ListQueryDto } from '../../common/dto/list-query.dto';
 import type { AuthenticatedUser } from '../auth/auth.types';
 
 @Controller('roles')
@@ -18,7 +19,8 @@ export class RolesController {
 
   @Get()
   @RequirePermissions('core.roles.read')
-  findAll(@CurrentUser() user: AuthenticatedUser) {
+  findAll(@CurrentUser() user: AuthenticatedUser, @Query() query: ListQueryDto) {
+    if (query.page) return this.rolesService.findPaginated(user.tenantId, query);
     return this.rolesService.findAllForTenant(user.tenantId);
   }
 

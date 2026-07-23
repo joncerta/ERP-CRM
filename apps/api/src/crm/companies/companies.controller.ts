@@ -1,10 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { CompaniesService } from './companies.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { RequirePermissions } from '../../common/decorators/require-permissions.decorator';
 import { RequireModule } from '../../common/decorators/require-module.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { ListQueryDto } from '../../common/dto/list-query.dto';
 import type { AuthenticatedUser } from '../../core/auth/auth.types';
 
 @Controller('crm/companies')
@@ -20,7 +21,8 @@ export class CompaniesController {
 
   @Get()
   @RequirePermissions('crm.contacts.read')
-  findAll(@CurrentUser() user: AuthenticatedUser) {
+  findAll(@CurrentUser() user: AuthenticatedUser, @Query() query: ListQueryDto) {
+    if (query.page) return this.companiesService.findPaginated(user.tenantId, query);
     return this.companiesService.findAllForTenant(user.tenantId);
   }
 

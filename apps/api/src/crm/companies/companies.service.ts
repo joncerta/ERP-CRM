@@ -5,11 +5,22 @@ import { Company } from './entities/company.entity';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { TenantScopedService } from '../../common/services/tenant-scoped.service';
+import { ListQueryDto } from '../../common/dto/list-query.dto';
+import { Paginated } from '../../common/pagination/pagination.types';
 
 @Injectable()
 export class CompaniesService extends TenantScopedService<Company> {
   constructor(@InjectRepository(Company) repo: Repository<Company>) {
     super(repo);
+  }
+
+  findPaginated(tenantId: string, query: ListQueryDto): Promise<Paginated<Company>> {
+    return this.findPaginatedForTenant(tenantId, query, {
+      alias: 'company',
+      searchColumns: ['name', 'email', 'city'],
+      sortableColumns: ['name', 'email', 'city', 'country', 'createdAt'],
+      defaultSortBy: 'name',
+    });
   }
 
   create(tenantId: string, dto: CreateCompanyDto): Promise<Company> {

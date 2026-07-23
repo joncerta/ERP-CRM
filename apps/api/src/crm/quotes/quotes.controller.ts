@@ -5,6 +5,7 @@ import { QuotePdfService } from './quote-pdf.service';
 import { CreateQuoteDto } from './dto/create-quote.dto';
 import { UpdateQuoteDto } from './dto/update-quote.dto';
 import { CreateFollowUpDto } from './dto/create-follow-up.dto';
+import { ListQuotesQueryDto } from './dto/list-quotes-query.dto';
 import { RequirePermissions } from '../../common/decorators/require-permissions.decorator';
 import { RequireModule } from '../../common/decorators/require-module.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -27,8 +28,9 @@ export class QuotesController {
 
   @Get()
   @RequirePermissions('crm.quotes.read')
-  findAll(@CurrentUser() user: AuthenticatedUser, @Query('opportunityId') opportunityId?: string) {
-    if (opportunityId) return this.quotesService.findByOpportunity(user.tenantId, opportunityId);
+  findAll(@CurrentUser() user: AuthenticatedUser, @Query() query: ListQuotesQueryDto) {
+    if (query.page) return this.quotesService.findPaginated(user.tenantId, query);
+    if (query.opportunityId) return this.quotesService.findByOpportunity(user.tenantId, query.opportunityId);
     return this.quotesService.findAllForTenant(user.tenantId);
   }
 

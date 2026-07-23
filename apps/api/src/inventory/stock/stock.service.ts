@@ -6,11 +6,15 @@ import { StockBalance } from './entities/stock-balance.entity';
 import { StockMovement, StockMovementType } from './entities/stock-movement.entity';
 import { CreateMovementDto } from './dto/create-movement.dto';
 import { CreateTransferDto } from './dto/create-transfer.dto';
+import { ListQueryDto } from '../../common/dto/list-query.dto';
+import { Paginated } from '../../common/pagination/pagination.types';
 
 export interface StockFilters {
   productId?: string;
   warehouseId?: string;
 }
+
+export interface StockListQuery extends ListQueryDto, StockFilters {}
 
 @Injectable()
 export class StockService {
@@ -28,6 +32,28 @@ export class StockService {
       where: { tenantId, ...this.compactFilters(filters) },
       order: { createdAt: 'DESC' },
     });
+  }
+
+  async findBalancesPaginated(tenantId: string, query: StockListQuery): Promise<Paginated<StockBalance>> {
+    const page = Math.max(query.page ?? 1, 1);
+    const pageSize = Math.min(Math.max(query.pageSize ?? 25, 1), 200);
+    const qb = this.balancesRepo.createQueryBuilder('balance').where('balance.tenantId = :tenantId', { tenantId });
+    if (query.productId) qb.andWhere('balance.productId = :productId', { productId: query.productId });
+    if (query.warehouseId) qb.andWhere('balance.warehouseId = :warehouseId', { warehouseId: query.warehouseId });
+    qb.orderBy('balance.quantity', 'DESC').skip((page - 1) * pageSize).take(pageSize);
+    const [items, total] = await qb.getManyAndCount();
+    return { items, total, page, pageSize };
+  }
+
+  async findMovementsPaginated(tenantId: string, query: StockListQuery): Promise<Paginated<StockMovement>> {
+    const page = Math.max(query.page ?? 1, 1);
+    const pageSize = Math.min(Math.max(query.pageSize ?? 25, 1), 200);
+    const qb = this.movementsRepo.createQueryBuilder('movement').where('movement.tenantId = :tenantId', { tenantId });
+    if (query.productId) qb.andWhere('movement.productId = :productId', { productId: query.productId });
+    if (query.warehouseId) qb.andWhere('movement.warehouseId = :warehouseId', { warehouseId: query.warehouseId });
+    qb.orderBy('movement.createdAt', 'DESC').skip((page - 1) * pageSize).take(pageSize);
+    const [items, total] = await qb.getManyAndCount();
+    return { items, total, page, pageSize };
   }
 
   /** TypeORM (this version) throws on an explicit `undefined` in a where
