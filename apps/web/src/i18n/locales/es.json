@@ -15,6 +15,7 @@
     "settings": "Configuración",
     "users": "Usuarios",
     "roles": "Roles",
+    "auditLogs": "Auditoría",
     "logout": "Cerrar sesión"
   },
   "notifications": {
@@ -64,7 +65,8 @@
     "onlyMine": "Solo mías",
     "search": "Buscar...",
     "savedOk": "Guardado correctamente.",
-    "deletedOk": "Eliminado correctamente."
+    "deletedOk": "Eliminado correctamente.",
+    "pageOf": "Página {page} de {totalPages}"
   },
   "leads": {
     "title": "Leads",
@@ -243,7 +245,24 @@
       "core_roles_read": "Ver los roles disponibles",
       "core_roles_write": "Crear, editar y eliminar roles personalizados",
       "core_modules_write": "Activar o desactivar módulos (CRM, Inventario) para la empresa",
-      "core_tenant_settings_write": "Cambiar la configuración de sesión de la empresa"
+      "core_tenant_settings_write": "Cambiar la configuración de sesión de la empresa",
+      "core_audit_read": "Ver el registro de auditoría: quién cambió qué y cuándo"
+    }
+  },
+  "audit": {
+    "title": "Auditoría",
+    "subtitle": "Quién creó, editó o eliminó cada registro del sistema, y cuándo.",
+    "allUsers": "Todos los usuarios",
+    "allEntities": "Todas las entidades",
+    "date": "Fecha",
+    "user": "Usuario",
+    "entity": "Entidad",
+    "action": "Acción",
+    "noDetail": "Sin detalle adicional.",
+    "actions": {
+      "create": "Creado",
+      "update": "Editado",
+      "delete": "Eliminado"
     }
   },
   "settings": {

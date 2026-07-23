@@ -363,6 +363,34 @@ error en vez de solo mostrar el error puntual. El interceptor de axios
 (`api/client.ts`) también dispara un toast genérico cuando una petición
 no obtiene respuesta del servidor (caído, red, CORS).
 
+## Auditoría y logs
+
+Cada creación, edición o eliminación de cualquier entidad tenant-scoped
+queda registrada automáticamente en `audit_logs`, con quién la hizo y
+qué cambió — sin que cada servicio tenga que acordarse de registrarlo
+por su cuenta.
+
+- **`AuditSubscriber`** (`src/audit/audit.subscriber.ts`) es un
+  `EntitySubscriberInterface` de TypeORM sin `listenTo()` — TypeORM lo
+  invoca en el insert/update/remove de **toda** entidad de la app. El
+  subscriber filtra por `tenantId` (si la entidad no lo tiene, como
+  `Currency` o `Tenant`, se ignora) y escribe una fila con `entityType`,
+  `entityId`, `action`, y `changes` (diff antes/después en updates,
+  snapshot completo en creates/deletes). Se registra a sí mismo contra
+  el `DataSource` en su constructor en vez de listarse en
+  `typeorm.config.ts`, porque necesita inyección de dependencias de Nest.
+- **`RequestContext`** (`src/common/context/request-context.ts`) usa
+  `AsyncLocalStorage` para que el subscriber sepa qué usuario está detrás
+  de un cambio aunque esté varias capas de servicios por debajo de la
+  request HTTP. Un interceptor global (`RequestContextInterceptor`,
+  registrado después de los guards en `app.module.ts`) abre el contexto
+  con `tenantId`/`userId` al inicio de cada request autenticada.
+- Un fallo al escribir el log **nunca** rompe la operación de negocio que
+  lo disparó — se atrapa y se manda a `Logger.error`, no se relanza.
+- `GET /api/audit-logs` (permiso `core.audit.read`) soporta filtros por
+  usuario, tipo de entidad y rango de fechas, paginado. Pantalla
+  `Auditoría` en el nav (visible solo con ese permiso).
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia

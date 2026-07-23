@@ -39,7 +39,15 @@ const PERMISSION_GROUPS: Array<{ labelKey: string; codes: string[] }> = [
   },
   {
     labelKey: 'roles.groupCore',
-    codes: ['core.users.read', 'core.users.write', 'core.roles.read', 'core.roles.write', 'core.modules.write', 'core.tenant.settings.write'],
+    codes: [
+      'core.users.read',
+      'core.users.write',
+      'core.roles.read',
+      'core.roles.write',
+      'core.modules.write',
+      'core.tenant.settings.write',
+      'core.audit.read',
+    ],
   },
 ]
 

@@ -15,6 +15,7 @@
     "settings": "Settings",
     "users": "Users",
     "roles": "Roles",
+    "auditLogs": "Audit log",
     "logout": "Log out"
   },
   "notifications": {
@@ -64,7 +65,8 @@
     "onlyMine": "Only mine",
     "search": "Search...",
     "savedOk": "Saved successfully.",
-    "deletedOk": "Deleted successfully."
+    "deletedOk": "Deleted successfully.",
+    "pageOf": "Page {page} of {totalPages}"
   },
   "leads": {
     "title": "Leads",
@@ -243,7 +245,24 @@
       "core_roles_read": "View available roles",
       "core_roles_write": "Create, edit, and delete custom roles",
       "core_modules_write": "Enable or disable modules (CRM, Inventory) for the company",
-      "core_tenant_settings_write": "Change the company's session settings"
+      "core_tenant_settings_write": "Change the company's session settings",
+      "core_audit_read": "View the audit log: who changed what, and when"
+    }
+  },
+  "audit": {
+    "title": "Audit log",
+    "subtitle": "Who created, edited, or deleted each record in the system, and when.",
+    "allUsers": "All users",
+    "allEntities": "All entities",
+    "date": "Date",
+    "user": "User",
+    "entity": "Entity",
+    "action": "Action",
+    "noDetail": "No additional detail.",
+    "actions": {
+      "create": "Created",
+      "update": "Edited",
+      "delete": "Deleted"
     }
   },
   "settings": {

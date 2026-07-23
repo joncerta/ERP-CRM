@@ -97,6 +97,9 @@ onUnmounted(() => {
         <RouterLink v-if="auth.hasPermission('core.roles.read')" to="/roles" class="settings-link">
           {{ t('nav.roles') }}
         </RouterLink>
+        <RouterLink v-if="auth.hasPermission('core.audit.read')" to="/audit-logs" class="settings-link">
+          {{ t('nav.auditLogs') }}
+        </RouterLink>
         <RouterLink to="/settings" class="settings-link">{{ t('nav.settings') }}</RouterLink>
         <div class="muted">{{ auth.user?.email }}</div>
         <button class="btn secondary" @click="handleLogout">{{ t('nav.logout') }}</button>
