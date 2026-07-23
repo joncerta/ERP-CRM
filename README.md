@@ -467,6 +467,34 @@ entre usuarios. Pantalla `Estructura organizacional` en el nav.
   `Configuración` vía `PATCH /api/tenant-settings/org` (mismo permiso que
   la configuración de sesión, `core.tenant.settings.write`).
 
+## Notificaciones con escalamiento por jerarquía
+
+El motor de notificaciones en tiempo real (WebSocket + campana, ya
+existente) ahora conoce la jerarquía de reporte del módulo 8: cuando un
+evento le notifica a un usuario, su líder directo recibe la misma
+notificación además.
+
+- **`NotificationEscalationService`** (`src/core/users/notification-escalation.service.ts`)
+  envuelve `NotificationsService.notify()`: primero notifica al usuario
+  que disparó el evento, y si tiene un `managerId` asignado (módulo 8),
+  también notifica a ese líder — con el mensaje prefijado por el nombre
+  de quien lo generó y el `type` sufijado en `.escalated`, para que se
+  pueda distinguir en el histórico. Solo escala **un nivel**, no toda la
+  cadena: es "alguien de mi equipo hizo X", no una notificación para cada
+  ancestro en el organigrama.
+  Vive en `UsersModule` (no en `NotificationsModule`) a propósito:
+  `NotificationsModule` se mantiene como módulo hoja sin dependencias
+  (`SessionsModule` lo necesita, y `UsersModule` ya depende de
+  `SessionsModule` — si `NotificationsModule` importara `UsersModule` de
+  vuelta se cerraría un ciclo).
+- **Disparadores conectados**: cotización aceptada/rechazada por el
+  cliente (ya existía, ahora escala) y oportunidad cerrada como ganada o
+  perdida (`OpportunitiesService.moveStage()` / `closeLost()`, nuevo). El
+  catálogo de eventos queda abierto para seguir ampliándose por módulo.
+- **Pendiente**: preferencias por usuario de qué notificar en la app vs.
+  también por correo — el catálogo de eventos hoy es fijo por tipo de
+  evento, no configurable por usuario.
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia

@@ -9,7 +9,7 @@ import { QuoteFollowUpsService } from './quote-follow-ups.service';
 import { QuotePdfService } from './quote-pdf.service';
 import { QuotesController } from './quotes.controller';
 import { QuotesPublicController } from './quotes-public.controller';
-import { NotificationsModule } from '../../notifications/notifications.module';
+import { UsersModule } from '../../core/users/users.module';
 import { ContactsModule } from '../contacts/contacts.module';
 import { EmailModule } from '../../common/email/email.module';
 import { OrgModule } from '../../core/org/org.module';
@@ -17,7 +17,7 @@ import { OrgModule } from '../../core/org/org.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Quote, QuoteItem, QuoteFollowUp, Company]),
-    NotificationsModule,
+    UsersModule,
     ContactsModule,
     EmailModule,
     OrgModule,

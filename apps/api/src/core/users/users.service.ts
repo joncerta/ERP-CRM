@@ -42,6 +42,19 @@ export class UsersService {
     return this.repo.find({ where: { tenantId } });
   }
 
+  findOneForTenant(tenantId: string, id: string): Promise<User | null> {
+    return this.repo.findOne({ where: { tenantId, id } });
+  }
+
+  /** The direct manager of a user, per the org-structure reporting
+   * hierarchy — null if the user has none assigned. Used to escalate
+   * notifications one level up, not the whole chain. */
+  async findManagerOf(tenantId: string, userId: string): Promise<User | null> {
+    const user = await this.repo.findOne({ where: { tenantId, id: userId } });
+    if (!user?.managerId) return null;
+    return this.repo.findOne({ where: { tenantId, id: user.managerId } });
+  }
+
   async findPaginated(tenantId: string, query: ListQueryDto): Promise<Paginated<User>> {
     const page = Math.max(query.page ?? 1, 1);
     const pageSize = Math.min(Math.max(query.pageSize ?? 25, 1), 200);

@@ -77,6 +77,26 @@ describe('UsersService', () => {
     });
   });
 
+  describe('findManagerOf', () => {
+    it('returns null when the user has no manager assigned', async () => {
+      repo.findOne.mockResolvedValue({ id: 'user-1', tenantId: 'tenant-a', managerId: null } as User);
+      await expect(service.findManagerOf('tenant-a', 'user-1')).resolves.toBeNull();
+    });
+
+    it('returns null when the user itself is not found', async () => {
+      repo.findOne.mockResolvedValue(null);
+      await expect(service.findManagerOf('tenant-a', 'ghost')).resolves.toBeNull();
+    });
+
+    it('returns the manager user when one is assigned', async () => {
+      repo.findOne
+        .mockResolvedValueOnce({ id: 'user-1', tenantId: 'tenant-a', managerId: 'manager-1' } as User)
+        .mockResolvedValueOnce({ id: 'manager-1', tenantId: 'tenant-a', fullName: 'Líder' } as User);
+      const manager = await service.findManagerOf('tenant-a', 'user-1');
+      expect(manager?.id).toBe('manager-1');
+    });
+  });
+
   describe('assignOrg', () => {
     it('throws when the user does not exist in this tenant', async () => {
       repo.findOne.mockResolvedValue(null);

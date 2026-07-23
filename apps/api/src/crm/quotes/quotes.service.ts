@@ -7,7 +7,7 @@ import { QuoteItem } from './entities/quote-item.entity';
 import { CreateQuoteDto } from './dto/create-quote.dto';
 import { UpdateQuoteDto } from './dto/update-quote.dto';
 import { TenantScopedService } from '../../common/services/tenant-scoped.service';
-import { NotificationsService } from '../../notifications/notifications.service';
+import { NotificationEscalationService } from '../../core/users/notification-escalation.service';
 import { ContactsService } from '../contacts/contacts.service';
 import { EmailService } from '../../common/email/email.service';
 import { ConfigService } from '@nestjs/config';
@@ -25,7 +25,7 @@ export class QuotesService extends TenantScopedService<Quote> {
 
   constructor(
     @InjectRepository(Quote) repo: Repository<Quote>,
-    private readonly notificationsService: NotificationsService,
+    private readonly notificationEscalationService: NotificationEscalationService,
     private readonly contactsService: ContactsService,
     private readonly emailService: EmailService,
     private readonly config: ConfigService,
@@ -161,7 +161,7 @@ export class QuotesService extends TenantScopedService<Quote> {
     quote.respondedAt = new Date();
     const saved = await this.repository.save(quote);
 
-    await this.notificationsService.notify(
+    await this.notificationEscalationService.notifyWithEscalation(
       saved.tenantId,
       saved.ownerUserId,
       accepted ? 'quote.accepted' : 'quote.rejected',

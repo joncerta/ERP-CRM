@@ -4,6 +4,7 @@ import { Opportunity, OpportunityStatus } from './entities/opportunity.entity';
 import { PipelineStagesService } from '../pipeline-stages/pipeline-stages.service';
 import { LeadsService } from '../leads/leads.service';
 import { LeadStatus } from '../leads/entities/lead.entity';
+import { NotificationEscalationService } from '../../core/users/notification-escalation.service';
 
 function buildDeps() {
   const repo = {
@@ -20,18 +21,22 @@ function buildDeps() {
     findOneForTenant: jest.fn(),
     markConverted: jest.fn(),
   } as unknown as jest.Mocked<LeadsService>;
-  return { repo, pipelineStagesService, leadsService };
+  const notificationEscalationService = {
+    notifyWithEscalation: jest.fn().mockResolvedValue(undefined),
+  } as unknown as jest.Mocked<NotificationEscalationService>;
+  return { repo, pipelineStagesService, leadsService, notificationEscalationService };
 }
 
 describe('OpportunitiesService', () => {
   let repo: ReturnType<typeof buildDeps>['repo'];
   let pipelineStagesService: ReturnType<typeof buildDeps>['pipelineStagesService'];
   let leadsService: ReturnType<typeof buildDeps>['leadsService'];
+  let notificationEscalationService: ReturnType<typeof buildDeps>['notificationEscalationService'];
   let service: OpportunitiesService;
 
   beforeEach(() => {
-    ({ repo, pipelineStagesService, leadsService } = buildDeps());
-    service = new OpportunitiesService(repo, pipelineStagesService, leadsService);
+    ({ repo, pipelineStagesService, leadsService, notificationEscalationService } = buildDeps());
+    service = new OpportunitiesService(repo, pipelineStagesService, leadsService, notificationEscalationService);
   });
 
   describe('create', () => {
@@ -125,6 +130,50 @@ describe('OpportunitiesService', () => {
       pipelineStagesService.findOneForTenant.mockResolvedValue({ id: 'stage-mid', probability: 40, isWon: false, isLost: false } as never);
       const opp = await service.moveStage('tenant-a', 'opp-1', 'stage-mid');
       expect(opp.status).toBe(OpportunityStatus.OPEN);
+    });
+
+    it('escalates a notification to the owner (and their manager) when the deal is won', async () => {
+      repo.findOne.mockResolvedValue({ id: 'opp-1', tenantId: 'tenant-a', ownerUserId: 'user-1', name: 'Deal' } as Opportunity);
+      pipelineStagesService.findOneForTenant.mockResolvedValue({ id: 'stage-won', probability: 100, isWon: true, isLost: false } as never);
+      await service.moveStage('tenant-a', 'opp-1', 'stage-won');
+      expect(notificationEscalationService.notifyWithEscalation).toHaveBeenCalledWith(
+        'tenant-a',
+        'user-1',
+        'opportunity.won',
+        expect.any(String),
+        expect.any(String),
+        '/pipeline',
+      );
+    });
+
+    it('does not notify when the opportunity has no owner', async () => {
+      repo.findOne.mockResolvedValue({ id: 'opp-1', tenantId: 'tenant-a', ownerUserId: null } as Opportunity);
+      pipelineStagesService.findOneForTenant.mockResolvedValue({ id: 'stage-won', probability: 100, isWon: true, isLost: false } as never);
+      await service.moveStage('tenant-a', 'opp-1', 'stage-won');
+      expect(notificationEscalationService.notifyWithEscalation).not.toHaveBeenCalled();
+    });
+
+    it('does not notify on a normal, non-terminal stage move', async () => {
+      repo.findOne.mockResolvedValue({ id: 'opp-1', tenantId: 'tenant-a', ownerUserId: 'user-1' } as Opportunity);
+      pipelineStagesService.findOneForTenant.mockResolvedValue({ id: 'stage-mid', probability: 40, isWon: false, isLost: false } as never);
+      await service.moveStage('tenant-a', 'opp-1', 'stage-mid');
+      expect(notificationEscalationService.notifyWithEscalation).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('closeLost', () => {
+    it('escalates a notification to the owner when a deal is force-closed as lost', async () => {
+      repo.findOne.mockResolvedValue({ id: 'opp-1', tenantId: 'tenant-a', ownerUserId: 'user-1', name: 'Deal' } as Opportunity);
+      pipelineStagesService.findAllOrdered.mockResolvedValue([{ id: 'stage-lost', isLost: true, probability: 0 }] as never);
+      await service.closeLost('tenant-a', 'opp-1', 'Presupuesto insuficiente');
+      expect(notificationEscalationService.notifyWithEscalation).toHaveBeenCalledWith(
+        'tenant-a',
+        'user-1',
+        'opportunity.lost',
+        expect.any(String),
+        expect.any(String),
+        '/pipeline',
+      );
     });
   });
 });
