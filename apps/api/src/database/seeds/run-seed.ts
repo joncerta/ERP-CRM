@@ -25,6 +25,7 @@ const MODULES = [
   { code: 'sales_invoicing', name: 'Facturación', description: 'Facturas, notas crédito/débito, pagos y facturación recurrente', isCore: false },
   { code: 'purchasing', name: 'Compras y proveedores', description: 'Proveedores, órdenes de compra, recepción de mercancía y facturas de proveedor', isCore: false },
   { code: 'accounting', name: 'Contabilidad y tesorería', description: 'Plan de cuentas, asientos contables, caja y bancos, y reportes financieros básicos', isCore: false },
+  { code: 'fixed_assets', name: 'Activos fijos', description: 'Registro de activos, depreciación, mantenimiento, traslado y baja', isCore: false },
 ];
 
 const SALT_ROUNDS = 12;
@@ -42,6 +43,7 @@ interface SeedTenantOptions {
   enableInvoicing?: boolean;
   enablePurchasing?: boolean;
   enableAccounting?: boolean;
+  enableFixedAssets?: boolean;
 }
 
 async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
@@ -111,6 +113,11 @@ async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
     const accountRepo = ds.getRepository(Account);
     await accountRepo.save(DEFAULT_CHART_OF_ACCOUNTS.map((a) => accountRepo.create({ tenantId: tenant.id, ...a })));
   }
+  if (opts.enableFixedAssets) {
+    await tenantModuleRepo.save(
+      tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'fixed_assets', isEnabled: true, enabledAt: new Date() }),
+    );
+  }
 
   console.log(`Tenant "${opts.slug}" creado:`);
   console.log(`  email:    ${opts.adminEmail}`);
@@ -158,6 +165,7 @@ async function run() {
     enableInvoicing: true,
     enablePurchasing: true,
     enableAccounting: true,
+    enableFixedAssets: true,
   });
 
   console.log(`Seed completo: ${CURRENCIES.length} monedas, ${MODULES.length} módulos.`);

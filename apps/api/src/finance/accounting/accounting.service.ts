@@ -34,6 +34,10 @@ export const WELL_KNOWN_ACCOUNTS = {
   TAX_PAYABLE: '2408',
   SALES_REVENUE: '4135',
   PURCHASES_EXPENSE: '6135',
+  FIXED_ASSETS: '1520',
+  ACCUMULATED_DEPRECIATION: '1592',
+  DEPRECIATION_EXPENSE: '5140',
+  DISPOSAL_LOSS: '5145',
 };
 
 export const DEFAULT_CHART_OF_ACCOUNTS: Array<{ code: string; name: string; type: AccountType }> = [
@@ -41,12 +45,16 @@ export const DEFAULT_CHART_OF_ACCOUNTS: Array<{ code: string; name: string; type
   { code: '1110', name: 'Bancos', type: AccountType.ASSET },
   { code: '1305', name: 'Clientes', type: AccountType.ASSET },
   { code: '1435', name: 'Inventarios', type: AccountType.ASSET },
+  { code: '1520', name: 'Activos fijos', type: AccountType.ASSET },
+  { code: '1592', name: 'Depreciación acumulada', type: AccountType.ASSET },
   { code: '2205', name: 'Proveedores', type: AccountType.LIABILITY },
   { code: '2408', name: 'Impuestos por pagar', type: AccountType.LIABILITY },
   { code: '3105', name: 'Capital social', type: AccountType.EQUITY },
   { code: '4135', name: 'Ingresos por ventas', type: AccountType.INCOME },
   { code: '4210', name: 'Ingresos no operacionales', type: AccountType.INCOME },
   { code: '5135', name: 'Gastos de administración', type: AccountType.EXPENSE },
+  { code: '5140', name: 'Gasto por depreciación', type: AccountType.EXPENSE },
+  { code: '5145', name: 'Pérdida en baja de activos', type: AccountType.EXPENSE },
   { code: '6135', name: 'Costo de ventas y compras', type: AccountType.EXPENSE },
 ];
 
@@ -303,6 +311,67 @@ export class AccountingService extends TenantScopedService<Account> {
         { accountId: cash.id, debit: 0, credit: opts.amount, description: `Pago a proveedor ${opts.supplierInvoiceNumber}` },
       ],
     }).catch((err) => this.logger.warn(`No se pudo contabilizar el pago a proveedor ${opts.supplierInvoiceNumber}: ${(err as Error).message}`));
+  }
+
+  /** One consolidated entry per depreciation run (not one per asset) —
+   * same total debited to the expense account and credited to accumulated
+   * depreciation, so the journal doesn't get flooded with a line per asset
+   * every period. */
+  async postDepreciationRun(
+    tenantId: string,
+    userId: string,
+    opts: { period: string; totalAmount: number; assetCount: number },
+  ): Promise<void> {
+    const [expense, accumulated] = await Promise.all([
+      this.findWellKnownAccount(tenantId, WELL_KNOWN_ACCOUNTS.DEPRECIATION_EXPENSE),
+      this.findWellKnownAccount(tenantId, WELL_KNOWN_ACCOUNTS.ACCUMULATED_DEPRECIATION),
+    ]);
+    if (!expense || !accumulated) {
+      this.logger.warn(`No se pudo contabilizar la depreciación del período ${opts.period}: falta el plan de cuentas básico`);
+      return;
+    }
+    await this.postEntry(tenantId, userId, {
+      date: opts.period,
+      description: `Depreciación de ${opts.assetCount} activo(s) — período ${opts.period}`,
+      sourceType: 'depreciation',
+      sourceId: null,
+      lines: [
+        { accountId: expense.id, debit: opts.totalAmount, credit: 0 },
+        { accountId: accumulated.id, debit: 0, credit: opts.totalAmount },
+      ],
+    }).catch((err) => this.logger.warn(`No se pudo contabilizar la depreciación del período ${opts.period}: ${(err as Error).message}`));
+  }
+
+  /** Write-off entry on disposal: clears the asset's accumulated
+   * depreciation and its cost, booking whatever book value remains as a
+   * loss (0 if the asset was already fully depreciated). */
+  async postAssetDisposal(
+    tenantId: string,
+    userId: string,
+    opts: { assetId: string; assetNumber: string; date: string; cost: number; accumulatedDepreciation: number; bookValue: number },
+  ): Promise<void> {
+    const [fixedAssets, accumulated, loss] = await Promise.all([
+      this.findWellKnownAccount(tenantId, WELL_KNOWN_ACCOUNTS.FIXED_ASSETS),
+      this.findWellKnownAccount(tenantId, WELL_KNOWN_ACCOUNTS.ACCUMULATED_DEPRECIATION),
+      this.findWellKnownAccount(tenantId, WELL_KNOWN_ACCOUNTS.DISPOSAL_LOSS),
+    ]);
+    if (!fixedAssets || !accumulated || (opts.bookValue > 0 && !loss)) {
+      this.logger.warn(`No se pudo contabilizar la baja del activo ${opts.assetNumber}: falta el plan de cuentas básico`);
+      return;
+    }
+    const lines = [{ accountId: accumulated.id, debit: opts.accumulatedDepreciation, credit: 0, description: `Baja de ${opts.assetNumber}` }];
+    if (opts.bookValue > 0 && loss) {
+      lines.push({ accountId: loss.id, debit: opts.bookValue, credit: 0, description: `Baja de ${opts.assetNumber}` });
+    }
+    lines.push({ accountId: fixedAssets.id, debit: 0, credit: opts.cost, description: `Baja de ${opts.assetNumber}` });
+
+    await this.postEntry(tenantId, userId, {
+      date: opts.date,
+      description: `Baja de activo fijo ${opts.assetNumber}`,
+      sourceType: 'fixed_asset_disposal',
+      sourceId: opts.assetId,
+      lines,
+    }).catch((err) => this.logger.warn(`No se pudo contabilizar la baja del activo ${opts.assetNumber}: ${(err as Error).message}`));
   }
 
   // --- Cash accounts (caja y bancos) ---

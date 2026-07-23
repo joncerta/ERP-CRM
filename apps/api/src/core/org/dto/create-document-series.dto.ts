@@ -2,7 +2,7 @@ import { IsIn, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator'
 import { EmptyToUndefined } from '../../../common/decorators/empty-to-undefined.decorator';
 
 /** Extend this list as new numbered document types are introduced. */
-export const DOCUMENT_TYPES = ['quote', 'invoice', 'purchase_order', 'journal_entry'] as const;
+export const DOCUMENT_TYPES = ['quote', 'invoice', 'purchase_order', 'journal_entry', 'fixed_asset'] as const;
 
 export class CreateDocumentSeriesDto {
   @IsIn(DOCUMENT_TYPES)

@@ -421,3 +421,44 @@ export interface IncomeStatementReport {
   totalExpenses: number;
   netResult: number;
 }
+
+export type FixedAssetStatus = 'active' | 'under_maintenance' | 'disposed';
+
+export interface FixedAsset {
+  id: string;
+  assetNumber: string;
+  name: string;
+  description: string | null;
+  purchaseDate: string;
+  purchaseCost: number | string;
+  usefulLifeMonths: number;
+  salvageValue: number | string;
+  accumulatedDepreciation: number | string;
+  status: FixedAssetStatus;
+  locationBranchId: string | null;
+  responsibleUserId: string | null;
+  lastDepreciatedPeriod: string | null;
+  createdAt: string;
+}
+
+export type FixedAssetMovementType = 'maintenance' | 'transfer' | 'disposal';
+
+export interface FixedAssetMovement {
+  id: string;
+  fixedAssetId: string;
+  type: FixedAssetMovementType;
+  date: string;
+  note: string | null;
+  cost: number | string | null;
+  fromBranchId: string | null;
+  toBranchId: string | null;
+  createdByUserId: string;
+}
+
+export interface FixedAssetDepreciationEntry {
+  id: string;
+  fixedAssetId: string;
+  period: string;
+  amount: number | string;
+  accumulatedAfter: number | string;
+}

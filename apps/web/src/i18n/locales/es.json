@@ -15,6 +15,7 @@
     "invoices": "Facturación",
     "purchases": "Compras",
     "accounting": "Contabilidad",
+    "fixedAssets": "Activos fijos",
     "platform": "Plataforma",
     "settings": "Configuración",
     "users": "Usuarios",
@@ -367,6 +368,39 @@
       "cash_transaction": "Movimiento de caja/banco"
     }
   },
+  "fixedAssets": {
+    "title": "Activos fijos",
+    "newAsset": "Nuevo activo",
+    "purchaseDate": "Fecha de compra",
+    "cost": "Costo",
+    "usefulLifeMonths": "Vida útil (meses)",
+    "salvageValue": "Valor residual",
+    "accumulatedDepreciation": "Depreciación acumulada",
+    "bookValue": "Valor en libros",
+    "location": "Ubicación",
+    "responsible": "Responsable",
+    "destinationBranch": "Sucursal destino",
+    "transfer": "Trasladar",
+    "recordMaintenance": "Registrar mantenimiento",
+    "dispose": "Dar de baja",
+    "confirmDispose": "¿Seguro que quieres dar de baja este activo? Esta acción no se puede deshacer.",
+    "movements": "Movimientos",
+    "depreciationHistory": "Historial de depreciación",
+    "runDepreciation": "Ejecutar depreciación",
+    "runDepreciationHint": "Deprecia todos los activos activos que no se hayan depreciado aún para el período indicado. Se puede volver a ejecutar sin duplicar montos.",
+    "depreciationRunOk": "Se depreciaron {count} activo(s) por un total de {amount}.",
+    "period": "Período",
+    "status": {
+      "active": "Activo",
+      "under_maintenance": "En mantenimiento",
+      "disposed": "Dado de baja"
+    },
+    "movementType": {
+      "maintenance": "Mantenimiento",
+      "transfer": "Traslado",
+      "disposal": "Baja"
+    }
+  },
   "contacts": {
     "title": "Contactos",
     "newContact": "Nuevo contacto",
@@ -443,6 +477,8 @@
       "finance_purchases_write": "Crear proveedores y órdenes de compra, recibir mercancía y registrar pagos a proveedores",
       "accounting_entries_read": "Ver el plan de cuentas, asientos contables, caja/bancos y reportes financieros",
       "accounting_entries_write": "Crear cuentas contables, asientos manuales, cuentas de caja/banco y sus movimientos",
+      "fixed_assets_read": "Ver el registro de activos fijos, su depreciación y movimientos",
+      "fixed_assets_write": "Crear activos fijos, ejecutar depreciación, y registrar mantenimiento/traslado/baja",
       "core_users_read": "Ver la lista de usuarios del equipo",
       "core_users_write": "Invitar usuarios y activar/desactivar su acceso",
       "core_roles_read": "Ver los roles disponibles",

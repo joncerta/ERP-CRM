@@ -98,6 +98,9 @@ onUnmounted(() => {
           <template v-if="enabledModuleCodes.includes('accounting')">
             <RouterLink to="/accounting">{{ t('nav.accounting') }}</RouterLink>
           </template>
+          <template v-if="enabledModuleCodes.includes('fixed_assets')">
+            <RouterLink to="/fixed-assets">{{ t('nav.fixedAssets') }}</RouterLink>
+          </template>
         </template>
       </nav>
       <div class="sidebar-footer">

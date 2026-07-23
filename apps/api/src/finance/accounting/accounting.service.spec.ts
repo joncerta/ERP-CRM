@@ -155,6 +155,53 @@ describe('AccountingService', () => {
     });
   });
 
+  describe('postDepreciationRun', () => {
+    it('posts a single consolidated entry for the whole run', async () => {
+      const { service, repo, journalEntriesRepo } = buildService();
+      repo.findOne.mockImplementation(({ where }: any) => {
+        if (where.code === WELL_KNOWN_ACCOUNTS.DEPRECIATION_EXPENSE) return Promise.resolve({ id: 'expense' });
+        if (where.code === WELL_KNOWN_ACCOUNTS.ACCUMULATED_DEPRECIATION) return Promise.resolve({ id: 'accumulated' });
+        return Promise.resolve(null);
+      });
+
+      await service.postDepreciationRun('tenant-a', 'user-1', { period: '2026-07-01', totalAmount: 300, assetCount: 3 });
+
+      const savedEntry = (journalEntriesRepo.save as jest.Mock).mock.calls[0][0];
+      expect(savedEntry.lines).toEqual([
+        expect.objectContaining({ accountId: 'expense', debit: 300, credit: 0 }),
+        expect.objectContaining({ accountId: 'accumulated', debit: 0, credit: 300 }),
+      ]);
+    });
+  });
+
+  describe('postAssetDisposal', () => {
+    it('books a loss for the remaining book value when the asset was not fully depreciated', async () => {
+      const { service, repo, journalEntriesRepo } = buildService();
+      repo.findOne.mockImplementation(({ where }: any) => {
+        if (where.code === WELL_KNOWN_ACCOUNTS.FIXED_ASSETS) return Promise.resolve({ id: 'fixed-assets' });
+        if (where.code === WELL_KNOWN_ACCOUNTS.ACCUMULATED_DEPRECIATION) return Promise.resolve({ id: 'accumulated' });
+        if (where.code === WELL_KNOWN_ACCOUNTS.DISPOSAL_LOSS) return Promise.resolve({ id: 'loss' });
+        return Promise.resolve(null);
+      });
+
+      await service.postAssetDisposal('tenant-a', 'user-1', {
+        assetId: 'asset-1',
+        assetNumber: 'AF-000001',
+        date: '2026-07-01',
+        cost: 1000,
+        accumulatedDepreciation: 600,
+        bookValue: 400,
+      });
+
+      const savedEntry = (journalEntriesRepo.save as jest.Mock).mock.calls[0][0];
+      const totalDebit = savedEntry.lines.reduce((s: number, l: any) => s + l.debit, 0);
+      const totalCredit = savedEntry.lines.reduce((s: number, l: any) => s + l.credit, 0);
+      expect(totalDebit).toBe(1000);
+      expect(totalCredit).toBe(1000);
+      expect(savedEntry.lines.some((l: any) => l.accountId === 'loss' && l.debit === 400)).toBe(true);
+    });
+  });
+
   describe('cash accounts', () => {
     it('deposit increases the balance and posts a balanced journal entry', async () => {
       const { service, cashAccountsRepo, journalEntriesRepo } = buildService();

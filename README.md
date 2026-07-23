@@ -697,6 +697,45 @@ decisión de alcance manejable que ya se tomó para Facturación.
   `PurchasesModule` (lo que sí crearía una dependencia circular, dado que
   esos módulos ya dependen de Contabilidad para contabilizar).
 
+## Activos fijos
+
+Módulo activable `fixed_assets` (`GET/POST/PATCH /api/finance/fixed-assets/*`,
+permisos `fixed_assets.read` / `fixed_assets.write`) — registro,
+depreciación, mantenimiento, traslado y baja de activos. Depreciación
+**lineal únicamente** (sin métodos acelerados), la misma decisión de
+alcance manejable de siempre.
+
+- **`FixedAsset`**: costo, vida útil en meses y valor residual son
+  **inmutables después de crear el activo** (`UpdateFixedAssetDto`
+  deliberadamente no los incluye) — ya alimentan la matemática de
+  depreciación y, potencialmente, asientos ya contabilizados; solo
+  nombre, descripción, ubicación (`locationBranchId`, sucursal del
+  módulo 8) y responsable se pueden editar después.
+- **Depreciación** (`POST /finance/fixed-assets/run-depreciation`): acción
+  manual (sin scheduler, igual que la generación de facturas recurrentes)
+  que el usuario dispara por período. `depreciación mensual = (costo −
+  valor residual) / vida útil en meses`. Cada activo recuerda
+  `lastDepreciatedPeriod`, así que **volver a ejecutar el mismo período no
+  duplica el monto** — los activos ya procesados simplemente se saltan.
+  Un solo asiento contable consolida la depreciación de todos los activos
+  del período (`Dr` Gasto por depreciación, `Cr` Depreciación acumulada),
+  en vez de un asiento por activo.
+- **Mantenimiento** (`POST .../:id/maintenance`): queda registrado como
+  historial (`FixedAssetMovement`) con un costo opcional puramente
+  informativo. **Pendiente**: no contabiliza ese costo automáticamente —
+  no hay forma de saber si se pagó de caja o quedó como cuenta por pagar,
+  así que se deja a criterio de quien lo registre (vía un asiento manual
+  en Contabilidad si aplica).
+- **Traslado** (`POST .../:id/transfer`): cambia `locationBranchId` y
+  registra el movimiento con sucursal de origen y destino.
+- **Baja** (`POST .../:id/dispose`): calcula el valor en libros (costo −
+  depreciación acumulada) y contabiliza automáticamente el retiro (`Dr`
+  Depreciación acumulada por lo ya depreciado, `Dr` Pérdida en baja de
+  activos por el valor en libros restante si no llegó a depreciarse del
+  todo, `Cr` Activos fijos por el costo completo) — mismo patrón de
+  "se omite con advertencia si falta el plan de cuentas" que el resto de
+  las integraciones con Contabilidad.
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia
