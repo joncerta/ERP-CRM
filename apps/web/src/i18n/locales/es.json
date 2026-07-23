@@ -2,6 +2,7 @@
   "nav": {
     "dashboard": "Inicio",
     "pipeline": "Pipeline",
+    "activities": "Actividades",
     "reminders": "Recordatorios",
     "leads": "Leads",
     "contacts": "Contactos",
@@ -68,7 +69,8 @@
     "savedOk": "Guardado correctamente.",
     "deletedOk": "Eliminado correctamente.",
     "pageOf": "Página {page} de {totalPages}",
-    "yes": "Sí"
+    "yes": "Sí",
+    "date": "Fecha"
   },
   "leads": {
     "title": "Leads",
@@ -165,6 +167,29 @@
     "lost": "Perdidas",
     "lostReasons": "Motivos de pérdida"
   },
+  "activities": {
+    "title": "Actividades",
+    "newActivity": "Nueva actividad",
+    "agenda": "Agenda",
+    "history": "Historial de actividad",
+    "type": "Tipo",
+    "subject": "Asunto",
+    "notes": "Notas",
+    "related": "Relacionado con",
+    "scheduledAt": "Fecha programada",
+    "outcome": "Resultado",
+    "outcomePrompt": "Resultado (opcional)",
+    "completedNoOutcome": "Completada",
+    "markComplete": "Marcar completada",
+    "types": {
+      "call": "Llamada",
+      "meeting": "Reunión",
+      "email": "Correo",
+      "note": "Nota",
+      "visit": "Visita",
+      "task": "Tarea"
+    }
+  },
   "quotes": {
     "title": "Cotizaciones",
     "newQuote": "Nueva cotización",
@@ -253,6 +278,8 @@
       "crm_opportunities_write": "Crear, editar y mover oportunidades en el pipeline",
       "crm_quotes_read": "Ver cotizaciones",
       "crm_quotes_write": "Crear, editar y enviar cotizaciones",
+      "crm_activities_read": "Ver actividades, visitas y la agenda comercial",
+      "crm_activities_write": "Registrar y editar actividades, visitas y tareas",
       "inventory_products_read": "Ver productos",
       "inventory_products_write": "Crear y editar productos, categorías y unidades",
       "inventory_warehouses_read": "Ver bodegas",

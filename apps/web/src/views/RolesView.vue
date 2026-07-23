@@ -26,6 +26,8 @@ const PERMISSION_GROUPS: Array<{ labelKey: string; codes: string[] }> = [
       'crm.opportunities.write',
       'crm.quotes.read',
       'crm.quotes.write',
+      'crm.activities.read',
+      'crm.activities.write',
     ],
   },
   {

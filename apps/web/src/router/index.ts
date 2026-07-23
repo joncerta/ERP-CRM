@@ -53,6 +53,12 @@ const router = createRouter({
       meta: { crmRoute: true },
     },
     {
+      path: '/activities',
+      name: 'activities',
+      component: () => import('@/views/ActivitiesView.vue'),
+      meta: { crmRoute: true },
+    },
+    {
       path: '/leads',
       name: 'leads',
       component: () => import('@/views/LeadsView.vue'),

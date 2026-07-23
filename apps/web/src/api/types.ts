@@ -183,3 +183,21 @@ export interface StockMovement {
   createdByUserId: string;
   createdAt: string;
 }
+
+export type ActivityType = 'call' | 'meeting' | 'email' | 'note' | 'visit' | 'task';
+
+export interface Activity {
+  id: string;
+  type: ActivityType;
+  subject: string;
+  notes: string | null;
+  contactId: string | null;
+  leadId: string | null;
+  opportunityId: string | null;
+  ownerUserId: string;
+  scheduledAt: string | null;
+  completedAt: string | null;
+  outcome: string | null;
+  nextAction: string | null;
+  createdAt: string;
+}

@@ -76,6 +76,7 @@ onUnmounted(() => {
           <RouterLink to="/dashboard">{{ t('nav.dashboard') }}</RouterLink>
           <template v-if="enabledModuleCodes.includes('crm')">
             <RouterLink to="/pipeline">{{ t('nav.pipeline') }}</RouterLink>
+            <RouterLink to="/activities">{{ t('nav.activities') }}</RouterLink>
             <RouterLink to="/reminders">{{ t('nav.reminders') }}</RouterLink>
             <RouterLink to="/leads">{{ t('nav.leads') }}</RouterLink>
             <RouterLink to="/contacts">{{ t('nav.contacts') }}</RouterLink>

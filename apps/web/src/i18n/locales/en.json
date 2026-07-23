@@ -2,6 +2,7 @@
   "nav": {
     "dashboard": "Home",
     "pipeline": "Pipeline",
+    "activities": "Activities",
     "reminders": "Reminders",
     "leads": "Leads",
     "contacts": "Contacts",
@@ -68,7 +69,8 @@
     "savedOk": "Saved successfully.",
     "deletedOk": "Deleted successfully.",
     "pageOf": "Page {page} of {totalPages}",
-    "yes": "Yes"
+    "yes": "Yes",
+    "date": "Date"
   },
   "leads": {
     "title": "Leads",
@@ -165,6 +167,29 @@
     "lost": "Lost",
     "lostReasons": "Loss reasons"
   },
+  "activities": {
+    "title": "Activities",
+    "newActivity": "New activity",
+    "agenda": "Agenda",
+    "history": "Activity history",
+    "type": "Type",
+    "subject": "Subject",
+    "notes": "Notes",
+    "related": "Related to",
+    "scheduledAt": "Scheduled for",
+    "outcome": "Outcome",
+    "outcomePrompt": "Outcome (optional)",
+    "completedNoOutcome": "Completed",
+    "markComplete": "Mark complete",
+    "types": {
+      "call": "Call",
+      "meeting": "Meeting",
+      "email": "Email",
+      "note": "Note",
+      "visit": "Visit",
+      "task": "Task"
+    }
+  },
   "quotes": {
     "title": "Quotes",
     "newQuote": "New quote",
@@ -253,6 +278,8 @@
       "crm_opportunities_write": "Create, edit, and move opportunities in the pipeline",
       "crm_quotes_read": "View quotes",
       "crm_quotes_write": "Create, edit, and send quotes",
+      "crm_activities_read": "View activities, visits, and the commercial agenda",
+      "crm_activities_write": "Log and edit activities, visits, and tasks",
       "inventory_products_read": "View products",
       "inventory_products_write": "Create and edit products, categories, and units",
       "inventory_warehouses_read": "View warehouses",

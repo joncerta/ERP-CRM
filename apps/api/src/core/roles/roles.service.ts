@@ -25,6 +25,8 @@ export const DEFAULT_ROLE_TEMPLATES: Array<{ name: string; permissions: string[]
       'crm.opportunities.write',
       'crm.quotes.read',
       'crm.quotes.write',
+      'crm.activities.read',
+      'crm.activities.write',
     ],
   },
 ];

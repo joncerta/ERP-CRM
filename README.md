@@ -526,6 +526,33 @@ Sube de nivel lo que ya existía: de un estado plano a un embudo medible.
   cotizaciones que ya salieron. **Pendiente**: flujo de aprobación interna
   antes de reenviar una versión renegociada.
 
+## Actividades, visitas y agenda
+
+Módulo `crm/activities` (`GET/POST/PATCH/DELETE /api/crm/activities`,
+permisos `crm.activities.read` / `crm.activities.write`): lo que antes no
+existía en absoluto — ningún registro de qué pasó con un lead o cliente
+fuera de una cotización, ni calendario.
+
+- **`Activity`** (tabla `crm_activities`) es genérica por tipo (`call`,
+  `meeting`, `email`, `note`, `visit`, `task`) y se puede enlazar a un
+  contacto, un lead y/o una oportunidad al mismo tiempo (todas las
+  columnas son nullable e independientes) — una visita puede quedar
+  atada al lead y a la oportunidad que generó, por ejemplo.
+  `scheduledAt` es cuándo está planeada (reuniones, visitas, tareas);
+  `completedAt` se llena al marcarla como hecha; `outcome` y
+  `nextAction` capturan el resultado y el siguiente paso.
+- **Agenda**: `GET /api/crm/activities/agenda` devuelve las actividades
+  con `scheduledAt` futuro y `completedAt` nulo, ordenadas por fecha —
+  la vista "Agenda" de `ActivitiesView`, filtrable a "solo mías".
+- **Notifica en tiempo real**: agendar o completar una actividad de tipo
+  `visit` dispara `NotificationEscalationService.notifyWithEscalation()`
+  — el dueño y su líder directo (módulo 8) se enteran. Otros tipos de
+  actividad no notifican, para no saturar la campana.
+- **Pendiente**: sincronización con Google Calendar/Outlook, videollamadas
+  y WhatsApp como canal registrado (hoy WhatsApp solo es un campo de
+  contacto, no una actividad) — quedan fuera de este alcance porque
+  requieren integraciones con APIs externas.
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia
