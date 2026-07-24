@@ -5,6 +5,7 @@ import { Campaign, CampaignChannel, CampaignStatus } from './entities/campaign.e
 import { CampaignRecipient, CampaignRecipientStatus } from './entities/campaign-recipient.entity';
 import { ContactsService } from '../../crm/contacts/contacts.service';
 import { EmailService } from '../../common/email/email.service';
+import { CommunicationsService } from '../../documents/communications.service';
 
 function buildDeps() {
   const repo = {
@@ -23,12 +24,15 @@ function buildDeps() {
   const emailService = {
     send: jest.fn().mockResolvedValue(undefined),
   } as unknown as jest.Mocked<EmailService>;
-  return { repo, recipientsRepo, contactsService, emailService };
+  const communicationsService = {
+    logAutomatic: jest.fn().mockResolvedValue(undefined),
+  } as unknown as jest.Mocked<CommunicationsService>;
+  return { repo, recipientsRepo, contactsService, emailService, communicationsService };
 }
 
 function buildService() {
   const deps = buildDeps();
-  const service = new CampaignsService(deps.repo, deps.recipientsRepo, deps.contactsService, deps.emailService);
+  const service = new CampaignsService(deps.repo, deps.recipientsRepo, deps.contactsService, deps.emailService, deps.communicationsService);
   return { service, ...deps };
 }
 

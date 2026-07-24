@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { DocumentSeriesService } from '../../core/org/document-series.service';
 import { TaxesService } from '../../core/taxes/taxes.service';
 import { WebhooksService } from '../../automations/webhooks.service';
+import { CommunicationsService } from '../../documents/communications.service';
 
 function buildDeps() {
   const repo = {
@@ -31,7 +32,10 @@ function buildDeps() {
   const webhooksService = {
     dispatch: jest.fn().mockResolvedValue(undefined),
   } as unknown as jest.Mocked<WebhooksService>;
-  return { repo, notificationEscalationService, contactsService, emailService, config, documentSeriesService, taxesService, webhooksService };
+  const communicationsService = {
+    logAutomatic: jest.fn().mockResolvedValue(undefined),
+  } as unknown as jest.Mocked<CommunicationsService>;
+  return { repo, notificationEscalationService, contactsService, emailService, config, documentSeriesService, taxesService, webhooksService, communicationsService };
 }
 
 function buildService() {
@@ -45,6 +49,7 @@ function buildService() {
     deps.documentSeriesService,
     deps.taxesService,
     deps.webhooksService,
+    deps.communicationsService,
   );
   return { service, ...deps };
 }
@@ -136,7 +141,20 @@ describe('QuotesService', () => {
       await expect(service.respond('token-1', true)).rejects.toThrow(BadRequestException);
     });
 
-    it('accepts a response while still within validUntil', async () => {
+    it('refuses to accept without a typed signature name', async () => {
+      const { service, repo } = buildService();
+      repo.findOne.mockResolvedValue({
+        id: 'quote-1',
+        tenantId: 'tenant-a',
+        accessToken: 'token-1',
+        status: QuoteStatus.SENT,
+        validUntil: '2099-01-01',
+      } as unknown as Quote);
+
+      await expect(service.respond('token-1', true)).rejects.toThrow(BadRequestException);
+    });
+
+    it('accepts a response while still within validUntil, storing the typed signature', async () => {
       const { service, repo, notificationEscalationService } = buildService();
       repo.findOne.mockResolvedValue({
         id: 'quote-1',
@@ -148,7 +166,9 @@ describe('QuotesService', () => {
         validUntil: '2099-01-01',
       } as unknown as Quote);
 
-      const updated = await service.respond('token-1', true);
+      const updated = await service.respond('token-1', true, 'María Restrepo');
+
+      expect(updated).toMatchObject({ signedByName: 'María Restrepo' });
 
       expect(updated).toMatchObject({ status: QuoteStatus.ACCEPTED });
       expect(notificationEscalationService.notifyWithEscalation).toHaveBeenCalled();

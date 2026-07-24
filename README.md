@@ -918,6 +918,46 @@ exportación CSV.
   es la respuesta honesta a "quiero abrir esto en Excel" sin fingir una
   integración que no existe.
 
+## Documentos y comunicaciones
+
+Módulo activable `documents` (`documents/*`, permisos
+`documents.files.read/write`, `documents.communications.read/write`) —
+archivos adjuntos por empresa/contacto/oportunidad y una bitácora
+unificada de comunicaciones por contacto.
+
+- **Documentos** (`Document`): el archivo se guarda como un data URI en
+  base64 directamente en la fila (`fileData`, columna `text`), el mismo
+  patrón que el logo del tenant (`Tenant.brandingLogoData`) — este
+  proyecto no tiene almacenamiento de objetos (S3 u otro) configurado y
+  los contenedores son efímeros. El tope es más alto que el del logo
+  (`MAX_FILE_DATA_URI_LENGTH = 10.000.000` caracteres, ~7.5MB
+  decodificados) porque los documentos son naturalmente más grandes que
+  un logo, pero sigue habiendo un tope para que nadie meta un archivo
+  enorme en Postgres. Cada documento puede asociarse opcionalmente a una
+  empresa, un contacto y/o una oportunidad; el listado (`GET /documents`)
+  nunca incluye `fileData` — solo metadatos — y la descarga
+  (`GET /documents/:id/download`) devuelve el archivo real como
+  `StreamableFile`. Reemplazar el contenido de un archivo no es una
+  operación soportada: hay que borrar y volver a subir.
+- **Bitácora de comunicaciones** (`CommunicationLogEntry`): por
+  contacto, con canal (`email` / `whatsapp` / `call` / `sms`) y dirección
+  (`inbound` / `outbound`). Es una **línea de tiempo registrada, no una
+  bandeja de entrada que sincroniza en vivo** — una integración real
+  necesitaría IMAP/Gmail API, la API de WhatsApp Business y una pasarela
+  de SMS (Twilio u otra), credenciales que este proyecto no tiene. Los
+  correos salientes que el sistema sí envía de verdad (cotizaciones desde
+  `QuotesService.send()`, campañas de email desde
+  `CampaignsService.send()`) se registran solos vía
+  `CommunicationsService.logAutomatic()` justo después del envío
+  exitoso; todo lo demás (llamadas, WhatsApp, SMS, y cualquier mensaje
+  entrante) se registra manualmente, igual que una nota de actividad.
+- **Firma simple de cotizaciones** (`Quote.signedByName`): al aceptar una
+  cotización desde el enlace público, ahora se exige escribir el nombre
+  completo como firma — se guarda junto con `respondedAt`. No es una
+  firma criptográfica ni con validez legal tipo DocuSign (que requeriría
+  un servicio de terceros sin credenciales en este proyecto); es un
+  reconocimiento honesto de "quién escribió su nombre para aceptar esto".
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia

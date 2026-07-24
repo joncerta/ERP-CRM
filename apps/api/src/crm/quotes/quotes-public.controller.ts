@@ -36,6 +36,6 @@ export class QuotesPublicController {
   @Public()
   @Post(':token/respond')
   respond(@Param('token') token: string, @Body() dto: RespondQuoteDto) {
-    return this.quotesService.respond(token, dto.accepted);
+    return this.quotesService.respond(token, dto.accepted, dto.signedByName);
   }
 }

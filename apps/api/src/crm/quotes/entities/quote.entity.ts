@@ -65,6 +65,15 @@ export class Quote extends TenantScopedEntity {
   @Column({ name: 'responded_at', type: 'timestamptz', nullable: true })
   respondedAt: Date | null;
 
+  /** Simple electronic signature: the typed full name the customer entered
+   * to accept, captured alongside respondedAt. Not a cryptographic or
+   * legally-binding signature (that would need a service like DocuSign,
+   * which this project has no credentials for) — an honest "who typed
+   * their name to accept this" acknowledgment, same spirit as every other
+   * "manageable scope" simplification in this project. */
+  @Column({ name: 'signed_by_name', type: 'varchar', nullable: true })
+  signedByName: string | null;
+
   @Column({ name: 'access_token', unique: true })
   accessToken: string; // used for the public "view as customer" link
 

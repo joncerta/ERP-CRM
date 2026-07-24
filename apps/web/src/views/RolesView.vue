@@ -86,6 +86,15 @@ const PERMISSION_GROUPS: Array<{ labelKey: string; codes: string[] }> = [
     ],
   },
   {
+    labelKey: 'roles.groupDocuments',
+    codes: [
+      'documents.files.read',
+      'documents.files.write',
+      'documents.communications.read',
+      'documents.communications.write',
+    ],
+  },
+  {
     labelKey: 'roles.groupCore',
     codes: [
       'core.users.read',

@@ -11,6 +11,8 @@ import { ListQueryDto } from '../../common/dto/list-query.dto';
 import { Paginated } from '../../common/pagination/pagination.types';
 import { ContactsService } from '../../crm/contacts/contacts.service';
 import { EmailService } from '../../common/email/email.service';
+import { CommunicationsService } from '../../documents/communications.service';
+import { CommunicationChannel } from '../../documents/entities/communication-log-entry.entity';
 
 @Injectable()
 export class CampaignsService extends TenantScopedService<Campaign> {
@@ -21,6 +23,7 @@ export class CampaignsService extends TenantScopedService<Campaign> {
     @InjectRepository(CampaignRecipient) private readonly recipientsRepo: Repository<CampaignRecipient>,
     private readonly contactsService: ContactsService,
     private readonly emailService: EmailService,
+    private readonly communicationsService: CommunicationsService,
   ) {
     super(repo);
   }
@@ -95,6 +98,7 @@ export class CampaignsService extends TenantScopedService<Campaign> {
         try {
           await this.emailService.send({ to: contact.email, subject: campaign.subject ?? campaign.name, html: campaign.content });
           await this.recordRecipient(tenantId, campaign.id, contactId, CampaignRecipientStatus.SENT, null);
+          await this.communicationsService.logAutomatic(tenantId, contact.id, CommunicationChannel.EMAIL, `Campaña "${campaign.name}" enviada por correo`);
         } catch (err) {
           await this.recordRecipient(tenantId, campaign.id, contactId, CampaignRecipientStatus.FAILED, (err as Error).message);
         }
@@ -114,6 +118,12 @@ export class CampaignsService extends TenantScopedService<Campaign> {
       }
       this.logger.warn(`Envío de ${campaign.channel} simulado a ${destination} (sin pasarela configurada): "${campaign.name}"`);
       await this.recordRecipient(tenantId, campaign.id, contactId, CampaignRecipientStatus.SIMULATED, null);
+      await this.communicationsService.logAutomatic(
+        tenantId,
+        contact.id,
+        campaign.channel === CampaignChannel.SMS ? CommunicationChannel.SMS : CommunicationChannel.WHATSAPP,
+        `Campaña "${campaign.name}" enviada (simulada) por ${campaign.channel}`,
+      );
     }
 
     campaign.status = CampaignStatus.SENT;

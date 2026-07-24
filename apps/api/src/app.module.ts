@@ -14,6 +14,7 @@ import { FinanceModule } from './finance/finance.module';
 import { SupportModule } from './support/support.module';
 import { MarketingModule } from './marketing/marketing.module';
 import { AutomationsModule } from './automations/automations.module';
+import { DocumentsModule } from './documents/documents.module';
 import { AuditModule } from './audit/audit.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
@@ -36,6 +37,7 @@ import { RequestContextInterceptor } from './common/interceptors/request-context
     SupportModule,
     MarketingModule,
     AutomationsModule,
+    DocumentsModule,
     AuditModule,
   ],
   controllers: [AppController],

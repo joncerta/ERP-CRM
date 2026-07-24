@@ -640,3 +640,31 @@ export interface ForecastRow {
   weightedValue: number;
   openCount: number;
 }
+
+export type DocumentCategory = 'contract' | 'presentation' | 'photo' | 'other';
+
+export interface CrmDocument {
+  id: string;
+  name: string;
+  category: DocumentCategory;
+  mimeType: string;
+  fileSize: number;
+  companyId: string | null;
+  contactId: string | null;
+  opportunityId: string | null;
+  uploadedByUserId: string;
+  createdAt: string;
+}
+
+export type CommunicationChannel = 'email' | 'whatsapp' | 'call' | 'sms';
+export type CommunicationDirection = 'inbound' | 'outbound';
+
+export interface CommunicationLogEntry {
+  id: string;
+  contactId: string;
+  channel: CommunicationChannel;
+  direction: CommunicationDirection;
+  summary: string;
+  occurredAt: string;
+  loggedByUserId: string | null;
+}

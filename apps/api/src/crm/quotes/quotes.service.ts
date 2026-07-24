@@ -17,6 +17,8 @@ import { DocumentSeriesService } from '../../core/org/document-series.service';
 import { TaxesService } from '../../core/taxes/taxes.service';
 import { WebhooksService } from '../../automations/webhooks.service';
 import { WebhookEventType } from '../../automations/entities/webhook-subscription.entity';
+import { CommunicationsService } from '../../documents/communications.service';
+import { CommunicationChannel } from '../../documents/entities/communication-log-entry.entity';
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
@@ -35,6 +37,7 @@ export class QuotesService extends TenantScopedService<Quote> {
     private readonly documentSeriesService: DocumentSeriesService,
     private readonly taxesService: TaxesService,
     private readonly webhooksService: WebhooksService,
+    private readonly communicationsService: CommunicationsService,
   ) {
     super(repo);
   }
@@ -153,6 +156,12 @@ export class QuotesService extends TenantScopedService<Quote> {
         subject: `Cotización ${quote.quoteNumber}`,
         html: `<p>Hola ${contact.firstName},</p><p>Te compartimos la cotización <strong>${quote.quoteNumber}</strong> por un total de ${quote.currencyCode} ${Number(quote.total).toLocaleString()}.</p><p><a href="${quoteUrl}">Ver cotización</a></p>`,
       });
+      await this.communicationsService.logAutomatic(
+        quote.tenantId,
+        contact.id,
+        CommunicationChannel.EMAIL,
+        `Cotización ${quote.quoteNumber} enviada por correo`,
+      );
     } catch (err) {
       // The quote is already marked "sent" — a broken mail server shouldn't
       // fail the request; the sender still has the public link to share.
@@ -174,7 +183,7 @@ export class QuotesService extends TenantScopedService<Quote> {
     return this.repository.save(quote);
   }
 
-  async respond(accessToken: string, accepted: boolean): Promise<Quote> {
+  async respond(accessToken: string, accepted: boolean, signedByName?: string): Promise<Quote> {
     const quote = await this.findByAccessToken(accessToken);
     if (![QuoteStatus.SENT, QuoteStatus.VIEWED].includes(quote.status)) {
       throw new BadRequestException('Esta cotización ya no admite respuesta');
@@ -182,8 +191,12 @@ export class QuotesService extends TenantScopedService<Quote> {
     if (quote.validUntil && new Date(quote.validUntil).getTime() < Date.now()) {
       throw new BadRequestException('Esta cotización ya expiró');
     }
+    if (accepted && !signedByName?.trim()) {
+      throw new BadRequestException('Para aceptar la cotización, escribe tu nombre completo como firma');
+    }
     quote.status = accepted ? QuoteStatus.ACCEPTED : QuoteStatus.REJECTED;
     quote.respondedAt = new Date();
+    quote.signedByName = accepted ? signedByName!.trim() : null;
     const saved = await this.repository.save(quote);
 
     await this.notificationEscalationService.notifyWithEscalation(

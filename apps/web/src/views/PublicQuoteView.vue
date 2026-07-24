@@ -15,6 +15,8 @@ const quote = ref<Quote | null>(null)
 const loading = ref(true)
 const responding = ref(false)
 const errorMsg = ref('')
+const signedByName = ref('')
+const respondError = ref('')
 
 const token = route.params.token as string
 
@@ -47,11 +49,12 @@ const isExpired = computed(() => {
 })
 
 async function respond(accepted: boolean) {
+  respondError.value = ''
   responding.value = true
   try {
-    quote.value = await respondPublicQuote(token, accepted)
+    quote.value = await respondPublicQuote(token, accepted, accepted ? signedByName.value : undefined)
   } catch (err) {
-    toast.error(getErrorMessage(err))
+    respondError.value = getErrorMessage(err)
   } finally {
     responding.value = false
   }
@@ -110,9 +113,16 @@ onMounted(load)
       <div v-else-if="isExpired" class="response-msg">
         {{ t('publicQuote.expiredMsg') }}
       </div>
-      <div v-else class="modal-actions" style="justify-content: flex-start; margin-top: 1.5rem">
-        <button class="btn" :disabled="responding" @click="respond(true)">{{ t('publicQuote.accept') }}</button>
-        <button class="btn secondary" :disabled="responding" @click="respond(false)">{{ t('publicQuote.reject') }}</button>
+      <div v-else style="margin-top: 1.5rem">
+        <div class="field">
+          <label>{{ t('publicQuote.signedByName') }}</label>
+          <input v-model="signedByName" :placeholder="t('publicQuote.signedByNameHint')" />
+        </div>
+        <p v-if="respondError" class="error-text">{{ respondError }}</p>
+        <div class="modal-actions" style="justify-content: flex-start">
+          <button class="btn" :disabled="responding" @click="respond(true)">{{ t('publicQuote.accept') }}</button>
+          <button class="btn secondary" :disabled="responding" @click="respond(false)">{{ t('publicQuote.reject') }}</button>
+        </div>
       </div>
     </div>
   </div>

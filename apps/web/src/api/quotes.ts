@@ -99,8 +99,8 @@ export async function getPublicQuote(token: string): Promise<Quote> {
   return data;
 }
 
-export async function respondPublicQuote(token: string, accepted: boolean): Promise<Quote> {
-  const { data } = await apiClient.post(`/public/quotes/${token}/respond`, { accepted });
+export async function respondPublicQuote(token: string, accepted: boolean, signedByName?: string): Promise<Quote> {
+  const { data } = await apiClient.post(`/public/quotes/${token}/respond`, { accepted, signedByName });
   return data;
 }
 
