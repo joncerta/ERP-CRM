@@ -1202,6 +1202,44 @@ de IA, sin persistir nada nuevo.
   que no la pueda responder. Un asistente con recuperación/tool-use real
   sobre los datos del tenant queda fuera de este alcance manejable.
 
+## API pública e integraciones
+
+Módulo activable `integrations` (`integrations/*`, permisos
+`integrations.api_keys.read/write`) — el roadmap marcaba este módulo
+"para cuando haya usuarios reales pidiéndolo, no antes", pero se
+construyó igual (misma decisión que con Producción) aplicando el mismo
+alcance manejable que el resto del proyecto.
+
+- **Claves de API** (`ApiKey`): por tenant, con un conjunto acotado de
+  alcances (`leads:read/write`, `contacts:read/write`,
+  `invoices:read`) — deliberadamente no un espejo del sistema interno
+  de permisos, para que una clave pública nunca alcance más que esa
+  lista corta y explícita. Solo se guarda el hash sha256 de la clave
+  (`select: false` en la columna); el valor en texto plano solo se
+  devuelve **una vez**, en la respuesta de creación — ni siquiera el
+  propio backend puede volver a mostrarlo después.
+- **API pública** (`POST/GET /api/public-api/v1/leads`,
+  `POST/GET /api/public-api/v1/contacts`,
+  `GET /api/public-api/v1/invoices[/:id]`): autenticada por el header
+  `X-Api-Key` en vez de JWT (no hay sesión de usuario del lado de una
+  integración externa), vía un guard separado que nunca toca
+  `request.user` para no arriesgar que una clave pública satisfaga por
+  accidente un `@RequirePermissions` interno. Reutiliza los mismos
+  `LeadsService`/`ContactsService`/`InvoicesService` que usa la UI
+  interna — un lead creado por esta vía dispara la misma
+  auto-asignación y el mismo webhook `lead.created` que uno creado
+  desde el CRM.
+- **Webhooks salientes**: ya existían desde el módulo de Automatizaciones
+  (14) — `WebhooksService.dispatch()` hace un POST real firmado con
+  HMAC-SHA256, sin simular nada (a diferencia de SMS/WhatsApp en
+  Marketing, un POST plano no necesita credenciales de terceros). Este
+  módulo no duplica esa función ni su UI, solo la documenta aquí.
+  Integraciones concretas con terceros (WhatsApp Business API, Meta
+  Lead Ads, pasarelas de pago, Google Workspace/Microsoft 365,
+  DocuSign) siguen fuera de alcance — todas requieren credenciales
+  reales que este proyecto no tiene, la misma limitación que Email/SMS
+  en Marketing.
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia

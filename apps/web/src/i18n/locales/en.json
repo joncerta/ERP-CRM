@@ -27,6 +27,7 @@
     "quality": "Quality",
     "logistics": "Logistics",
     "ai": "AI",
+    "integrations": "Integrations",
     "platform": "Platform",
     "settings": "Settings",
     "users": "Users",
@@ -865,6 +866,31 @@
     "suggestedPriority": "Suggested priority",
     "reasoning": "Reasoning"
   },
+  "integrations": {
+    "title": "Public API & integrations",
+    "subtitle": "API keys for external systems to create leads/contacts or read invoices for this company.",
+    "webhooksNote": "Outbound webhooks (automatic notices to external systems when something happens, like a lead being created) are configured in Automations.",
+    "goToAutomations": "Go to Automations",
+    "newApiKey": "New API key",
+    "name": "Name",
+    "scopes": "Scopes",
+    "scope_leads_read": "View leads",
+    "scope_leads_write": "Create leads",
+    "scope_contacts_read": "View contacts",
+    "scope_contacts_write": "Create contacts",
+    "scope_invoices_read": "View invoices",
+    "keyPrefix": "Prefix",
+    "lastUsed": "Last used",
+    "never": "Never",
+    "revoke": "Revoke",
+    "revokeConfirm": "Revoke this key? Any integration using it will stop working immediately.",
+    "keyCreatedTitle": "Key created",
+    "keyCreatedWarning": "Copy this key now — it won't be shown in full again.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "close": "Close",
+    "baseUrl": "Base URL"
+  },
   "documents": {
     "title": "Documents & communications",
     "tabDocuments": "Documents",
@@ -975,6 +1001,7 @@
     "groupQuality": "Quality",
     "groupLogistics": "Logistics",
     "groupAi": "AI",
+    "groupIntegrations": "Integrations",
     "groupCore": "Core",
     "permDesc": {
       "crm_contacts_read": "View contacts and companies",
@@ -1069,7 +1096,9 @@
       "ai_drafts_use": "Generate assisted drafts (follow-ups, replies, descriptions)",
       "ai_summaries_use": "Generate company and pipeline summaries",
       "ai_lead_scoring_use": "Evaluate a lead's suggested priority",
-      "ai_assistant_use": "Use the internal question-answering assistant"
+      "ai_assistant_use": "Use the internal question-answering assistant",
+      "integrations_api_keys_read": "View API keys (without seeing the full key)",
+      "integrations_api_keys_write": "Create and revoke API keys"
     }
   },
   "audit": {

@@ -27,6 +27,7 @@
     "quality": "Calidad",
     "logistics": "Logística",
     "ai": "IA",
+    "integrations": "Integraciones",
     "platform": "Plataforma",
     "settings": "Configuración",
     "users": "Usuarios",
@@ -865,6 +866,31 @@
     "suggestedPriority": "Prioridad sugerida",
     "reasoning": "Justificación"
   },
+  "integrations": {
+    "title": "API pública e integraciones",
+    "subtitle": "Claves de API para que sistemas externos creen leads/contactos o consulten facturas de esta empresa.",
+    "webhooksNote": "Los webhooks salientes (avisos automáticos hacia sistemas externos cuando pasa algo, como un lead creado) se configuran en Automatizaciones.",
+    "goToAutomations": "Ir a Automatizaciones",
+    "newApiKey": "Nueva clave de API",
+    "name": "Nombre",
+    "scopes": "Alcances",
+    "scope_leads_read": "Ver leads",
+    "scope_leads_write": "Crear leads",
+    "scope_contacts_read": "Ver contactos",
+    "scope_contacts_write": "Crear contactos",
+    "scope_invoices_read": "Ver facturas",
+    "keyPrefix": "Prefijo",
+    "lastUsed": "Último uso",
+    "never": "Nunca",
+    "revoke": "Revocar",
+    "revokeConfirm": "¿Revocar esta clave? Cualquier integración que la use dejará de funcionar de inmediato.",
+    "keyCreatedTitle": "Clave creada",
+    "keyCreatedWarning": "Copia esta clave ahora — no se volverá a mostrar completa.",
+    "copy": "Copiar",
+    "copied": "Copiada",
+    "close": "Cerrar",
+    "baseUrl": "URL base"
+  },
   "documents": {
     "title": "Documentos y comunicaciones",
     "tabDocuments": "Documentos",
@@ -975,6 +1001,7 @@
     "groupQuality": "Calidad",
     "groupLogistics": "Logística",
     "groupAi": "IA",
+    "groupIntegrations": "Integraciones",
     "groupCore": "Núcleo",
     "permDesc": {
       "crm_contacts_read": "Ver contactos y empresas",
@@ -1069,7 +1096,9 @@
       "ai_drafts_use": "Generar redacciones asistidas (seguimientos, respuestas, descripciones)",
       "ai_summaries_use": "Generar resúmenes de clientes y del pipeline",
       "ai_lead_scoring_use": "Evaluar la prioridad sugerida de un lead",
-      "ai_assistant_use": "Usar el asistente interno de preguntas"
+      "ai_assistant_use": "Usar el asistente interno de preguntas",
+      "integrations_api_keys_read": "Ver las claves de API (sin ver la clave completa)",
+      "integrations_api_keys_write": "Crear y revocar claves de API"
     }
   },
   "audit": {

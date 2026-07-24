@@ -1028,3 +1028,16 @@ export interface DeliveryNote {
 
 export type DraftType = 'quote_followup' | 'ticket_reply' | 'product_description';
 export type SummaryType = 'company' | 'pipeline';
+
+export type PublicApiScope = 'leads:read' | 'leads:write' | 'contacts:read' | 'contacts:write' | 'invoices:read';
+
+export interface ApiKey {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  scopes: PublicApiScope[];
+  isActive: boolean;
+  createdByUserId: string | null;
+  lastUsedAt: string | null;
+  createdAt: string;
+}

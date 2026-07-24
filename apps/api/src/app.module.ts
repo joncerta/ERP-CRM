@@ -22,6 +22,7 @@ import { MaintenanceModule } from './maintenance/maintenance.module';
 import { QualityModule } from './quality/quality.module';
 import { LogisticsModule } from './logistics/logistics.module';
 import { AiModule } from './ai/ai.module';
+import { IntegrationsModule } from './integrations/integrations.module';
 import { AuditModule } from './audit/audit.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
@@ -52,6 +53,7 @@ import { RequestContextInterceptor } from './common/interceptors/request-context
     QualityModule,
     LogisticsModule,
     AiModule,
+    IntegrationsModule,
     AuditModule,
   ],
   controllers: [AppController],
