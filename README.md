@@ -1163,6 +1163,45 @@ apoyado en Inventario (stock) y opcionalmente en Facturación.
     entregada, no rastreo GPS en tiempo real — este proyecto no integra
     hardware de telemetría de flota.
 
+## IA
+
+Módulo activable `ai` (`ai/*`, permisos `ai.drafts.use`,
+`ai.summaries.use`, `ai.lead_scoring.use`, `ai.assistant.use`) — el
+primer módulo de la fase "Plataforma", sin datos propios: cada
+funcionalidad lee datos ya existentes del tenant y llama al proveedor
+de IA, sin persistir nada nuevo.
+
+- **Proveedor**: [Google Gemini](https://aistudio.google.com/apikey)
+  (`gemini-2.0-flash` por defecto) a través de `AiProviderService`,
+  elegido porque su nivel gratuito no pide tarjeta de crédito. Está
+  detrás de un único método (`complete(prompt)`) para que cambiar de
+  proveedor más adelante sea implementarlo de nuevo ahí, no tocar cada
+  funcionalidad. Sin `GEMINI_API_KEY` configurada, cada endpoint
+  responde `503` con un mensaje claro en vez de fallar en silencio o
+  inventar una respuesta — así se verificó en este entorno, sin
+  credenciales reales disponibles (mismo límite que Email/SMTP en este
+  proyecto); el camino feliz de la llamada al proveedor está cubierto
+  por tests unitarios con `fetch` simulado.
+- **Redacción asistida** (`POST /ai/draft`): seguimiento de cotización,
+  respuesta a ticket, o descripción de producto — cada tipo arma su
+  propio prompt a partir del registro elegido (cotización/ticket/
+  producto), con instrucciones adicionales opcionales del usuario.
+- **Resúmenes** (`POST /ai/summarize`): de una empresa (oportunidades y
+  cotizaciones asociadas) o del pipeline completo (oportunidades
+  abiertas agrupadas por etapa).
+- **Priorización de leads** (`POST /ai/lead-score`): el modelo devuelve
+  una prioridad sugerida y su razonamiento en JSON estricto. No se
+  guarda en el lead — es una sugerencia que el usuario aplica
+  manualmente si está de acuerdo, evitando una migración solo para
+  esto.
+- **Asistente interno** (`POST /ai/assistant`): responde preguntas en
+  lenguaje natural sobre el negocio, pero solo a partir de un resumen
+  agregado (conteos de leads/tickets/seguimientos/actividades), no de
+  acceso libre a la base de datos ni de memoria entre preguntas — una
+  pregunta muy específica ("¿cuál es el teléfono de Juan Pérez?") puede
+  que no la pueda responder. Un asistente con recuperación/tool-use real
+  sobre los datos del tenant queda fuera de este alcance manejable.
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia

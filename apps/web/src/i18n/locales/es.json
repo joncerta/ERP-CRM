@@ -26,6 +26,7 @@
     "maintenance": "Mantenimiento",
     "quality": "Calidad",
     "logistics": "Logística",
+    "ai": "IA",
     "platform": "Plataforma",
     "settings": "Configuración",
     "users": "Usuarios",
@@ -831,6 +832,39 @@
     "dispatchedAt": "Fecha de despacho",
     "deliveredAt": "Fecha de entrega"
   },
+  "ai": {
+    "title": "IA",
+    "tabAssistant": "Asistente",
+    "tabDrafts": "Redacción asistida",
+    "tabSummaries": "Resúmenes",
+    "tabLeadScoring": "Priorización de leads",
+    "notConfigured": "La IA no está configurada — el administrador de la plataforma debe configurar una clave de API.",
+    "assistantPlaceholder": "Pregunta algo sobre tus datos, por ejemplo: ¿cuántos tickets abiertos de alta prioridad tengo?",
+    "ask": "Preguntar",
+    "thinking": "Pensando...",
+    "you": "Tú",
+    "assistant": "Asistente",
+    "draftType": "Tipo de redacción",
+    "draftType_quote_followup": "Seguimiento de cotización",
+    "draftType_ticket_reply": "Respuesta a ticket",
+    "draftType_product_description": "Descripción de producto",
+    "selectQuote": "Selecciona una cotización",
+    "selectTicket": "Selecciona un ticket",
+    "selectProduct": "Selecciona un producto",
+    "additionalInstructions": "Instrucciones adicionales (opcional)",
+    "generateDraft": "Generar redacción",
+    "generatedDraft": "Redacción generada",
+    "summaryType": "Tipo de resumen",
+    "summaryType_company": "Empresa",
+    "summaryType_pipeline": "Pipeline",
+    "selectCompany": "Selecciona una empresa",
+    "generateSummary": "Generar resumen",
+    "generatedSummary": "Resumen generado",
+    "selectLead": "Selecciona un lead",
+    "evaluateLead": "Evaluar prioridad",
+    "suggestedPriority": "Prioridad sugerida",
+    "reasoning": "Justificación"
+  },
   "documents": {
     "title": "Documentos y comunicaciones",
     "tabDocuments": "Documentos",
@@ -940,6 +974,7 @@
     "groupMaintenance": "Mantenimiento",
     "groupQuality": "Calidad",
     "groupLogistics": "Logística",
+    "groupAi": "IA",
     "groupCore": "Núcleo",
     "permDesc": {
       "crm_contacts_read": "Ver contactos y empresas",
@@ -1030,7 +1065,11 @@
       "logistics_drivers_read": "Ver el registro de conductores",
       "logistics_drivers_write": "Crear y editar conductores",
       "logistics_delivery_notes_read": "Ver guías de entrega y su seguimiento",
-      "logistics_delivery_notes_write": "Crear guías de entrega, despacharlas, entregarlas y cancelarlas"
+      "logistics_delivery_notes_write": "Crear guías de entrega, despacharlas, entregarlas y cancelarlas",
+      "ai_drafts_use": "Generar redacciones asistidas (seguimientos, respuestas, descripciones)",
+      "ai_summaries_use": "Generar resúmenes de clientes y del pipeline",
+      "ai_lead_scoring_use": "Evaluar la prioridad sugerida de un lead",
+      "ai_assistant_use": "Usar el asistente interno de preguntas"
     }
   },
   "audit": {

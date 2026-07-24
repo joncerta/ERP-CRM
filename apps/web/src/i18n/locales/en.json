@@ -26,6 +26,7 @@
     "maintenance": "Maintenance",
     "quality": "Quality",
     "logistics": "Logistics",
+    "ai": "AI",
     "platform": "Platform",
     "settings": "Settings",
     "users": "Users",
@@ -831,6 +832,39 @@
     "dispatchedAt": "Dispatched at",
     "deliveredAt": "Delivered at"
   },
+  "ai": {
+    "title": "AI",
+    "tabAssistant": "Assistant",
+    "tabDrafts": "Assisted drafting",
+    "tabSummaries": "Summaries",
+    "tabLeadScoring": "Lead scoring",
+    "notConfigured": "AI isn't configured — the platform administrator needs to set up an API key.",
+    "assistantPlaceholder": "Ask something about your data, e.g.: how many high-priority open tickets do I have?",
+    "ask": "Ask",
+    "thinking": "Thinking...",
+    "you": "You",
+    "assistant": "Assistant",
+    "draftType": "Draft type",
+    "draftType_quote_followup": "Quote follow-up",
+    "draftType_ticket_reply": "Ticket reply",
+    "draftType_product_description": "Product description",
+    "selectQuote": "Select a quote",
+    "selectTicket": "Select a ticket",
+    "selectProduct": "Select a product",
+    "additionalInstructions": "Additional instructions (optional)",
+    "generateDraft": "Generate draft",
+    "generatedDraft": "Generated draft",
+    "summaryType": "Summary type",
+    "summaryType_company": "Company",
+    "summaryType_pipeline": "Pipeline",
+    "selectCompany": "Select a company",
+    "generateSummary": "Generate summary",
+    "generatedSummary": "Generated summary",
+    "selectLead": "Select a lead",
+    "evaluateLead": "Evaluate priority",
+    "suggestedPriority": "Suggested priority",
+    "reasoning": "Reasoning"
+  },
   "documents": {
     "title": "Documents & communications",
     "tabDocuments": "Documents",
@@ -940,6 +974,7 @@
     "groupMaintenance": "Maintenance",
     "groupQuality": "Quality",
     "groupLogistics": "Logistics",
+    "groupAi": "AI",
     "groupCore": "Core",
     "permDesc": {
       "crm_contacts_read": "View contacts and companies",
@@ -1030,7 +1065,11 @@
       "logistics_drivers_read": "View the driver registry",
       "logistics_drivers_write": "Create and edit drivers",
       "logistics_delivery_notes_read": "View delivery notes and their tracking",
-      "logistics_delivery_notes_write": "Create delivery notes, dispatch, deliver, and cancel them"
+      "logistics_delivery_notes_write": "Create delivery notes, dispatch, deliver, and cancel them",
+      "ai_drafts_use": "Generate assisted drafts (follow-ups, replies, descriptions)",
+      "ai_summaries_use": "Generate company and pipeline summaries",
+      "ai_lead_scoring_use": "Evaluate a lead's suggested priority",
+      "ai_assistant_use": "Use the internal question-answering assistant"
     }
   },
   "audit": {

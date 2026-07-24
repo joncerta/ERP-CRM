@@ -43,6 +43,7 @@ const MODULES = [
   { code: 'maintenance', name: 'Mantenimiento', description: 'Registro de equipos y técnicos, órdenes de trabajo preventivas/correctivas con repuestos, e historial por equipo', isCore: false },
   { code: 'quality', name: 'Calidad', description: 'Inspecciones, no conformidades con acciones correctivas, auditorías internas/externas e indicadores — complementa Producción y Mantenimiento', isCore: false },
   { code: 'logistics', name: 'Logística', description: 'Flota de vehículos y conductores, guías de entrega con seguimiento por estado y despacho desde bodega — para clientes que distribuyen', isCore: false },
+  { code: 'ai', name: 'IA', description: 'Redacción asistida, resúmenes de clientes y del pipeline, priorización de leads, y un asistente interno de preguntas sobre los datos del tenant', isCore: false },
 ];
 
 const SALT_ROUNDS = 12;
@@ -72,6 +73,7 @@ interface SeedTenantOptions {
   enableMaintenance?: boolean;
   enableQuality?: boolean;
   enableLogistics?: boolean;
+  enableAi?: boolean;
 }
 
 async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
@@ -200,6 +202,11 @@ async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
       tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'logistics', isEnabled: true, enabledAt: new Date() }),
     );
   }
+  if (opts.enableAi) {
+    await tenantModuleRepo.save(
+      tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'ai', isEnabled: true, enabledAt: new Date() }),
+    );
+  }
 
   console.log(`Tenant "${opts.slug}" creado:`);
   console.log(`  email:    ${opts.adminEmail}`);
@@ -259,6 +266,7 @@ async function run() {
     enableMaintenance: true,
     enableQuality: true,
     enableLogistics: true,
+    enableAi: true,
   });
 
   console.log(`Seed completo: ${CURRENCIES.length} monedas, ${MODULES.length} módulos.`);

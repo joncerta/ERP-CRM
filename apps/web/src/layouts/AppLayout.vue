@@ -131,6 +131,9 @@ onUnmounted(() => {
           <template v-if="enabledModuleCodes.includes('logistics') && (auth.hasPermission('logistics.vehicles.read') || auth.hasPermission('logistics.delivery_notes.read'))">
             <RouterLink to="/logistics">{{ t('nav.logistics') }}</RouterLink>
           </template>
+          <template v-if="enabledModuleCodes.includes('ai') && (auth.hasPermission('ai.assistant.use') || auth.hasPermission('ai.drafts.use') || auth.hasPermission('ai.summaries.use') || auth.hasPermission('ai.lead_scoring.use'))">
+            <RouterLink to="/ai">{{ t('nav.ai') }}</RouterLink>
+          </template>
         </template>
       </nav>
       <div class="sidebar-footer">

@@ -1025,3 +1025,6 @@ export interface DeliveryNote {
   notes: string | null;
   items: DeliveryNoteItem[];
 }
+
+export type DraftType = 'quote_followup' | 'ticket_reply' | 'product_description';
+export type SummaryType = 'company' | 'pipeline';

@@ -159,6 +159,10 @@ const PERMISSION_GROUPS: Array<{ labelKey: string; codes: string[] }> = [
     ],
   },
   {
+    labelKey: 'roles.groupAi',
+    codes: ['ai.drafts.use', 'ai.summaries.use', 'ai.lead_scoring.use', 'ai.assistant.use'],
+  },
+  {
     labelKey: 'roles.groupCore',
     codes: [
       'core.users.read',

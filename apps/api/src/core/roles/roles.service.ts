@@ -59,6 +59,8 @@ export const DEFAULT_ROLE_TEMPLATES: Array<{ name: string; permissions: string[]
       'maintenance.technicians.read',
       'maintenance.work_orders.read',
       'logistics.delivery_notes.read',
+      'ai.drafts.use',
+      'ai.summaries.use',
     ],
   },
 ];

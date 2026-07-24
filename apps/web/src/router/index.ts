@@ -191,6 +191,12 @@ const router = createRouter({
       meta: { crmRoute: true },
     },
     {
+      path: '/ai',
+      name: 'ai',
+      component: () => import('@/views/AiView.vue'),
+      meta: { crmRoute: true },
+    },
+    {
       path: '/inventory/products',
       name: 'inventory-products',
       component: () => import('@/views/ProductsView.vue'),
