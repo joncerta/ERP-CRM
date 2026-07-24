@@ -860,3 +860,54 @@ export interface ProductionOrderConsumption {
   unitCost: number;
   totalCost: number;
 }
+
+export type EquipmentStatus = 'operational' | 'under_maintenance' | 'out_of_service';
+
+export interface Equipment {
+  id: string;
+  name: string;
+  code: string;
+  category: string;
+  location: string | null;
+  status: EquipmentStatus;
+  acquisitionDate: string | null;
+  notes: string | null;
+}
+
+export interface Technician {
+  id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  specialty: string | null;
+  userId: string | null;
+  isActive: boolean;
+}
+
+export interface WorkOrderPart {
+  id?: string;
+  productId: string;
+  quantity: number;
+}
+
+export type WorkOrderType = 'preventive' | 'corrective';
+export type WorkOrderPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type WorkOrderStatus = 'open' | 'in_progress' | 'completed' | 'cancelled';
+
+export interface MaintenanceWorkOrder {
+  id: string;
+  orderNumber: string;
+  equipmentId: string;
+  technicianId: string | null;
+  warehouseId: string;
+  type: WorkOrderType;
+  priority: WorkOrderPriority;
+  status: WorkOrderStatus;
+  scheduledDate: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  description: string;
+  resolutionNotes: string | null;
+  totalPartsCost: number;
+  parts: WorkOrderPart[];
+}

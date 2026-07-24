@@ -1064,6 +1064,42 @@ duplicar su lógica de stock.
     ya consumió stock necesitaría revertir esos movimientos, algo que
     esta versión de alcance manejable no implementa.
 
+## Mantenimiento
+
+Módulo activable `maintenance` (`maintenance/*`, permisos
+`maintenance.equipment.read/write`, `maintenance.technicians.read/write`,
+`maintenance.work_orders.read/write`) — mantenimiento preventivo y
+correctivo de equipos/maquinaria. Igual que Producción, se apoya en el
+módulo de Inventario existente (Productos, Bodegas, `StockService`) para
+los repuestos en vez de duplicar lógica de stock.
+
+- **Equipos** (`Equipment`): código único por tenant, categoría,
+  ubicación y estado (`operational` / `under_maintenance` /
+  `out_of_service`). El estado lo actualiza automáticamente el ciclo de
+  vida de las órdenes de trabajo, no se edita a mano mientras hay una
+  orden abierta sobre ese equipo.
+- **Técnicos** (`Technician`): `userId` es opcional a propósito — no todo
+  técnico de mantenimiento es necesariamente un usuario del sistema, los
+  contratistas externos son comunes en este dominio.
+- **Órdenes de trabajo** (`MaintenanceWorkOrder` + `WorkOrderPart`):
+  number auto-generado vía `DocumentSeriesService` (prefijo `OM`), tipo
+  preventivo/correctivo, prioridad y lista de repuestos planeados. Sin
+  scheduler para el mantenimiento preventivo periódico — se crea la
+  orden manualmente cuando corresponde, igual que el resto de flujos
+  dependientes del tiempo en este proyecto.
+  - **Iniciar** pasa el equipo a `under_maintenance`.
+  - **Completar** descuenta cada repuesto de `StockService` (rechaza si
+    no hay stock suficiente), guarda una foto del costo de cada uno
+    (`costPrice` de ese momento) en `totalPartsCost`, y regresa el
+    equipo a `operational`.
+  - **Cancelar** regresa el equipo a `operational` y solo está permitido
+    antes de completar la orden — los repuestos solo se descuentan de
+    stock al completar, así que cancelar nunca necesita revertir
+    movimientos de inventario.
+  - No hay un equivalente a ARL/parafiscales ni cálculo de horas-hombre
+    del técnico: esta versión de alcance manejable registra quién hizo
+    el trabajo y qué repuestos usó, no costeo laboral.
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia

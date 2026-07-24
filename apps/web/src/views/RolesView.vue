@@ -126,6 +126,17 @@ const PERMISSION_GROUPS: Array<{ labelKey: string; codes: string[] }> = [
     ],
   },
   {
+    labelKey: 'roles.groupMaintenance',
+    codes: [
+      'maintenance.equipment.read',
+      'maintenance.equipment.write',
+      'maintenance.technicians.read',
+      'maintenance.technicians.write',
+      'maintenance.work_orders.read',
+      'maintenance.work_orders.write',
+    ],
+  },
+  {
     labelKey: 'roles.groupCore',
     codes: [
       'core.users.read',
