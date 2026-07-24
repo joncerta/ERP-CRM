@@ -17,6 +17,7 @@ const DEFAULT_PREFIXES: Record<string, string> = {
   ticket: 'TK',
   production_order: 'OP',
   maintenance_work_order: 'OM',
+  quality_non_conformity: 'NC',
 };
 
 @Injectable()

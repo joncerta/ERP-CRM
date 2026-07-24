@@ -137,6 +137,17 @@ const PERMISSION_GROUPS: Array<{ labelKey: string; codes: string[] }> = [
     ],
   },
   {
+    labelKey: 'roles.groupQuality',
+    codes: [
+      'quality.inspections.read',
+      'quality.inspections.write',
+      'quality.non_conformities.read',
+      'quality.non_conformities.write',
+      'quality.audits.read',
+      'quality.audits.write',
+    ],
+  },
+  {
     labelKey: 'roles.groupCore',
     codes: [
       'core.users.read',

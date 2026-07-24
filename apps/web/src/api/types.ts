@@ -911,3 +911,72 @@ export interface MaintenanceWorkOrder {
   totalPartsCost: number;
   parts: WorkOrderPart[];
 }
+
+export type InspectionType = 'incoming' | 'in_process' | 'final';
+export type InspectionResult = 'pass' | 'fail' | 'conditional';
+
+export interface QualityInspection {
+  id: string;
+  type: InspectionType;
+  subject: string;
+  relatedProductionOrderId: string | null;
+  relatedEquipmentId: string | null;
+  inspectorUserId: string | null;
+  inspectionDate: string;
+  result: InspectionResult;
+  notes: string | null;
+}
+
+export type AuditType = 'internal' | 'external';
+export type AuditStatus = 'planned' | 'completed' | 'cancelled';
+
+export interface QualityAudit {
+  id: string;
+  type: AuditType;
+  scope: string;
+  auditor: string;
+  scheduledDate: string;
+  status: AuditStatus;
+  completedDate: string | null;
+  findings: string | null;
+}
+
+export type Severity = 'minor' | 'major' | 'critical';
+export type NonConformityStatus = 'open' | 'in_progress' | 'closed';
+export type ActionStatus = 'pending' | 'in_progress' | 'completed';
+
+export interface CorrectiveAction {
+  id?: string;
+  description: string;
+  responsibleUserId?: string;
+  dueDate?: string;
+  status: ActionStatus;
+  completedDate: string | null;
+  completionNotes: string | null;
+}
+
+export interface NonConformity {
+  id: string;
+  ncNumber: string;
+  description: string;
+  severity: Severity;
+  status: NonConformityStatus;
+  detectedDate: string;
+  closedDate: string | null;
+  inspectionId: string | null;
+  auditId: string | null;
+  actions: CorrectiveAction[];
+}
+
+export interface QualityIndicators {
+  inspections: { total: number; passed: number; failed: number; conditional: number; passRate: number | null };
+  nonConformities: {
+    total: number;
+    open: number;
+    inProgress: number;
+    closed: number;
+    bySeverity: { minor: number; major: number; critical: number };
+  };
+  correctiveActions: { total: number; pending: number; inProgress: number; completed: number; overdue: number };
+  audits: { total: number; planned: number; completed: number; cancelled: number };
+}

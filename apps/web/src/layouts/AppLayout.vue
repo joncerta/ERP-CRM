@@ -125,6 +125,9 @@ onUnmounted(() => {
           <template v-if="enabledModuleCodes.includes('maintenance') && (auth.hasPermission('maintenance.equipment.read') || auth.hasPermission('maintenance.work_orders.read'))">
             <RouterLink to="/maintenance">{{ t('nav.maintenance') }}</RouterLink>
           </template>
+          <template v-if="enabledModuleCodes.includes('quality') && auth.hasPermission('quality.inspections.read')">
+            <RouterLink to="/quality">{{ t('nav.quality') }}</RouterLink>
+          </template>
         </template>
       </nav>
       <div class="sidebar-footer">

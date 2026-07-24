@@ -1100,6 +1100,40 @@ los repuestos en vez de duplicar lógica de stock.
     del técnico: esta versión de alcance manejable registra quién hizo
     el trabajo y qué repuestos usó, no costeo laboral.
 
+## Calidad
+
+Módulo activable `quality` (`quality/*`, permisos
+`quality.inspections.read/write`, `quality.non_conformities.read/write`,
+`quality.audits.read/write`) — complementa Producción y Mantenimiento
+para clientes con requisitos de certificación (ISO 9001 y similares).
+
+- **Inspecciones** (`QualityInspection`): entrada/en proceso/final, con
+  resultado (aprobada/rechazada/condicional). `relatedProductionOrderId`
+  y `relatedEquipmentId` son opcionales — una inspección puede quedar
+  independiente (p. ej. una revisión de mercancía entrante sin orden de
+  producción todavía) o referenciar una orden/equipo existente, validado
+  contra Producción/Mantenimiento cuando se envían.
+- **No conformidades** (`NonConformity` + `CorrectiveAction`): número
+  auto-generado vía `DocumentSeriesService` (prefijo `NC`), severidad
+  (menor/mayor/crítica), y una lista de acciones correctivas anidadas
+  (mismo patrón cascade que los repuestos de Mantenimiento). Pueden
+  originarse en una inspección o auditoría (`inspectionId`/`auditId`
+  opcionales) o registrarse de forma independiente (p. ej. un reclamo de
+  cliente). **Cerrar una no conformidad exige que todas sus acciones
+  correctivas estén completadas primero** — cerrarla con acciones
+  pendientes solo escondería el problema.
+- **Auditorías** (`Audit`): internas o externas, con auditor de texto
+  libre (igual que `Technician.name` — un auditor de un ente
+  certificador externo no es necesariamente un usuario del sistema).
+  Completar registra los hallazgos; cancelar solo está permitido
+  mientras la auditoría sigue planeada.
+- **Indicadores** (`GET /quality/indicators`): tasa de aprobación de
+  inspecciones, no conformidades abiertas/cerradas por severidad,
+  acciones correctivas vencidas, y conteo de auditorías por estado —
+  todo calculado al vuelo desde las tablas actuales (mismo enfoque de
+  alcance manejable que la rentabilidad de Proyectos), sin una tabla de
+  indicadores separada que mantener sincronizada.
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia
