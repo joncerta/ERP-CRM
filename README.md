@@ -1134,6 +1134,35 @@ para clientes con requisitos de certificación (ISO 9001 y similares).
   alcance manejable que la rentabilidad de Proyectos), sin una tabla de
   indicadores separada que mantener sincronizada.
 
+## Logística
+
+Módulo activable `logistics` (`logistics/*`, permisos
+`logistics.vehicles.read/write`, `logistics.drivers.read/write`,
+`logistics.delivery_notes.read/write`) — para clientes que distribuyen,
+apoyado en Inventario (stock) y opcionalmente en Facturación.
+
+- **Vehículos** (`Vehicle`) y **conductores** (`Driver`): flota simple,
+  placa única por tenant, estado del vehículo
+  (disponible/en ruta/en mantenimiento/fuera de servicio). Igual que
+  `Technician`, `Driver.userId` es opcional — un conductor tercerizado
+  no es necesariamente un usuario del sistema.
+- **Guías de entrega** (`DeliveryNote` + `DeliveryNoteItem`): número
+  auto-generado vía `DocumentSeriesService` (prefijo `GD`), destino,
+  ítems a entregar, y opcionalmente ligada a una factura
+  (`relatedInvoiceId`, validada contra Facturación si se envía).
+  - **Despachar** es el único momento en que el stock realmente sale de
+    la bodega — se descuenta ahí, no al crear la guía (todavía es solo
+    un plan) ni al marcarla entregada (ya salió). El vehículo pasa a "en
+    ruta".
+  - **Entregar** registra quién recibió la mercancía y regresa el
+    vehículo a "disponible".
+  - **Cancelar** solo está permitido en estado planeada — una guía ya
+    despachada movió stock y cancelarla necesitaría revertir ese
+    movimiento, fuera de este alcance manejable.
+  - El "seguimiento" son las marcas de tiempo planeada → despachada →
+    entregada, no rastreo GPS en tiempo real — este proyecto no integra
+    hardware de telemetría de flota.
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia

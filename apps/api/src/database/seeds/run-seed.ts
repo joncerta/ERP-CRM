@@ -42,6 +42,7 @@ const MODULES = [
   { code: 'production', name: 'Producción', description: 'Lista de materiales (BOM), órdenes de producción con consumos y rendimientos, y costeo — solo para clientes que fabrican', isCore: false },
   { code: 'maintenance', name: 'Mantenimiento', description: 'Registro de equipos y técnicos, órdenes de trabajo preventivas/correctivas con repuestos, e historial por equipo', isCore: false },
   { code: 'quality', name: 'Calidad', description: 'Inspecciones, no conformidades con acciones correctivas, auditorías internas/externas e indicadores — complementa Producción y Mantenimiento', isCore: false },
+  { code: 'logistics', name: 'Logística', description: 'Flota de vehículos y conductores, guías de entrega con seguimiento por estado y despacho desde bodega — para clientes que distribuyen', isCore: false },
 ];
 
 const SALT_ROUNDS = 12;
@@ -70,6 +71,7 @@ interface SeedTenantOptions {
   enableProduction?: boolean;
   enableMaintenance?: boolean;
   enableQuality?: boolean;
+  enableLogistics?: boolean;
 }
 
 async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
@@ -193,6 +195,11 @@ async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
       tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'quality', isEnabled: true, enabledAt: new Date() }),
     );
   }
+  if (opts.enableLogistics) {
+    await tenantModuleRepo.save(
+      tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'logistics', isEnabled: true, enabledAt: new Date() }),
+    );
+  }
 
   console.log(`Tenant "${opts.slug}" creado:`);
   console.log(`  email:    ${opts.adminEmail}`);
@@ -251,6 +258,7 @@ async function run() {
     enableProduction: true,
     enableMaintenance: true,
     enableQuality: true,
+    enableLogistics: true,
   });
 
   console.log(`Seed completo: ${CURRENCIES.length} monedas, ${MODULES.length} módulos.`);

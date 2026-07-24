@@ -148,6 +148,17 @@ const PERMISSION_GROUPS: Array<{ labelKey: string; codes: string[] }> = [
     ],
   },
   {
+    labelKey: 'roles.groupLogistics',
+    codes: [
+      'logistics.vehicles.read',
+      'logistics.vehicles.write',
+      'logistics.drivers.read',
+      'logistics.drivers.write',
+      'logistics.delivery_notes.read',
+      'logistics.delivery_notes.write',
+    ],
+  },
+  {
     labelKey: 'roles.groupCore',
     codes: [
       'core.users.read',

@@ -980,3 +980,48 @@ export interface QualityIndicators {
   correctiveActions: { total: number; pending: number; inProgress: number; completed: number; overdue: number };
   audits: { total: number; planned: number; completed: number; cancelled: number };
 }
+
+export type VehicleStatus = 'available' | 'in_route' | 'maintenance' | 'out_of_service';
+
+export interface Vehicle {
+  id: string;
+  plate: string;
+  brand: string;
+  model: string;
+  capacityKg: number | null;
+  status: VehicleStatus;
+  notes: string | null;
+}
+
+export interface Driver {
+  id: string;
+  name: string;
+  licenseNumber: string | null;
+  phone: string | null;
+  userId: string | null;
+  isActive: boolean;
+}
+
+export interface DeliveryNoteItem {
+  id?: string;
+  productId: string;
+  quantity: number;
+}
+
+export type DeliveryNoteStatus = 'planned' | 'in_transit' | 'delivered' | 'cancelled';
+
+export interface DeliveryNote {
+  id: string;
+  noteNumber: string;
+  vehicleId: string;
+  driverId: string;
+  warehouseId: string;
+  relatedInvoiceId: string | null;
+  destinationAddress: string;
+  recipientName: string | null;
+  status: DeliveryNoteStatus;
+  dispatchedAt: string | null;
+  deliveredAt: string | null;
+  notes: string | null;
+  items: DeliveryNoteItem[];
+}
