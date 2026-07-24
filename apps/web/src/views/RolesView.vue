@@ -108,6 +108,15 @@ const PERMISSION_GROUPS: Array<{ labelKey: string; codes: string[] }> = [
     ],
   },
   {
+    labelKey: 'roles.groupProjects',
+    codes: [
+      'projects.projects.read',
+      'projects.projects.write',
+      'projects.time_entries.read',
+      'projects.time_entries.write',
+    ],
+  },
+  {
     labelKey: 'roles.groupCore',
     codes: [
       'core.users.read',

@@ -1003,6 +1003,35 @@ simplificada e ilustrativa, no un motor de liquidación legal.
   evaluación se calcula `overallScore` como el promedio de todos los
   ítems y queda bloqueada para edición.
 
+## Proyectos
+
+Módulo activable `projects` (`projects/*`, permisos
+`projects.projects.read/write`, `projects.time_entries.read/write`) —
+para el segmento de clientes que venden servicios/tiempo, no solo
+producto.
+
+- **Proyectos** (`Project`): nombre, cliente (empresa del CRM, opcional),
+  líder, presupuesto, moneda, fecha de inicio y fecha fin planeada/real,
+  y estado (planeación/en curso/en pausa/completado/cancelado).
+- **Hitos** (`ProjectMilestone`): etapas con fecha objetivo; al marcarlas
+  completadas o registrar un retraso, se **notifica en tiempo real al
+  líder del proyecto** (`Project.leaderUserId`) — una notificación
+  directa, no el escalamiento por jerarquía de RR.HH./Notificaciones,
+  porque el líder de un proyecto no necesariamente es el jefe de nadie.
+- **Recursos asignados** (`ProjectResource`): un usuario del equipo con
+  un rol de texto libre y una tarifa por hora.
+- **Registro de horas** (`ProjectTimeEntry`): cualquiera con el permiso
+  de escritura puede registrar horas **para sí mismo** en un proyecto
+  donde esté asignado como recurso; solo un administrador completo (`*`)
+  puede registrar a nombre de alguien más. El costo de cada entrada
+  (`horas × tarifa`) se guarda como una foto del momento — si la tarifa
+  del recurso cambia después, los costos ya registrados no se recalculan.
+- **Avance y rentabilidad** (`GET /projects/:id/summary`): no son
+  entidades nuevas, se calculan al vuelo — avance es el porcentaje de
+  hitos completados, y rentabilidad es presupuesto menos el costo
+  acumulado de horas registradas (sin vínculo con facturas/ingresos
+  reales, así que es "costo contra presupuesto", no un P&L completo).
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia

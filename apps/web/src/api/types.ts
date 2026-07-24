@@ -759,3 +759,60 @@ export interface PerformanceReview {
   comments: string | null;
   createdAt: string;
 }
+
+export type ProjectStatus = 'planning' | 'in_progress' | 'on_hold' | 'completed' | 'cancelled';
+
+export interface Project {
+  id: string;
+  name: string;
+  companyId: string | null;
+  leaderUserId: string;
+  description: string | null;
+  status: ProjectStatus;
+  budget: number;
+  currencyCode: string;
+  startDate: string;
+  plannedEndDate: string | null;
+  actualEndDate: string | null;
+}
+
+export interface ProjectSummary {
+  totalMilestones: number;
+  completedMilestones: number;
+  delayedMilestones: number;
+  progressPercent: number;
+  totalCost: number;
+  budget: number;
+  profitability: number;
+  marginPercent: number | null;
+}
+
+export type MilestoneStatus = 'pending' | 'completed' | 'delayed';
+
+export interface ProjectMilestone {
+  id: string;
+  projectId: string;
+  name: string;
+  dueDate: string;
+  status: MilestoneStatus;
+  completedAt: string | null;
+  notes: string | null;
+}
+
+export interface ProjectResource {
+  id: string;
+  projectId: string;
+  userId: string;
+  roleLabel: string;
+  hourlyRate: number;
+}
+
+export interface ProjectTimeEntry {
+  id: string;
+  projectId: string;
+  resourceId: string;
+  date: string;
+  hours: number;
+  description: string | null;
+  cost: number;
+}
