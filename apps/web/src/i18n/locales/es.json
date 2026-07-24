@@ -22,6 +22,7 @@
     "documents": "Documentos",
     "hr": "Recursos humanos",
     "projects": "Proyectos",
+    "production": "Producción",
     "platform": "Plataforma",
     "settings": "Configuración",
     "users": "Usuarios",
@@ -665,6 +666,33 @@
     "cost": "Costo",
     "description": "Descripción"
   },
+  "production": {
+    "title": "Producción",
+    "tabBoms": "Listas de materiales",
+    "tabOrders": "Órdenes de producción",
+    "newBom": "Nueva lista de materiales",
+    "newOrder": "Nueva orden",
+    "bomName": "Nombre",
+    "product": "Producto",
+    "outputQuantity": "Cantidad de salida",
+    "lines": "Componentes",
+    "component": "Componente",
+    "bom": "Lista de materiales",
+    "orderNumber": "N.º de orden",
+    "warehouse": "Bodega",
+    "quantityPlanned": "Cantidad planeada",
+    "quantityProduced": "Cantidad producida",
+    "totalCost": "Costo total",
+    "start": "Iniciar",
+    "complete": "Completar",
+    "viewConsumptions": "Ver consumos",
+    "quantityConsumed": "Cantidad consumida",
+    "unitCost": "Costo unitario",
+    "orderStatus_draft": "Borrador",
+    "orderStatus_in_progress": "En curso",
+    "orderStatus_completed": "Completada",
+    "orderStatus_cancelled": "Cancelada"
+  },
   "documents": {
     "title": "Documentos y comunicaciones",
     "tabDocuments": "Documentos",
@@ -770,6 +798,7 @@
     "groupDocuments": "Documentos",
     "groupHr": "Recursos humanos",
     "groupProjects": "Proyectos",
+    "groupProduction": "Producción",
     "groupCore": "Núcleo",
     "permDesc": {
       "crm_contacts_read": "Ver contactos y empresas",
@@ -838,7 +867,11 @@
       "projects_projects_read": "Ver proyectos, hitos, recursos asignados y el resumen de avance/rentabilidad",
       "projects_projects_write": "Crear y editar proyectos, hitos y asignaciones de recursos",
       "projects_time_entries_read": "Ver las horas registradas por proyecto",
-      "projects_time_entries_write": "Registrar horas propias en los proyectos donde estás asignado"
+      "projects_time_entries_write": "Registrar horas propias en los proyectos donde estás asignado",
+      "production_bom_read": "Ver las listas de materiales (BOM) de los productos",
+      "production_bom_write": "Crear y editar listas de materiales",
+      "production_orders_read": "Ver órdenes de producción, sus consumos y costeo",
+      "production_orders_write": "Crear órdenes de producción, iniciarlas, completarlas y cancelarlas"
     }
   },
   "audit": {

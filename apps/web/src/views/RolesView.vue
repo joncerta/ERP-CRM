@@ -117,6 +117,15 @@ const PERMISSION_GROUPS: Array<{ labelKey: string; codes: string[] }> = [
     ],
   },
   {
+    labelKey: 'roles.groupProduction',
+    codes: [
+      'production.bom.read',
+      'production.bom.write',
+      'production.orders.read',
+      'production.orders.write',
+    ],
+  },
+  {
     labelKey: 'roles.groupCore',
     codes: [
       'core.users.read',

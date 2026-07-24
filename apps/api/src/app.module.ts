@@ -17,6 +17,7 @@ import { AutomationsModule } from './automations/automations.module';
 import { DocumentsModule } from './documents/documents.module';
 import { HrModule } from './hr/hr.module';
 import { ProjectsModule } from './projects/projects.module';
+import { ProductionModule } from './production/production.module';
 import { AuditModule } from './audit/audit.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
@@ -42,6 +43,7 @@ import { RequestContextInterceptor } from './common/interceptors/request-context
     DocumentsModule,
     HrModule,
     ProjectsModule,
+    ProductionModule,
     AuditModule,
   ],
   controllers: [AppController],

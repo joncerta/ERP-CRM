@@ -1032,6 +1032,38 @@ producto.
   acumulado de horas registradas (sin vínculo con facturas/ingresos
   reales, así que es "costo contra presupuesto", no un P&L completo).
 
+## Producción
+
+Módulo activable `production` (`production/*`, permisos
+`production.bom.read/write`, `production.orders.read/write`) — solo
+para clientes que fabrican, no que revenden. Construido sobre el módulo
+de Inventario existente (Productos, Bodegas, `StockService`) en vez de
+duplicar su lógica de stock.
+
+- **Lista de materiales / BOM** (`BillOfMaterial` + `BillOfMaterialLine`):
+  la "receta" de un producto terminado — qué componentes (también
+  Productos, simplemente consumidos en vez de vendidos) y en qué
+  cantidad se necesitan por cada `outputQuantity` unidades producidas.
+  Un producto puede tener varias BOM (versiones); la orden de producción
+  elige una explícitamente.
+- **Órdenes de producción** (`ProductionOrder`): number auto-generado
+  vía el mismo `DocumentSeriesService` que usan cotizaciones/facturas
+  (prefijo `OP`). Sin scheduler — "planeación y tiempos" son fechas
+  planeadas vs. reales que alguien dispara manualmente
+  (`POST .../start`, `POST .../complete`), igual que todo lo demás en
+  este proyecto que depende del tiempo.
+  - **Iniciar** consume las materias primas de `StockService` escaladas
+    a `quantityPlanned` (rechaza si no hay stock suficiente — la misma
+    validación que ya protege el resto del inventario) y guarda una
+    foto del costo de cada componente en `ProductionOrderConsumption`
+    (`costPrice` de ese momento, no recalculado si cambia después).
+  - **Completar** agrega el producto terminado al stock por la cantidad
+    **realmente producida** (no la planeada — soporta variación de
+    rendimiento) y calcula el costo total/unitario de la orden.
+  - **Cancelar** solo está permitido en estado borrador — una orden que
+    ya consumió stock necesitaría revertir esos movimientos, algo que
+    esta versión de alcance manejable no implementa.
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia

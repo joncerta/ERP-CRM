@@ -15,6 +15,7 @@ const DEFAULT_PREFIXES: Record<string, string> = {
   journal_entry: 'AST',
   fixed_asset: 'AF',
   ticket: 'TK',
+  production_order: 'OP',
 };
 
 @Injectable()

@@ -53,6 +53,8 @@ export const DEFAULT_ROLE_TEMPLATES: Array<{ name: string; permissions: string[]
       'projects.projects.read',
       'projects.time_entries.read',
       'projects.time_entries.write',
+      'production.bom.read',
+      'production.orders.read',
     ],
   },
 ];

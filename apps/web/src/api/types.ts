@@ -816,3 +816,47 @@ export interface ProjectTimeEntry {
   description: string | null;
   cost: number;
 }
+
+export interface BomLine {
+  id?: string;
+  componentProductId: string;
+  quantity: number;
+}
+
+export interface BillOfMaterial {
+  id: string;
+  productId: string;
+  name: string;
+  outputQuantity: number;
+  isActive: boolean;
+  notes: string | null;
+  lines: BomLine[];
+}
+
+export type ProductionOrderStatus = 'draft' | 'in_progress' | 'completed' | 'cancelled';
+
+export interface ProductionOrder {
+  id: string;
+  orderNumber: string;
+  productId: string;
+  bomId: string;
+  warehouseId: string;
+  quantityPlanned: number;
+  quantityProduced: number;
+  status: ProductionOrderStatus;
+  plannedStartDate: string | null;
+  plannedEndDate: string | null;
+  actualStartDate: string | null;
+  actualEndDate: string | null;
+  totalCost: number;
+  notes: string | null;
+}
+
+export interface ProductionOrderConsumption {
+  id: string;
+  orderId: string;
+  componentProductId: string;
+  quantityConsumed: number;
+  unitCost: number;
+  totalCost: number;
+}

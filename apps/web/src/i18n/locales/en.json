@@ -22,6 +22,7 @@
     "documents": "Documents",
     "hr": "Human resources",
     "projects": "Projects",
+    "production": "Production",
     "platform": "Platform",
     "settings": "Settings",
     "users": "Users",
@@ -665,6 +666,33 @@
     "cost": "Cost",
     "description": "Description"
   },
+  "production": {
+    "title": "Production",
+    "tabBoms": "Bills of materials",
+    "tabOrders": "Production orders",
+    "newBom": "New bill of materials",
+    "newOrder": "New order",
+    "bomName": "Name",
+    "product": "Product",
+    "outputQuantity": "Output quantity",
+    "lines": "Components",
+    "component": "Component",
+    "bom": "Bill of materials",
+    "orderNumber": "Order #",
+    "warehouse": "Warehouse",
+    "quantityPlanned": "Quantity planned",
+    "quantityProduced": "Quantity produced",
+    "totalCost": "Total cost",
+    "start": "Start",
+    "complete": "Complete",
+    "viewConsumptions": "View consumption",
+    "quantityConsumed": "Quantity consumed",
+    "unitCost": "Unit cost",
+    "orderStatus_draft": "Draft",
+    "orderStatus_in_progress": "In progress",
+    "orderStatus_completed": "Completed",
+    "orderStatus_cancelled": "Cancelled"
+  },
   "documents": {
     "title": "Documents & communications",
     "tabDocuments": "Documents",
@@ -770,6 +798,7 @@
     "groupDocuments": "Documents",
     "groupHr": "Human resources",
     "groupProjects": "Projects",
+    "groupProduction": "Production",
     "groupCore": "Core",
     "permDesc": {
       "crm_contacts_read": "View contacts and companies",
@@ -838,7 +867,11 @@
       "projects_projects_read": "View projects, milestones, assigned resources, and the progress/profitability summary",
       "projects_projects_write": "Create and edit projects, milestones, and resource assignments",
       "projects_time_entries_read": "View logged hours per project",
-      "projects_time_entries_write": "Log your own hours on projects you're assigned to"
+      "projects_time_entries_write": "Log your own hours on projects you're assigned to",
+      "production_bom_read": "View products' bills of materials (BOM)",
+      "production_bom_write": "Create and edit bills of materials",
+      "production_orders_read": "View production orders, their consumption, and costing",
+      "production_orders_write": "Create production orders, start, complete, and cancel them"
     }
   },
   "audit": {
