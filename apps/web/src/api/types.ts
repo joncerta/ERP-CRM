@@ -668,3 +668,94 @@ export interface CommunicationLogEntry {
   occurredAt: string;
   loggedByUserId: string | null;
 }
+
+export type DocumentIdType = 'cc' | 'ce' | 'passport' | 'other';
+export type ContractType = 'indefinite' | 'fixed_term' | 'service_provision' | 'apprenticeship';
+export type EmploymentStatus = 'active' | 'on_leave' | 'terminated';
+
+export interface Employee {
+  id: string;
+  userId: string;
+  documentType: DocumentIdType;
+  documentId: string;
+  birthDate: string | null;
+  address: string | null;
+  phone: string | null;
+  emergencyContactName: string | null;
+  emergencyContactPhone: string | null;
+  contractType: ContractType;
+  baseSalary: number;
+  hireDate: string;
+  terminationDate: string | null;
+  vacationDaysPerYear: number;
+  employmentStatus: EmploymentStatus;
+}
+
+export type LeaveType = 'vacation' | 'sick_leave' | 'unpaid_leave' | 'other';
+export type LeaveRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+
+export interface LeaveRequest {
+  id: string;
+  employeeId: string;
+  type: LeaveType;
+  startDate: string;
+  endDate: string;
+  daysRequested: number;
+  reason: string | null;
+  status: LeaveRequestStatus;
+  reviewedByUserId: string | null;
+  reviewedAt: string | null;
+  reviewNote: string | null;
+  createdAt: string;
+}
+
+export interface VacationBalance {
+  earned: number;
+  taken: number;
+  balance: number;
+}
+
+export type PayrollRunStatus = 'draft' | 'processed';
+
+export interface PayrollRun {
+  id: string;
+  periodLabel: string;
+  periodStart: string;
+  periodEnd: string;
+  status: PayrollRunStatus;
+  processedAt: string | null;
+}
+
+export interface PayrollRunLine {
+  id: string;
+  payrollRunId: string;
+  employeeId: string;
+  baseSalary: number;
+  overtimeHours: number;
+  overtimeAmount: number;
+  healthDeduction: number;
+  pensionDeduction: number;
+  grossPay: number;
+  netPay: number;
+}
+
+export interface ScoredItem {
+  description: string;
+  score: number;
+}
+
+export type PerformanceReviewStatus = 'draft' | 'submitted';
+
+export interface PerformanceReview {
+  id: string;
+  employeeId: string;
+  reviewerUserId: string;
+  periodLabel: string;
+  objectives: ScoredItem[];
+  competencies: ScoredItem[];
+  overallScore: number | null;
+  status: PerformanceReviewStatus;
+  submittedAt: string | null;
+  comments: string | null;
+  createdAt: string;
+}

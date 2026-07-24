@@ -958,6 +958,51 @@ unificada de comunicaciones por contacto.
   un servicio de terceros sin credenciales en este proyecto); es un
   reconocimiento honesto de "quién escribió su nombre para aceptar esto".
 
+## Recursos humanos y nómina
+
+Módulo activable `hr` (`hr/*`, permisos `hr.employees.read/write`,
+`hr.leave_requests.read/write`, `hr.payroll.read/write`,
+`hr.performance.read/write`) — el de mayor riesgo legal del catálogo de
+módulos (nómina colombiana real necesita integración PILA con EPS/AFP/ARL,
+que este proyecto no tiene), así que es deliberadamente una versión
+simplificada e ilustrativa, no un motor de liquidación legal.
+
+- **Empleados** (`Employee`): la "hoja de vida" — una extensión 1:1 de un
+  `User` existente (documento, fecha de nacimiento, contacto de
+  emergencia, tipo de contrato, salario base, fecha de ingreso/retiro).
+  Reutiliza los campos que `User` ya tenía de la Estructura organizacional
+  (módulo 8): `managerId`, `branchId`, `departmentId`, `positionId` — no
+  se duplican.
+- **Vacaciones y licencias** (`LeaveRequest`): cualquier persona con el
+  permiso de escritura puede solicitar vacaciones/licencia **para sí
+  misma**; solo el líder directo del empleado (`User.managerId`) o un
+  administrador completo (`*`) puede aprobar o rechazar — verificado en
+  el servicio, no solo por el permiso. Al crear la solicitud se notifica
+  al líder **en tiempo real** vía `NotificationEscalationService` (el
+  mismo mecanismo de escalamiento por jerarquía del módulo 7); al
+  aprobar/rechazar se notifica de vuelta al empleado. El saldo de
+  vacaciones (`GET /hr/leave-requests/vacation-balance/:employeeId`) es
+  una prorrata simplificada (días legales/año × días de servicio ÷ 360),
+  no el calendario legal colombiano exacto (que excluye incapacidades y
+  suspensiones del período de causación).
+- **Nómina** (`PayrollRun` + `PayrollRunLine`): liquidación por lotes,
+  disparada manualmente (`POST /hr/payroll/runs/:id/process`) — no hay
+  scheduler en este proyecto, mismo patrón que depreciación, facturación
+  recurrente, nutrición de Marketing y automatizaciones. El cálculo es
+  una simplificación ilustrativa: deducción plana de salud y pensión
+  (4%+4%) sobre el salario devengado, un único multiplicador de hora
+  extra (1.25× sobre una base de 240 horas/mes) en vez de las ~6 tarifas
+  legalmente distintas de horas extra/festivos en Colombia, y sin
+  ARL, parafiscales, topes/exoneraciones legales, ni provisión de
+  cesantías o prima — una liquidación real necesita software certificado
+  con integración PILA, que este proyecto no tiene credenciales para
+  usar.
+- **Evaluaciones de desempeño** (`PerformanceReview`): objetivos y
+  competencias como arreglos JSON con puntaje 1-5 cada uno (no un
+  constructor de marcos de competencias configurable); al enviar la
+  evaluación se calcula `overallScore` como el promedio de todos los
+  ítems y queda bloqueada para edición.
+
 ## Editar y eliminar registros
 
 Empresas, Contactos y Leads se pueden editar y eliminar desde su propia

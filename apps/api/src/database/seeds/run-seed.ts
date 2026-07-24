@@ -37,6 +37,7 @@ const MODULES = [
   { code: 'marketing', name: 'Marketing', description: 'Campañas de email/SMS/WhatsApp, formularios de captura de leads, segmentación y secuencias de nutrición', isCore: false },
   { code: 'automation', name: 'Automatizaciones y reportes', description: 'Reglas on/off, webhooks salientes y reportes por vendedor/cliente/campaña con forecast', isCore: false },
   { code: 'documents', name: 'Documentos y comunicaciones', description: 'Archivos adjuntos por empresa/contacto/oportunidad y bitácora unificada de comunicaciones por contacto', isCore: false },
+  { code: 'hr', name: 'Recursos humanos y nómina', description: 'Expedientes de empleados, vacaciones y licencias con aprobación del líder, liquidación de nómina simplificada y evaluaciones de desempeño', isCore: false },
 ];
 
 const SALT_ROUNDS = 12;
@@ -60,6 +61,7 @@ interface SeedTenantOptions {
   enableMarketing?: boolean;
   enableAutomation?: boolean;
   enableDocuments?: boolean;
+  enableHr?: boolean;
 }
 
 async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
@@ -158,6 +160,11 @@ async function seedTenant(ds: DataSource, opts: SeedTenantOptions) {
       tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'documents', isEnabled: true, enabledAt: new Date() }),
     );
   }
+  if (opts.enableHr) {
+    await tenantModuleRepo.save(
+      tenantModuleRepo.create({ tenantId: tenant.id, moduleCode: 'hr', isEnabled: true, enabledAt: new Date() }),
+    );
+  }
 
   console.log(`Tenant "${opts.slug}" creado:`);
   console.log(`  email:    ${opts.adminEmail}`);
@@ -211,6 +218,7 @@ async function run() {
     enableMarketing: true,
     enableAutomation: true,
     enableDocuments: true,
+    enableHr: true,
   });
 
   console.log(`Seed completo: ${CURRENCIES.length} monedas, ${MODULES.length} módulos.`);

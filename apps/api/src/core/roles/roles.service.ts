@@ -48,6 +48,8 @@ export const DEFAULT_ROLE_TEMPLATES: Array<{ name: string; permissions: string[]
       'documents.files.write',
       'documents.communications.read',
       'documents.communications.write',
+      'hr.leave_requests.read',
+      'hr.leave_requests.write',
     ],
   },
 ];

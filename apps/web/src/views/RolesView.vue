@@ -95,6 +95,19 @@ const PERMISSION_GROUPS: Array<{ labelKey: string; codes: string[] }> = [
     ],
   },
   {
+    labelKey: 'roles.groupHr',
+    codes: [
+      'hr.employees.read',
+      'hr.employees.write',
+      'hr.leave_requests.read',
+      'hr.leave_requests.write',
+      'hr.payroll.read',
+      'hr.payroll.write',
+      'hr.performance.read',
+      'hr.performance.write',
+    ],
+  },
+  {
     labelKey: 'roles.groupCore',
     codes: [
       'core.users.read',
